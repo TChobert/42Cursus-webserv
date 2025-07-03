@@ -5,6 +5,9 @@
 #include <exception>
 #include "parse_utils.hpp"
 
+typedef std::string str;
+typedef std::map<str, str> mapStr;
+typedef std::pair<str, str> pairStr;
 
 struct startLine {
 	std::string method;
@@ -16,6 +19,11 @@ startLine parseStartLine(std::string& s);
 std::string extractMethod(std::string& s);
 std::string extractRequestURI(std::string& s);
 std::pair<int, int> extractHTTPVersion(std::string& s);
+
+struct requestHeader {
+	mapStr map;
+};
+
 /*
 enum method {
 	GET,
