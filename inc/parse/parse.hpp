@@ -1,7 +1,22 @@
+#pragma once
 #include <string>
 #include <map>
 #include <vector>
+#include <exception>
+#include "parse_utils.hpp"
 
+
+struct startLine {
+	std::string method;
+	std::string requestURI;
+	std::pair<int,int> version;
+};
+
+startLine parseStartLine(std::string& s);
+std::string extractMethod(std::string& s);
+std::string extractRequestURI(std::string& s);
+std::pair<int, int> extractHTTPVersion(std::string& s);
+/*
 enum method {
 	GET,
 	POST,
@@ -12,8 +27,8 @@ enum method {
 enum parserState {
 	NEED_READ,
 	NEED_VALID,
-	ILLEGAL,
-	UNKNOWN_METHOD,
+	PARSE_ERROR,
+	TOO_LARGE,
 	DONE
 };
 
@@ -28,3 +43,4 @@ public:
 	void			getBody();
 
 };
+*/
