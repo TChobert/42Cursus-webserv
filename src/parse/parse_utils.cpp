@@ -1,6 +1,5 @@
 #include "../../inc/parse/parse.hpp"
 
-
 bool isCTL(char c) {return c <= 31 || c == 127;}
 bool isUnserved(char c) {return std::isalnum(c) || mark.find(c) != npos;}
 
