@@ -6,4 +6,6 @@
 
 std::string intToString(int n);
 
+std::string getCurrentHttpDate();
+
 #endif
