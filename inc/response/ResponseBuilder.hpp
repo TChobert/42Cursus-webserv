@@ -14,8 +14,6 @@ class ResponseBuilder
 	public:
 		std::string build(Conversation& conv);
 
-	private:
-
 };
 
 #endif

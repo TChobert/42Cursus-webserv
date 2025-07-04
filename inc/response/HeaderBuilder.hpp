@@ -2,6 +2,7 @@
 # define HEADERBUILDER_HPP
 
 # include <string>
+# include <sstream>
 # include "HttpResponse.hpp"
 # include "HttpRequest.hpp"
 
@@ -13,6 +14,10 @@ class HeaderBuilder
 {
 	private:
 		static std::string buildGenericHeaders(const HttpResponse& response, const HttpRequest& request);
+		static std::string buildDateHeader();
+		static std::string buildContentLengthHeader(const HttpResponse& response);
+		static std::string buildContentTypeHeader(const HttpResponse& request);
+
 		static std::string buildCustomHeaders(const HttpResponse& response);
 
 	public:
