@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <vector>
+#include <map>
 
 struct serverConfig;
 
@@ -9,26 +10,16 @@ class ConfigStore {
 
 	private:
 
-	std::vector<serverConfig>	_configs;
+	std::vector<serverConfig> _configsBeforeInit;
+	std::map<int, serverConfig>	_configs;
 
 	public:
 
-	ConfigStore(const std::vector<serverConfig>& configs);
-	ConfigStore(const ConfigStore& other);
-	ConfigStore&	operator=(const ConfigStore& other);
+	ConfigStore(const std::vector<serverConfig>& configsBeforeInit);
 	~ConfigStore(void);
 
-	//Fonction de matching a implementer
-	const serverConfig&					getServerConfig(int index);
-	const std::vector<serverConfig>&	getAllConfigs(void);
-	size_t								size(void);
+	void									bindSocketToConfig(int fd, const serverConfig& config);
+	const	serverConfig&					getConfig(int serverSocket);
+	const std::map<int, serverConfig>&		getAllConfigs(void);
+	size_t									size(void);
 };
-
-// CONFIG STORE //
-
-// Classe utilisee pour stocker la ou les configurations identifiees et extraites lors du parsing du *.conf
-
-// Utile pour deux raisons avant tout :
-
-//	- Initialiser chaque serveur (-> EventsManager)
-//	- Lorsque que le parsing de la requete d'un client a ete effectuee, recuperer la config via le hostname et verifier que tout est ok

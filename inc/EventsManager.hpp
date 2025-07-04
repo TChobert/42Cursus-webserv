@@ -5,6 +5,8 @@
 #include <map>
 #include <set>
 
+#include "Dispatcher.hpp"
+
 #define MAX_EVENTS 64 // arbitraire, a changer ou non
 
 class ConfigStore;
