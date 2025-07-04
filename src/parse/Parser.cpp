@@ -1,5 +1,14 @@
-#include "../../inc/parse/parse.hpp"
+#include "../../inc/parse/Parser.hpp"
 
+using namespace std;
+using namespace ParserRoutine;
+
+void Parser::parseStartLine(Conversation& conv) {
+	conv.req.method = extractMethod(buf[conv.fd]);
+	conv.req.uri = extractRequestURI(buf[conv.fd]);
+	conv.req.method = extractMethod(buf[conv.fd]);
+}
+/*
 void	Parser::parseStartLine() {
 	size_t pos = head[0].find(" ");
 	if (pos == std::string::npos) {
@@ -37,3 +46,4 @@ void	Parser::getHeader() {
 	parseStartLine();
 	parseHeader();
 }
+*/
