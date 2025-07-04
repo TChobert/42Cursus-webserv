@@ -9,7 +9,6 @@ class Dispatcher {
 	private:
 
 	int&	_epollFd;
-	
 
 	public:
 
