@@ -24,8 +24,13 @@ std::string HeaderBuilder::buildDateHeader()
 std::string HeaderBuilder::buildContentLengthHeader(const HttpResponse& response)
 {
 	if (response.body.empty())
-		return ""; // pas de Content-Length si pas de body mais attention, a checker s'il y a pas d'autres cas
-					// a verifier
+	{
+		if (response.statusCode == 204 || response.statusCode == 304 || (response.statusCode >= 100 && response.statusCode < 200))
+		{
+			return "Content-Length: 0\r\n";
+		}
+		return "";
+	}
 
 	return "Content-Length: " + intToString(response.body.size()) + "\r\n";
 }
@@ -33,8 +38,7 @@ std::string HeaderBuilder::buildContentLengthHeader(const HttpResponse& response
 std::string HeaderBuilder::buildContentTypeHeader(const HttpResponse& response)
 {
 	if (response.body.empty())
-		return ""; // pas de Content-Length si pas de body mais attention, a checker s'il y a pas d'autres cas
-					// a verifier
+		return ""; // pas de Content-Length si pas de body
 
 	return "Content-Type: " + response.contentType + "\r\n";
 }
@@ -49,7 +53,8 @@ std::string HeaderBuilder::buildConnectionHeader(const HttpResponse& response)
 
 std::string HeaderBuilder::buildCustomHeaders(const HttpResponse& response)
 {
-
+	//a developper en fonction des redirections (301 etc)
+	return "";
 }
 
 /* ---------------- PUBLIC METHODS ------------------ */

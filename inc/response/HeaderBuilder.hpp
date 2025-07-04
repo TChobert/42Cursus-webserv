@@ -4,11 +4,8 @@
 # include <string>
 # include <sstream>
 # include "HttpResponse.hpp"
-# include "HttpRequest.hpp"
 
-class Conversation;
 class HttpResponse;
-class HttpRequest;
 
 class HeaderBuilder
 {
