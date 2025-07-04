@@ -3,14 +3,14 @@
 
 /* ---------------- PRIVATE METHODS ------------------ */
 
-std::string HeaderBuilder::buildGenericHeaders(const HttpResponse& response, const HttpRequest& request)
+std::string HeaderBuilder::buildGenericHeaders(const HttpResponse& response)
 {
 	std::ostringstream headers;
 
 	headers << buildDateHeader();
 	headers << buildContentLengthHeader(response);
 	headers << buildContentTypeHeader(response);
-	headers << buildConnectionHeader(request);
+	headers << buildConnectionHeader(response);
 
 	headers << "\r\n";
 
@@ -54,11 +54,11 @@ std::string HeaderBuilder::buildCustomHeaders(const HttpResponse& response)
 
 /* ---------------- PUBLIC METHODS ------------------ */
 
-std::string HeaderBuilder::build(const HttpResponse& response, const HttpRequest& request)
+std::string HeaderBuilder::build(const HttpResponse& response)
 {
 	std::ostringstream headers;
 
-	headers << HeaderBuilder::buildGenericHeaders(response, request);
+	headers << HeaderBuilder::buildGenericHeaders(response);
 	headers << HeaderBuilder::buildCustomHeaders(response);
 	headers << "\r\n";
 
