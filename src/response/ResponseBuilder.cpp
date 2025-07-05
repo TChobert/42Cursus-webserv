@@ -3,10 +3,9 @@
 std::string	ResponseBuilder::build(Conversation& conv)
 {
 	HttpResponse& response = conv.response;
-	HttpRequest& request = conv.request;
 
 	std::string statusLine = StatusLineBuilder::build(response);
-	std::string headers = HeaderBuilder::build(response, request, conv);
+	std::string headers = HeaderBuilder::build(response);
 	std::string body = BodyBuilder::build(response);
 
 	return (ResponseAssembler::assemble(statusLine, headers, body));

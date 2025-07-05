@@ -13,8 +13,6 @@ std::string HeaderBuilder::buildGenericHeaders(const HttpResponse& response)
 	headers << buildContentLengthHeader(response);
 	headers << buildConnectionHeader(response);
 
-	headers << "\r\n";
-
 	return headers.str();
 }
 

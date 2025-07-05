@@ -16,6 +16,8 @@ class HeaderBuilder
 		static std::string buildContentTypeHeader(const HttpResponse& response);
 		static std::string buildServerHeader();
 		static std::string buildConnectionHeader(const HttpResponse& response);
+		//question du body lorsque chunk, a gerer ou pas ?
+		// dans ce cas, prevoir Transfer-Encoding: chunked (et mieux gerer body ?)
 
 		static std::string buildCustomHeaders(const HttpResponse& response);
 		static std::string buildLocationHeader(const HttpResponse& response);
