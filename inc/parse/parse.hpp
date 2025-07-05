@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include <map>
 #include "parse_utils.hpp"
 
 struct request {
@@ -22,7 +21,7 @@ namespace ParserRoutine {
 	std::string extractRequestURI(std::string& s);
 	std::pair<int, int> extractHTTPVersion(std::string& s);
 
-	void parseHeader(Conversation& conv);
+	void parseAllHeader(Conversation& conv);
 	pairStr extractOneHeader(std::string& s);
 
 	std::string parseBodyUnchunked(std::string& s, int len);
