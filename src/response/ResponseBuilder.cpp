@@ -5,7 +5,7 @@ std::string	ResponseBuilder::build(Conversation& conv)
 	HttpResponse& response = conv.response;
 	HttpRequest& request = conv.request;
 
-	std::string statusLine = StatusLineBuilder::build(response.statusCode);
+	std::string statusLine = StatusLineBuilder::build(response);
 	std::string headers = HeaderBuilder::build(response, request, conv);
 	std::string body = BodyBuilder::build(response);
 
