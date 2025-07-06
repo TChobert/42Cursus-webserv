@@ -38,7 +38,8 @@ pairStr extractOneField(string& s) {
 
 bool isValidFieldValue(string& s) {
 	for (size_t i = 0; i < s.size(); i++) {
-		if (s[i] >= 0 && s[i] < ' ' && s[i] != '\t')
+		if ((s[i] >= 0 && s[i] < ' ' && s[i] != '\t')
+				|| s[i] == 127)
 			return false;
 	}
 	return true;

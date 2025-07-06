@@ -18,11 +18,3 @@ int extractInt(std::string& s);
 std::string extractToken(std::string& s);
 void deleteLeadOWS(std::string& s);
 void deleteTrailOWS(std::string& s);
-
-
-/*
-bool isCTL(char c);
-bool isUnreserved(char c);
-void deleteLWS(std::string& s);
-std::string extractUntilLWS(std::string& s);
-*/

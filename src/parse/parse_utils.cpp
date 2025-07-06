@@ -46,10 +46,3 @@ void deleteTrailOWS(string& s) {
 		return ;
 	s.erase(pos + 1, s.size() - pos - 1);
 }
-
-/*
-bool isCTL(char c) {return c <= 31 || c == 127;}
-
-bool isUnserved(char c) {return isalnum(c) || mark.find(c) != npos;}
-
-*/

@@ -79,16 +79,20 @@ void Parser::parse(Conversation& conv) {
 	try {
 		if (conv.pState == BODY && conv.state == PARSE_HEADER)
 			conv.pState = SKIP_BODY;
-		if (conv.pState == HEADER)
-			parseHeader(conv);
-		else if (conv.pState == BODY)
-			parseBody(conv);
-		else {
-			parseBody(conv);
-			if (conv.state == EXEC) {
-				conv.pState = HEADER;
+		switch (conv.pState) {
+			case SKIP_BODY:
+				parseBody(conv);
+				if (conv.state == EXEC) {
+					conv.pState = HEADER;
+					parseHeader(conv);
+				}
+				break;
+			case HEADER:
 				parseHeader(conv);
-			}
+				break;
+			case BODY:
+				parseBody(conv);
+				break;
 		}
 	} catch (std::exception& e) {
 		conv.state = RESPONSE;
