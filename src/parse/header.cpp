@@ -31,7 +31,7 @@ pairStr extractOneField(string& s) {
 	deleteTrailOWS(res.second);
 	if (!isValidFieldValue(res.second))
 		parseThrow("Bad field-value");
-	s.erase(0, 2);
+	s.erase(0, pos + 2);
 
 	return res;
 }
