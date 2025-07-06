@@ -21,6 +21,7 @@ namespace ParserRoutine {
 	std::string extractRequestURI(std::string& s);
 	std::pair<int, int> extractHTTPVersion(std::string& s);
 
+	bool isValidFieldValue(std::string& s);
 	void parseAllHeader(Conversation& conv);
 	pairStr extractOneHeader(std::string& s);
 
