@@ -56,6 +56,5 @@ namespace ParserRoutine {
 	mapStr parseAllField(std::string& s);
 	pairStr extractOneField(std::string& s);
 
-	std::string parseBodyUnchunked(std::string& s, int len);
 	std::string parseBodyChunked(std::string& s);
 };
