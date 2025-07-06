@@ -3,9 +3,6 @@
 
 using namespace std;
 
-bool isCTL(char c) {return c <= 31 || c == 127;}
-bool isUnserved(char c) {return isalnum(c) || mark.find(c) != npos;}
-
 void parseThrow(string what) {
 #ifdef PARSE_DEBUG
 	cerr << what << endl;
@@ -13,52 +10,46 @@ void parseThrow(string what) {
 	throw exception();
 }
 
+void toLower(string& s) {
+	for (size_t i = 0; i < s.size(); i++)
+		s[i] = tolower(s[i]);
+}
+
 int extractInt(string& s) {
 	stringstream ss(s);
 	int res;
 	if (!(ss>>res) || res < 0)
-		parseThrow("Bad version");
+		parseThrow("Bad Int");
 	ss >> s;
 	return res;
 }
 
-void deleteLWS(string& s) {
-	while (!s.compare("\r\n ") || !s.compare("\r\n\t")
-			|| s.compare(" ") || !s.compare("\t")) {
-		if (!s.compare("\r\n"))
-			s.erase(0, 2);
-		s.erase(0, 1);
-	}
-}
-
-string extractUntilLWS(string& s) {
-	size_t posMin = s.size();
-	size_t pos = s.find("\r\n");
-	if (pos != npos)
-		posMin = min(posMin, pos);
-	pos = s.find(" ");
-	if (pos != npos)
-		posMin = min(posMin, pos);
-	pos = s.find("\t");
-	if (pos != npos)
-		posMin = min(posMin, pos);
-	string res = s.substr(0, pos);
-	s.erase(0, pos);
-	return res;
-}
-
-bool isLegalToken(const string& s) {
-	for (char c : s)
-		if (isCTL(c))
-			return false;
-	return s.size();
-}
-
 string extractToken(string& s) {
-	int pos = s.find_first_of(separator);
+	int pos = s.find_first_not_of(tchar);
 	if (pos == npos)
 		pos = s.size();
 	string res = s.substr(0, pos);
 	s.erase(0, pos);
 	return res;
 }
+
+void deleteLeadOWS(string& s) {
+	size_t pos = s.find_first_not_of(" \t");
+	if (pos == npos)
+		pos = s.size();
+	s.erase(0, pos);
+}
+
+void deleteTrailOWS(string& s) {
+	size_t pos = s.find_last_not_of(" \t");
+	if (pos == npos)
+		return ;
+	s.erase(pos + 1, s.size() - pos - 1);
+}
+
+/*
+bool isCTL(char c) {return c <= 31 || c == 127;}
+
+bool isUnserved(char c) {return isalnum(c) || mark.find(c) != npos;}
+
+*/

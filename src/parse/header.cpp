@@ -17,25 +17,29 @@ mapStr parseAllHeader(string& s) {
 	return res;
 }
 
-//Not invalidating CTLs in field-content because
-//they are allowed as part of quoted-pair inside
-//quoted-string
 pairStr extractOneHeader(string& s) {
 	pairStr res;
 	res.first = extractToken(s);
-	if (!isLegalToken(s))
+	toLower(res.first);
+	if (res.first.empty() || s[0] != ':')
 		parseThrow("Bad field-name");
-	if (s[0] != ':')
-		parseThrow("Bad header");
-	while (s.size()) {
-		deleteLWS(s);
-		if (!s.compare("\r\n") || !s.size())
-			break;
-		if (res.second.size())
-			res.second += ' ';
-		res.second += extractUntilLWS(s);
-	}
-	if (!s.compare("\r\n"))
-		s.erase(0, 2);
+	size_t pos = s.find("\r\n");
+	if (pos == npos)
+		parseThrow("Bad field-value");
+	res.second = s.substr(0, pos);
+	deleteLeadOWS(res.second);
+	deleteTrailOWS(res.second);
+	if (!isValidFieldValue(res.second))
+		parseThrow("Bad field-value");
+	s.erase(0, 2);
+
 	return res;
+}
+
+bool isValidFieldValue(string& s) {
+	for (size_t i = 0; i < s.size(); i++) {
+		if (s[i] >= 0 && s[i] < ' ' && s[i] != '\t')
+			return false;
+	}
+	return true;
 }

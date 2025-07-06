@@ -8,6 +8,14 @@ void Parser::parseStartLine(Conversation& conv) {
 	conv.req.uri = extractRequestURI(buf[conv.fd]);
 	conv.req.method = extractMethod(buf[conv.fd]);
 }
+
+void Parser::parseBody(Conversation& conv) {
+	if (conv.req.header.count("Content-Length")) {
+		if (buf[conv.fd] >
+		return parseBodyUnchunked(buf[conv.fd], conv.req.header["Content-Length"]);
+	return parseBodyUnchunked(s, conv.request.header["Content-Size"]);
+	
+
 /*
 void	Parser::parseStartLine() {
 	size_t pos = head[0].find(" ");

@@ -5,7 +5,7 @@ using namespace ParserRoutine;
 
 string extractMethod(string& s) {
 	string res = extractToken(s);
-	if (!isLegalToken(res) || s[0] != ' ')
+	if (res.empty() || s[0] != ' ')
 		parseThrow("Bad method");
 	s.erase(0, 1);
 	return res;
@@ -14,7 +14,7 @@ string extractMethod(string& s) {
 // "authority is a valid URI so it shouldnt err, but it is hard to parse and
 // useless because it is only valid for CONNECT that we will not implement..."
 // Thus i would like to delay the linting of the URI to the validator
-bool isValidUri(const string& s) {return true;}
+static bool isValidUri(const string& s) {return true;}
 
 string extractRequestURI(string& s) {
 	int pos = s.find(' ');
