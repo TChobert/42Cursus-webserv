@@ -7,6 +7,7 @@ void parseThrow(string what) {
 #ifdef PARSE_DEBUG
 	cerr << what << endl;
 #endif
+	(void) what;
 	throw exception();
 }
 
@@ -25,7 +26,7 @@ int extractInt(string& s) {
 }
 
 string extractToken(string& s) {
-	int pos = s.find_first_not_of(tchar);
+	size_t pos = s.find_first_not_of(tchar);
 	if (pos == npos)
 		pos = s.size();
 	string res = s.substr(0, pos);

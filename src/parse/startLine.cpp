@@ -14,7 +14,7 @@ string extractMethod(string& s) {
 // "authority is a valid URI so it shouldnt err, but it is hard to parse and
 // useless because it is only valid for CONNECT that we will not implement..."
 // Thus i would like to delay the linting of the URI to the validator
-static bool isValidUri(const string& s) {return true;}
+static bool isValidUri(const string& s) {(void) s; return true;}
 
 string extractRequestUri(string& s) {
 	size_t pos = s.find(' ');

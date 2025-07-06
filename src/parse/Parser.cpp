@@ -56,8 +56,12 @@ void Parser::parseHeader(Conversation& conv) {
 }
 
 void parseBodyChunked(Conversation& conv) {
+	conv.resp.statusCode = 501;
+	conv.resp.shouldClose = true;
+	conv.state = RESPONSE;
+	#ifdef PARSE_DEBUG
 	std::cerr << "Chunked body not implemented\n";
-	assert(false);
+	#endif
 }
 
 void Parser::parseBody(Conversation& conv) {
@@ -65,14 +69,17 @@ void Parser::parseBody(Conversation& conv) {
 		size_t pos = min(conv.buf.size(), conv.bodyLeft);
 		conv.req.body += conv.buf.substr(0, pos);
 		conv.bodyLeft -= pos;
+		conv.buf.erase(0, pos);
 		if (conv.bodyLeft) {
 			conv.state = READ_CLIENT;
 		} else {
+			conv.buf.erase(0, 2);
 			conv.state = EXEC;
 			conv.pState = HEADER;
 		}
-	} else 
+	} else {
 		parseBodyChunked(conv);
+	};
 }
 
 void Parser::parse(Conversation& conv) {
