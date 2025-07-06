@@ -45,7 +45,6 @@ public:
 	std::string buf;
 	parseState pState;
 	size_t bodyLeft;
-
 };
 
 namespace ParserRoutine {
