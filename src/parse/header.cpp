@@ -3,10 +3,10 @@
 using namespace std;
 using namespace ParserRoutine;
 
-mapStr parseAllHeader(string& s) {
+mapStr parseAllField(string& s) {
 	mapStr res;
 	while (s != "") {
-		pairStr h = extractOneHeader(s);
+		pairStr h = extractOneField(s);
 		if (res.count(h.first)) {
 			mapStr::iterator it = res.find(h.first);
 			it->second += ", ";
@@ -17,7 +17,7 @@ mapStr parseAllHeader(string& s) {
 	return res;
 }
 
-pairStr extractOneHeader(string& s) {
+pairStr extractOneField(string& s) {
 	pairStr res;
 	res.first = extractToken(s);
 	toLower(res.first);

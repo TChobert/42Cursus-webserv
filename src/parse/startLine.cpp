@@ -16,8 +16,8 @@ string extractMethod(string& s) {
 // Thus i would like to delay the linting of the URI to the validator
 static bool isValidUri(const string& s) {return true;}
 
-string extractRequestURI(string& s) {
-	int pos = s.find(' ');
+string extractRequestUri(string& s) {
+	size_t pos = s.find(' ');
 	if (pos == npos)
 		parseThrow("Bad URI");
 	string res = s.substr(0, pos);
@@ -27,7 +27,7 @@ string extractRequestURI(string& s) {
 	return res;
 }
 
-pair<int, int> extractHTTPVersion(string& s) {
+pair<int, int> extractHttpVersion(string& s) {
 	if (s.compare(0, 5, "HTTP/"))
 		parseThrow("Bad version");
 	s.erase(0, 5);
@@ -37,7 +37,8 @@ pair<int, int> extractHTTPVersion(string& s) {
 		parseThrow("Bad version");
 	s.erase(0, 1);
 	res.second = extractInt(s);
-	if (s != "")
+	if (s.compare("\r\n"))
 		parseThrow("Bad start line");
+	s.erase(0, 2);
 	return res;
 }
