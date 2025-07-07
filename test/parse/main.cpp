@@ -17,7 +17,7 @@ void test_valid_start_line() {
     assert(conv.req.version.first == 1);
     assert(conv.req.version.second == 1);
     assert(conv.state == VALIDATE);
-    assert(conv.pState == BODY);
+    assert(conv.pState == MAYBE_BODY);
     std::cout << "test_valid_start_line passed\n";
 }
 
@@ -43,7 +43,7 @@ void test_header_parsing() {
 
     assert(conv.req.header["host"] == "example.com");
     assert(conv.req.header["content-length"] == "4");
-    assert(conv.pState == BODY);
+    assert(conv.pState == MAYBE_BODY);
     std::cout << "test_header_parsing passed\n";
 }
 
