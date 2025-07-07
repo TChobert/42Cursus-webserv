@@ -2,6 +2,7 @@
 #include <string>
 #include <map>
 #include "parse/parse.hpp"
+#include "read/Reader.hpp"
 
 struct request {
 	std::string method;

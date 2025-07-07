@@ -1,8 +1,11 @@
+#pragma once
+#include "../webserv.hpp"
 
 class Reader {
 private:
+	const int BUFFER_SIZE = 1 << 20;
 
 public:
-	read(Conversation& conv);
-}
+	void read(Conversation& conv);
+};
 
