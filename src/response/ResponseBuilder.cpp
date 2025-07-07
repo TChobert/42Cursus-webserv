@@ -1,8 +1,9 @@
 #include "ResponseBuilder.hpp"
+#include "Conversation.hpp"
 
 /* ---------------- PRIVATE ------------------ */
 
-void	ResponseBuilder::buildError(Conversation& conv, int code)
+void	ResponseBuilder::buildError(Conversation& conv)
 {
 	//a voir si ce sont les modules qui appellent direct des qu'il y a un probleme
 	//ou est-ce que ca repasse par le dispatcher et les autres mettent uniquement statusCode = 500...
@@ -19,7 +20,7 @@ void	ResponseBuilder::buildError(Conversation& conv, int code)
 	conv.final_response = ResponseAssembler::assemble(statusLine, headers, body);
 }
 
-void	ResponseBuilder::build(Conversation& conv, int code)
+void	ResponseBuilder::build(Conversation& conv)
 {
 	std::string statusLine = StatusLineBuilder::build(conv.response);
 	std::string headers = HeaderBuilder::build(conv.response);
@@ -33,7 +34,7 @@ void	ResponseBuilder::build(Conversation& conv, int code)
 void	ResponseBuilder::execute(Conversation& conv)
 {
 	if (conv.statusCode >= 400)
-		ResponseBuilder::buildError(conv, conv.statusCode);
+		ResponseBuilder::buildError(conv);
 	else
 		ResponseBuilder::build(conv);
 	conv.state = WRITE_CLIENT; // tout depend si l'enum est a l'interieur ou exterieur de Conv...

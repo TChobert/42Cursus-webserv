@@ -1,6 +1,28 @@
 #include "HeaderBuilder.hpp"
 #include "utils.hpp"
 
+enum statusCode
+{
+	NOT_A_STATUS_CODE = 0,
+	CONTINUE = 100,
+	OK = 200,
+	CREATED = 201,
+	NO_CONTENT = 204,
+	MOVED_PERMANENTLY = 301,
+	FOUND = 302,
+	BAD_REQUEST = 400,
+	FORBIDDEN = 403,
+	NOT_FOUND = 404,
+	METHOD_NOT_ALLOWED = 405,
+	TIMEOUT = 408,
+	LENGTH_REQUIRED = 411,
+	ENTITY_TOO_LARGE = 413,
+	URI_TOO_LONG = 414,
+	REQUEST_HEADER_FIELDS_TOO_LARGE = 431,
+	INTERNAL_SERVER_ERROR = 500,
+	NOT_IMPLEMENTED = 501
+};
+
 /* ---------------- PRIVATE METHODS ------------------ */
 
 std::string HeaderBuilder::buildGenericHeaders(const HttpResponse& response)
@@ -81,10 +103,8 @@ std::string HeaderBuilder::buildLocationHeader(const HttpResponse& response)
 std::string HeaderBuilder::buildSetCookieHeaders(const HttpResponse& response)
 {
 	std::ostringstream headers;
-	std::vector<std::string>::const_iterator it;
 
-	it = response.setCookies.begin();
-	for (it; it != response.setCookies.end(); ++it)
+	for (std::vector<std::string>::const_iterator it = response.setCookies.begin(); it != response.setCookies.end(); ++it)
 	{
 		headers << "Set-Cookie: " << *it << "\r\n";
 	}
