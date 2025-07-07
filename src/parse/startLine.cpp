@@ -3,6 +3,8 @@
 using namespace std;
 using namespace ParserRoutine;
 
+namespace ParserRoutine {
+
 string extractMethod(string& s) {
 	string res = extractToken(s);
 	if (res.empty() || s[0] != ' ')
@@ -37,8 +39,10 @@ pair<int, int> extractHttpVersion(string& s) {
 		parseThrow("Bad version");
 	s.erase(0, 1);
 	res.second = extractInt(s);
-	if (s.compare("\r\n"))
+	if (s.compare(0, 2, "\r\n"))
 		parseThrow("Bad start line");
 	s.erase(0, 2);
 	return res;
+}
+
 }

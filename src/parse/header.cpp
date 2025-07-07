@@ -3,9 +3,11 @@
 using namespace std;
 using namespace ParserRoutine;
 
+namespace ParserRoutine {
+
 mapStr parseAllField(string& s) {
 	mapStr res;
-	while (s != "") {
+	while (s.compare(0, 2, "\r\n")) {
 		pairStr h = extractOneField(s);
 		if (res.count(h.first)) {
 			mapStr::iterator it = res.find(h.first);
@@ -14,6 +16,7 @@ mapStr parseAllField(string& s) {
 		} else
 			res[h.first] = h.second;
 	}
+	s.erase(0, 2);
 	return res;
 }
 
@@ -23,6 +26,7 @@ pairStr extractOneField(string& s) {
 	toLower(res.first);
 	if (res.first.empty() || s[0] != ':')
 		parseThrow("Bad field-name");
+	s.erase(0, 1);
 	size_t pos = s.find("\r\n");
 	if (pos == npos)
 		parseThrow("Bad field-value");
@@ -43,4 +47,6 @@ bool isValidFieldValue(string& s) {
 			return false;
 	}
 	return true;
+}
+
 }

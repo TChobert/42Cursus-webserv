@@ -8,10 +8,11 @@ const size_t headerMax = 1e4;
 
 class Parser {
 private:
-	void parseStartLine(Conversation& conv);
+	bool parseStartLine(Conversation& conv);
 	void handleHugeStart(Conversation& conv);
-	void parseHeader(Conversation& conv);
-	void parseBody(Conversation& conv);
+	bool parseHeader(Conversation& conv);
+	bool parseBody(Conversation& conv);
+	bool parseBodyChunked(Conversation& conv);
 
 public:
 	void parse(Conversation& conv);

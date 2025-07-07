@@ -17,11 +17,14 @@ void toLower(string& s) {
 }
 
 int extractInt(string& s) {
-	stringstream ss(s);
+	size_t pos = s.find_first_not_of("0123456789");
+	if (pos == npos)
+		pos = s.size();
+	stringstream ss(s.substr(0,pos));
+	s.erase(0, pos);
 	int res;
 	if (!(ss>>res) || res < 0)
 		parseThrow("Bad Int");
-	ss >> s;
 	return res;
 }
 

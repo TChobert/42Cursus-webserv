@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include <string>
+#include <iostream>
 
 typedef std::map<std::string, std::string> mapStr;
 typedef std::pair<std::string, std::string> pairStr;

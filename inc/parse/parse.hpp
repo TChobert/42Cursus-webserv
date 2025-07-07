@@ -15,6 +15,14 @@ struct response {
 	bool shouldClose;
 };
 
+enum statusCode {
+	NOT_A_STATUS_CODE = 0,
+	BAD_REQUEST = 400,
+	URI_TOO_LONG = 414,
+	REQUEST_HEADER_FIELDS_TOO_LARGE = 431,
+	NOT_IMPLEMENTED = 501,
+};
+
 enum convState {
 	READ_CLIENT,
 	WRITE_CLIENT,
@@ -31,7 +39,8 @@ enum convState {
 };
 
 enum parseState {
-	HEADER = 0,
+	START = 0,
+	HEADER,
 	BODY,
 	SKIP_BODY
 };
@@ -45,6 +54,7 @@ public:
 	std::string buf;
 	parseState pState;
 	size_t bodyLeft;
+	Conversation() : fd(-1), bodyLeft(0), state(DRAIN_BUFFER), pState(START) {};
 };
 
 namespace ParserRoutine {
