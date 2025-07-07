@@ -1,6 +1,6 @@
 #include "ResponseBuilder.hpp"
 
-std::string	ResponseBuilder::build(Conversation& conv)
+void	ResponseBuilder::build(Conversation& conv)
 {
 	HttpResponse& response = conv.response;
 
@@ -8,7 +8,10 @@ std::string	ResponseBuilder::build(Conversation& conv)
 	std::string headers = HeaderBuilder::build(response);
 	std::string body = BodyBuilder::build(response);
 
-	return (ResponseAssembler::assemble(statusLine, headers, body));
+	conv.final_response = ResponseAssembler::assemble(statusLine, headers, body);
+
+	//MAJ de l'etat
+	conv.state = Conversation::WRITE_CLIENT; // tout depend si l'enum est a l'interieur ou exterieur de Conv...
 }
 
 //a voir si on return direct ou si c'est ResponseBuilder qui stocke quelque part dans la class Conversation

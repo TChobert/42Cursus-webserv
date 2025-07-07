@@ -12,7 +12,7 @@ class Conversation;
 class ResponseBuilder
 {
 	public:
-		std::string build(Conversation& conv);
+		void build(Conversation& conv);
 
 };
 
