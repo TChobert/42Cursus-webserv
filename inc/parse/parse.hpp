@@ -8,6 +8,13 @@ const size_t methodMax = 8;
 const size_t uriMax = 8000;
 const size_t headerMax = 1e4;
 
+enum parseState {
+	START = 0,
+	HEADER,
+	BODY,
+	SKIP_BODY
+};
+
 namespace ParserRoutine {
 	std::string extractMethod(std::string& s);
 	std::string extractRequestUri(std::string& s);

@@ -39,13 +39,6 @@ enum convState {
 	IS_SENT
 };
 
-enum parseState {
-	START = 0,
-	HEADER,
-	BODY,
-	SKIP_BODY
-};
-
 class Conversation {
 public:
 	int fd;
