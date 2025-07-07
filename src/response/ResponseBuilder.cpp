@@ -20,6 +20,9 @@ void	ResponseBuilder::buildError(Conversation& conv)
 	conv.final_response = ResponseAssembler::assemble(statusLine, headers, body);
 }
 
+//je sais que c'est repetitif entre les 2, mais je ne sais pas encore si je garde buildError..
+//a voir par rapport a la personnalisation body (pages html) et comment je peux le refacto
+
 void	ResponseBuilder::build(Conversation& conv)
 {
 	std::string statusLine = StatusLineBuilder::build(conv.response);
