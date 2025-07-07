@@ -6,17 +6,20 @@
 using namespace std;
 using namespace ParserRoutine;
 
-bool Parser::parseStartLine(Conversation& conv) {
+void Parser::parseStartLine(Conversation& conv) {
 	string& s = conv.buf;
 	size_t pos = s.find("\r\n");
-	if (pos > startLineMax) {
+	if (pos == npos && s.size() <= startLineMax)
+		return;
+	if ((pos != npos && pos > startLineMax)
+			|| pos == npos) {
 		handleHugeStart(conv);
-		return false;
+		return;
 	}
 	conv.req.method = extractMethod(s);
 	conv.req.uri = extractRequestUri(s);
 	conv.req.version = extractHttpVersion(s);
-	return true;
+	conv.pState = HEADER;
 }
 
 void Parser::handleHugeStart(Conversation& conv) {
@@ -37,7 +40,7 @@ void Parser::handleHugeStart(Conversation& conv) {
 	parseThrow("Bad start line");
 }
 
-bool Parser::parseHeader(Conversation& conv) {
+void Parser::parseHeader(Conversation& conv) {
 	string& s = conv.buf;
 	size_t pos = s.find("\r\n\r\n");
 	if (pos == npos) {
@@ -45,28 +48,28 @@ bool Parser::parseHeader(Conversation& conv) {
 			conv.resp.statusCode = REQUEST_HEADER_FIELDS_TOO_LARGE;
 			conv.resp.shouldClose = true;
 			conv.state = RESPONSE;
-			return false;
+			return;
 		}
 		conv.state = READ_CLIENT;
-		return false;
+		return;
 	}
 	conv.req.header = parseAllField(s);
 	conv.state = VALIDATE;
 	conv.pState = BODY;
-	return true;
+	return;
 }
 
-bool Parser::parseBodyChunked(Conversation& conv) {
+void Parser::parseBodyChunked(Conversation& conv) {
 	conv.resp.statusCode = NOT_IMPLEMENTED;
 	conv.resp.shouldClose = true;
 	conv.state = RESPONSE;
-	return false;
+	return;
 	#ifdef PARSE_DEBUG
 	std::cerr << "Chunked body not implemented\n";
 	#endif
 }
 
-bool Parser::parseBody(Conversation& conv) {
+void Parser::parseBody(Conversation& conv) {
 	if (conv.req.header.count("content-length")) {
 		size_t pos = min(conv.buf.size(), conv.bodyLeft);
 		conv.req.body += conv.buf.substr(0, pos);
@@ -74,35 +77,29 @@ bool Parser::parseBody(Conversation& conv) {
 		conv.buf.erase(0, pos);
 		if (conv.bodyLeft) {
 			conv.state = READ_CLIENT;
-			return false;
+			return;
 		}
-		conv.buf.erase(0, 2);
 		conv.state = EXEC;
-		conv.pState = HEADER;
-		return false;
+		conv.pState = START;
 	} else {
-		return (parseBodyChunked(conv));
+		parseBodyChunked(conv);
 	};
 }
 
 void Parser::parse(Conversation& conv) {
 	try {
+		if (conv.pState == BODY) {
+			parseBody(conv);
+			return;
+		}
 		if (conv.pState == BODY && conv.state == PARSE_HEADER)
 			conv.pState = SKIP_BODY;
-		switch (conv.pState) {
-			case SKIP_BODY:
-				if (!parseBody(conv))
-					break;
-			case START:
-				if (!parseStartLine(conv))
-					break;
-			case HEADER:
-				parseHeader(conv);
-				break;
-			case BODY:
-				if (!parseBody(conv))
-					break;
-		}
+		if (conv.pState == SKIP_BODY)
+			parseBody(conv);
+		if (conv.pState == START)
+			parseStartLine(conv);
+		if (conv.pState == HEADER)
+			parseHeader(conv);
 	} catch (std::exception& e) {
 		conv.state = RESPONSE;
 		conv.resp.statusCode = BAD_REQUEST;

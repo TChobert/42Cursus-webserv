@@ -61,7 +61,7 @@ void test_body_parsing() {
 
     assert(conv.req.body == "Hello");
     assert(conv.state == EXEC);
-    assert(conv.pState == HEADER);
+    assert(conv.pState == START);
     std::cout << "test_body_parsing passed\n";
 }
 
