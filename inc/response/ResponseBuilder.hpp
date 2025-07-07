@@ -11,9 +11,12 @@ class Conversation;
 
 class ResponseBuilder
 {
-	public:
-		void build(Conversation& conv);
+	private:
+		static void	buildError(Conversation& conv, int code);
+		static void	build(Conversation& conv, int code);
 
+	public:
+		static void	execute(Conversation& conv);
 };
 
 #endif
