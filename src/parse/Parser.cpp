@@ -55,7 +55,7 @@ void Parser::parseHeader(Conversation& conv) {
 	}
 	conv.req.header = parseAllField(s);
 	conv.state = VALIDATE;
-	conv.pState = BODY;
+	conv.pState = MAYBE_BODY;
 	return;
 }
 
@@ -88,18 +88,31 @@ void Parser::parseBody(Conversation& conv) {
 
 void Parser::parse(Conversation& conv) {
 	try {
-		if (conv.pState == BODY) {
-			parseBody(conv);
-			return;
-		}
 		if (conv.pState == BODY && conv.state == PARSE_HEADER)
 			conv.pState = SKIP_BODY;
+		if (conv.pState == MAYBE_BODY && conv.state == PARSE_BODY)
+			conv.pState = BODY;
+		if (conv.state == EOF_CLIENT) {
+			if (conv.buf.empty() &&
+					(conv.pState == START || conv.pState == MAYBE_BODY))
+				conv.state = FINISH;
+			else {
+				conv.state = RESPONSE;
+				conv.resp.statusCode = BAD_REQUEST;
+				conv.resp.shouldClose = true;
+			}
+			return;
+		}
+
+
 		if (conv.pState == SKIP_BODY)
 			parseBody(conv);
 		if (conv.pState == START)
 			parseStartLine(conv);
 		if (conv.pState == HEADER)
 			parseHeader(conv);
+		if (conv.pState == BODY)
+			parseBody(conv);
 	} catch (std::exception& e) {
 		conv.state = RESPONSE;
 		conv.resp.statusCode = BAD_REQUEST;

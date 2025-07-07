@@ -28,6 +28,7 @@ enum statusCode {
 enum convState {
 	READ_CLIENT,
 	WRITE_CLIENT,
+	EOF_CLIENT,
 	FINISH,
 	READ_EXEC,
 	WRITE_EXEC,

@@ -11,6 +11,7 @@ const size_t headerMax = 1e4;
 enum parseState {
 	START = 0,
 	HEADER,
+	MAYBE_BODY,
 	BODY,
 	SKIP_BODY
 };
