@@ -12,8 +12,8 @@ class Conversation;
 class ResponseBuilder
 {
 	private:
-		static void	buildError(Conversation& conv, int code);
-		static void	build(Conversation& conv, int code);
+		static void	buildError(Conversation& conv);
+		static void	build(Conversation& conv);
 
 	public:
 		static void	execute(Conversation& conv);
