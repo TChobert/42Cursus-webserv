@@ -35,7 +35,7 @@ std::string HeaderBuilder::buildDateHeader()
 std::string HeaderBuilder::buildContentLengthHeader(const HttpResponse& response)
 {
 	// Les codes qui n'ont jamais de body
-	if (response.statusCode == 204 || response.statusCode == 304 || (response.statusCode >= 100 && response.statusCode < 200))
+	if (response.statusCode == NO_CONTENT || (response.statusCode >= 100 && response.statusCode < 200))
 	{
 		return "Content-Length: 0\r\n";
 	}
@@ -50,7 +50,7 @@ std::string HeaderBuilder::buildContentLengthHeader(const HttpResponse& response
 std::string HeaderBuilder::buildContentTypeHeader(const HttpResponse& response)
 {
 	// Pas de Content-Type si pas de body ou si code qui interdit body
-	if (response.body.empty() || response.statusCode == 204 || response.statusCode == 304 || (response.statusCode >= 100 && response.statusCode < 200))
+	if (response.body.empty() || response.statusCode == NO_CONTENT || (response.statusCode >= 100 && response.statusCode < 200))
 	{
 		return "";
 	}
