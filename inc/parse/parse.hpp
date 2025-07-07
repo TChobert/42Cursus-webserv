@@ -1,61 +1,12 @@
 #pragma once
 #include <string>
 #include "parse_utils.hpp"
+#include "Parser.hpp"
 
-struct request {
-	std::string method;
-	std::string uri;
-	std::pair<int,int> version;
-	mapStr header;
-	std::string body;
-};
-
-struct response {
-	int statusCode;
-	bool shouldClose;
-};
-
-enum statusCode {
-	NOT_A_STATUS_CODE = 0,
-	BAD_REQUEST = 400,
-	URI_TOO_LONG = 414,
-	REQUEST_HEADER_FIELDS_TOO_LARGE = 431,
-	NOT_IMPLEMENTED = 501,
-};
-
-enum convState {
-	READ_CLIENT,
-	WRITE_CLIENT,
-	FINISH,
-	READ_EXEC,
-	WRITE_EXEC,
-	PARSE_HEADER,
-	PARSE_BODY,
-	DRAIN_BUFFER,
-	VALIDATE,
-	RESPONSE,
-	EXEC,
-	IS_SENT
-};
-
-enum parseState {
-	START = 0,
-	HEADER,
-	BODY,
-	SKIP_BODY
-};
-
-class Conversation {
-public:
-	int fd;
-	request req;
-	response resp;
-	convState state;
-	std::string buf;
-	parseState pState;
-	size_t bodyLeft;
-	Conversation() : fd(-1), bodyLeft(0), state(DRAIN_BUFFER), pState(START) {};
-};
+const size_t startLineMax = 1e4;
+const size_t methodMax = 8;
+const size_t uriMax = 8000;
+const size_t headerMax = 1e4;
 
 namespace ParserRoutine {
 	std::string extractMethod(std::string& s);
