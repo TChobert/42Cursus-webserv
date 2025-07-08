@@ -1,7 +1,6 @@
 #include "../../inc/webserv.hpp"
-#include <cassert>
 #include <exception>
-#include <iostream>
+#include <stdexcept>
 
 using namespace std;
 using namespace ParserRoutine;
@@ -24,19 +23,11 @@ void Parser::parseStartLine(Conversation& conv) {
 
 void Parser::handleHugeStart(Conversation& conv) {
 	std::string res = extractMethod(conv.buf);
-	if (res.size() > methodMax) {
-		conv.resp.statusCode = NOT_IMPLEMENTED;
-		conv.resp.shouldClose = true;
-		conv.state = RESPONSE;
-		return;
-	}
+	if (res.size() > methodMax)
+		return earlyResponse(conv, NOT_IMPLEMENTED);
 	res = extractRequestUri(conv.buf);
-	if (res.size() > uriMax) {
-		conv.resp.statusCode = URI_TOO_LONG;
-		conv.resp.shouldClose = true;
-		conv.state = RESPONSE;
-		return;
-	}
+	if (res.size() > uriMax)
+		return earlyResponse(conv, URI_TOO_LONG);
 	parseThrow("Bad start line");
 }
 
@@ -44,12 +35,8 @@ void Parser::parseHeader(Conversation& conv) {
 	string& s = conv.buf;
 	size_t pos = s.find("\r\n\r\n");
 	if (pos == npos) {
-		if (s.size() > headerMax) {
-			conv.resp.statusCode = REQUEST_HEADER_FIELDS_TOO_LARGE;
-			conv.resp.shouldClose = true;
-			conv.state = RESPONSE;
-			return;
-		}
+		if (s.size() > headerMax)
+			return earlyResponse(conv, REQUEST_HEADER_FIELDS_TOO_LARGE);
 		conv.state = READ_CLIENT;
 		return;
 	}
@@ -57,16 +44,6 @@ void Parser::parseHeader(Conversation& conv) {
 	conv.state = VALIDATE;
 	conv.pState = MAYBE_BODY;
 	return;
-}
-
-void Parser::parseBodyChunked(Conversation& conv) {
-	conv.resp.statusCode = NOT_IMPLEMENTED;
-	conv.resp.shouldClose = true;
-	conv.state = RESPONSE;
-	return;
-	#ifdef PARSE_DEBUG
-	std::cerr << "Chunked body not implemented\n";
-	#endif
 }
 
 void Parser::parseBody(Conversation& conv) {
@@ -86,6 +63,40 @@ void Parser::parseBody(Conversation& conv) {
 	};
 }
 
+void Parser::parseBodyChunked(Conversation& conv) {
+	string s = conv.buf;
+	while (true) {
+		size_t pos = s.find("\r\n");
+		if (pos == npos && s.size() <= bodyMax)
+			return;
+		if ((pos != npos && pos > bodyMax) || pos == npos)
+			return earlyResponse(conv, BAD_REQUEST);
+
+		size_t chunkSize;
+		try {
+			chunkSize = peekSize(s, 16);
+		} catch (std::overflow_error& e) {
+			return earlyResponse(conv, CONTENT_TOO_LARGE);
+		}
+
+		if (s.size() - (pos + 2) < chunkSize + 2)
+			return;
+		extractSize(s, 16);
+		deleteChunkExt(s);
+
+		if (!chunkSize) {
+			conv.pState = START;
+			conv.state = EXEC;
+			return;
+		}
+		conv.req.body += s.substr(0, chunkSize);
+		s.erase(0, chunkSize);
+		if (s.compare(0, 2, "\r\n"))
+			parseThrow("Bad chunk");
+		s.erase(0, 2);
+	}
+}
+
 void Parser::parse(Conversation& conv) {
 	try {
 		if (conv.pState == BODY && conv.state == PARSE_HEADER)
@@ -97,13 +108,10 @@ void Parser::parse(Conversation& conv) {
 					(conv.pState == START || conv.pState == MAYBE_BODY))
 				conv.state = FINISH;
 			else {
-				conv.state = RESPONSE;
-				conv.resp.statusCode = BAD_REQUEST;
-				conv.resp.shouldClose = true;
+				return earlyResponse(conv, BAD_REQUEST);
 			}
 			return;
 		}
-
 
 		if (conv.pState == SKIP_BODY)
 			parseBody(conv);
@@ -114,8 +122,6 @@ void Parser::parse(Conversation& conv) {
 		if (conv.pState == BODY)
 			parseBody(conv);
 	} catch (std::exception& e) {
-		conv.state = RESPONSE;
-		conv.resp.statusCode = BAD_REQUEST;
-		conv.resp.shouldClose = true;
+		return earlyResponse(conv, BAD_REQUEST);
 	}
 }

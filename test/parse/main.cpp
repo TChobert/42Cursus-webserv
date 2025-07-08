@@ -29,7 +29,7 @@ void test_huge_start_line_method() {
     parser.parse(conv);
 
     assert(conv.state == RESPONSE);
-    assert(conv.resp.statusCode == 501);
+    assert(conv.resp.status == 501);
     assert(conv.resp.shouldClose);
     std::cout << "test_huge_start_line_method passed\n";
 }

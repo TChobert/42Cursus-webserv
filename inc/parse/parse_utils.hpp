@@ -1,7 +1,6 @@
 #pragma once
 #include <map>
 #include <string>
-#include <iostream>
 
 typedef std::map<std::string, std::string> mapStr;
 typedef std::pair<std::string, std::string> pairStr;
@@ -14,8 +13,8 @@ const std::string tchar = alpha + "!#$%&'*+-.^_|~";
 
 void toLower(std::string& s);
 void parseThrow(std::string what);
-//Throws on negative and overflow !
-int extractInt(std::string& s);
 std::string extractToken(std::string& s);
 void deleteLeadOWS(std::string& s);
 void deleteTrailOWS(std::string& s);
+void deleteQuotedString(std::string& s);
+void deleteChunkExt(std::string& s);

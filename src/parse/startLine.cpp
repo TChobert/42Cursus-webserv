@@ -34,11 +34,11 @@ pair<int, int> extractHttpVersion(string& s) {
 		parseThrow("Bad version");
 	s.erase(0, 5);
 	pair<int, int> res;
-	res.first = extractInt(s);
+	res.first = extractSize(s);
 	if (s[0] != '.')
 		parseThrow("Bad version");
 	s.erase(0, 1);
-	res.second = extractInt(s);
+	res.second = extractSize(s);
 	if (s.compare(0, 2, "\r\n"))
 		parseThrow("Bad start line");
 	s.erase(0, 2);
