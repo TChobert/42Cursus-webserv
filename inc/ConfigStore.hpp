@@ -22,7 +22,7 @@ class ConfigStore {
 	void									bindSocketToConfig(const int serverSocket, const serverConfig& config);
 
 	const std::vector<serverConfig>&		getPreInitConfigs(void) const;
-	const serverConfig&						getConfig(int serverSocket) const;
+	serverConfig							getConfig(int serverSocket) const;
 	const std::map<int, serverConfig>&		getAllConfigs(void) const;
 	size_t									size(void);
 };

@@ -68,6 +68,7 @@ std::set<int>	ServerInitializer::initServers(void) {
 		if (sock == -1) {
 			throw std::runtime_error("Failed to initalized socket");
 		}
+
 		setSocketImmediatReuse(sock);
 		bindSocketToAddress(sock, config);
 		setSocketListeningMode(sock);

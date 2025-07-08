@@ -10,10 +10,9 @@
 #include "ConfigStore.hpp"
 #include "ServerInitializer.hpp"
 #include "Dispatcher.hpp"
+#include "Conversation.hpp"
 
 #define MAX_EVENTS 64 // arbitraire, a changer ou non
-
-class Conversation;
 
 class EventsManager {
 

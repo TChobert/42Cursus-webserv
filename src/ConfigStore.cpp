@@ -6,7 +6,7 @@ ConfigStore::~ConfigStore(void) {}
 
 void	ConfigStore::bindSocketToConfig(const int serverSocket, const serverConfig& config) {
 
-
+	_configs[serverSocket] = config;
 }
 
 const std::vector<serverConfig>&	ConfigStore::getPreInitConfigs(void) const {
@@ -14,7 +14,7 @@ const std::vector<serverConfig>&	ConfigStore::getPreInitConfigs(void) const {
 	return (_preInitConfigs);
 }
 
-const serverConfig&	ConfigStore::getConfig(int serverSocket) const {
+serverConfig	ConfigStore::getConfig(int serverSocket) const {
 
 	std::map<int, serverConfig>::const_iterator it = _configs.find(serverSocket);
 	if (it == _configs.end()) {
