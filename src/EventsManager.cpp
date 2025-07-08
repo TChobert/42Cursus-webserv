@@ -21,7 +21,7 @@ void	EventsManager::deleteAllNetwork(void) {
 
 void EventsManager::handleClientEvent(int fd) {
 
-	auto it = _clients.find(fd);
+	std::map<int, Conversation>::const_iterator it = _clients.find(fd);
 	if (it != _clients.end()) {
 		_dispatcher.dispatch(it->second);
 	}

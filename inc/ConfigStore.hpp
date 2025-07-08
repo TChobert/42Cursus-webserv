@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <stdexcept>
 #include <vector>
 #include <map>
 
@@ -10,16 +11,18 @@ class ConfigStore {
 
 	private:
 
-	std::vector<serverConfig>	_configsBeforeInit;
+	const std::vector<serverConfig>	_preInitConfigs;
 	std::map<int, serverConfig>	_configs;
 
 	public:
 
-	ConfigStore(const std::vector<serverConfig>& configsBeforeInit);
+	ConfigStore(const std::vector<serverConfig>& preInitConfigs);
 	~ConfigStore(void);
 
-	void									bindSocketToConfig(int serverSocket, const serverConfig& config);
-	const	serverConfig&					getConfig(int serverSocket);
-	const std::map<int, serverConfig>&		getAllConfigs(void);
+	void									bindSocketToConfig(const int serverSocket, const serverConfig& config);
+
+	const std::vector<serverConfig>&		getPreInitConfigs(void) const;
+	const serverConfig&						getConfig(int serverSocket) const;
+	const std::map<int, serverConfig>&		getAllConfigs(void) const;
 	size_t									size(void);
 };

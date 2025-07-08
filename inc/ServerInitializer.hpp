@@ -1,6 +1,14 @@
 #pragma once
 
 #include <set>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <netinet/in.h>
+#include <cstring>
+#include <arpa/inet.h>
+#include <stdexcept>
+#include <sys/epoll.h>
+
 #include "ConfigStore.hpp"
 
 class ServerInitializer {
@@ -12,8 +20,12 @@ class ServerInitializer {
 
 	public:
 
-	ServerInitializer(ConfigStore& configs, int epollFd);
+	ServerInitializer(ConfigStore& configs, int& epollFd);
 	~ServerInitializer(void);
 
 	std::set<int>	initServers(void);
+	void			setSocketImmediatReuse(int& socket);
+	void			bindSocketToAddress(int& socket, const serverConfig& config);
+	void			setSocketListeningMode(int& socket);
+	void			addSocketToEpoll(int& socket);
 };
