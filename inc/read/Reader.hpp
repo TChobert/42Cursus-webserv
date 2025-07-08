@@ -3,7 +3,7 @@
 
 class Reader {
 private:
-	const int BUFFER_SIZE = 1 << 20;
+	static const int BUFFER_SIZE = 1 << 16;
 public:
 	void read(Conversation& conv);
 };

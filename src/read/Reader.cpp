@@ -15,7 +15,7 @@ void Reader::read(Conversation& conv) {
 		return;
 	}
 	if (byteRead == 0) {
-		conv.state = CLIENT_EOF;
+		conv.state = EOF_CLIENT;
 		return;
 	}
 	conv.buf.insert(0, toAdd, byteRead);
