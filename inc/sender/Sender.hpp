@@ -11,7 +11,7 @@ class Sender
 		static void		updateState(Conversation &conv, ssize_t bytes);
 
 	public:
-		static void sendResponse(Conversation& conv);
+		static void		execute(Conversation& conv);
 };
 
 #endif

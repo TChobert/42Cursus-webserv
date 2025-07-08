@@ -56,13 +56,13 @@ void	Sender::updateState(Conversation &conv, ssize_t bytesSentNow)
 	if (conv.bytesSent == conv.final_response.size())
 		conv.state = IS_SENT;
 	else
-		conv.state = WRITE_CLIENT; // reste des donnees a envoyer
+		conv.state = WRITE_CLIENT; // reste des donnees a envoyer >> attention dispatcher
 }
 
 
 /* ---------------- PUBLIC METHODS ------------------ */
 
-void Sender::sendResponse(Conversation& conv)
+void Sender::execute(Conversation& conv)
 {
 	if (conv.final_response.empty() || isAlreadySent(conv))
 	{
