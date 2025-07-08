@@ -4,11 +4,13 @@
 #include "webserv_utils.hpp"
 #include "parse/parse.hpp"
 
-struct request {
+class request {
+public:
 	std::string method;
 	std::string uri;
 	std::pair<int,int> version;
 	mapStr header;
+	size_t bodyLeft;
 	std::string body;
 };
 
@@ -25,6 +27,5 @@ public:
 	convState state;
 	std::string buf;
 	parseState pState;
-	size_t bodyLeft;
-	Conversation() : fd(-1), bodyLeft(0), state(DRAIN_BUFFER), pState(START) {};
+	Conversation() : fd(-1), state(DRAIN_BUFFER), pState(START) {};
 };

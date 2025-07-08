@@ -55,7 +55,7 @@ void test_body_parsing() {
     parser.parse(conv); // HEADER → BODY
 
     conv.state = PARSE_BODY; // simulate state set by server loop
-    conv.bodyLeft = 5;
+    conv.req.bodyLeft = 5;
 
     parser.parse(conv); // BODY parsing
 
@@ -65,11 +65,56 @@ void test_body_parsing() {
     std::cout << "test_body_parsing passed\n";
 }
 
+void test_chunked_body_parsing() {
+    Parser parser;
+    Conversation conv;
+    conv.buf =
+        "POST /upload HTTP/1.1\r\n"
+        "Transfer-Encoding: chunked\r\n\r\n"
+        "4\r\nWiki\r\n"
+        "5\r\npedia\r\n"
+        "0\r\n\r\n";
+
+    parser.parse(conv);  // Parse START → HEADER
+
+    conv.state = PARSE_BODY; // Simulate transition to body phase
+    parser.parse(conv);      // HEADER → MAYBE_BODY → BODY
+
+    assert(conv.req.body == "Wikipedia");
+    assert(conv.state == EXEC);
+    assert(conv.pState == START);
+    std::cout << "test_chunked_body_parsing passed\n";
+}
+
+
+void test_multiple_requests_with_skip_body() {
+    Parser parser;
+    Conversation conv;
+
+    conv.buf =
+        "POST /first HTTP/1.1\r\n"
+        "Content-Length: 10\r\n\r\n1234567890"
+        "GET /second HTTP/1.1\r\n"
+        "Host: host.com\r\n\r\n";
+
+    parser.parse(conv); // Parse header
+    conv.req.bodyLeft = 10;
+    conv.state = PARSE_HEADER;
+    parser.parse(conv); // Will flip to SKIP_BODY on PARSE_HEADER + BODY
+
+    assert(conv.req.method == "GET");
+    assert(conv.req.uri == "/second");
+    assert(conv.req.header["host"] == "host.com");
+    std::cout << "test_multiple_requests_with_skip_body passed\n";
+}
+
 int main() {
     test_valid_start_line();
     test_huge_start_line_method();
     test_header_parsing();
     test_body_parsing();
+    test_chunked_body_parsing();
+    test_multiple_requests_with_skip_body();
 
     std::cout << "All tests passed successfully.\n";
     return 0;

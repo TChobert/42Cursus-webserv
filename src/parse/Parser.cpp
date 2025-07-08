@@ -41,6 +41,7 @@ void Parser::parseHeader(Conversation& conv) {
 		return;
 	}
 	conv.req.header = parseAllField(s);
+	conv.req.body = "";
 	conv.state = VALIDATE;
 	conv.pState = MAYBE_BODY;
 	return;
@@ -48,11 +49,11 @@ void Parser::parseHeader(Conversation& conv) {
 
 void Parser::parseBody(Conversation& conv) {
 	if (conv.req.header.count("content-length")) {
-		size_t pos = min(conv.buf.size(), conv.bodyLeft);
+		size_t pos = min(conv.buf.size(), conv.req.bodyLeft);
 		conv.req.body += conv.buf.substr(0, pos);
-		conv.bodyLeft -= pos;
+		conv.req.bodyLeft -= pos;
 		conv.buf.erase(0, pos);
-		if (conv.bodyLeft) {
+		if (conv.req.bodyLeft) {
 			conv.state = READ_CLIENT;
 			return;
 		}
@@ -99,7 +100,7 @@ void Parser::parseBodyChunked(Conversation& conv) {
 
 void Parser::parse(Conversation& conv) {
 	try {
-		if (conv.pState == BODY && conv.state == PARSE_HEADER)
+		if (conv.pState == MAYBE_BODY && conv.state == PARSE_HEADER)
 			conv.pState = SKIP_BODY;
 		if (conv.pState == MAYBE_BODY && conv.state == PARSE_BODY)
 			conv.pState = BODY;
