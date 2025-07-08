@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include <stdexcept>
 #include <sys/epoll.h>
+#include <sstream>
 
 #include "ConfigStore.hpp"
 
