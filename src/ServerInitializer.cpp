@@ -4,7 +4,7 @@ ServerInitializer::ServerInitializer(ConfigStore& configs, int& epollFd) : _conf
 
 ServerInitializer::~ServerInitializer(void) {}
 
-void	ServerInitializer::setSocketImmediatReuse(int& socket) {
+void	ServerInitializer::setSocketImmediatReuse(int socket) {
 
 	int	opt = 1;
 	if (setsockopt(socket,SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
@@ -13,7 +13,7 @@ void	ServerInitializer::setSocketImmediatReuse(int& socket) {
 	}
 }
 
-void	ServerInitializer::bindSocketToAddress(int& socket, const serverConfig& config ) {
+void	ServerInitializer::bindSocketToAddress(int socket, const serverConfig& config ) {
 
 	sockaddr_in	address{};
 	//std::memset(&address, 0, sizeof(address));
@@ -27,7 +27,7 @@ void	ServerInitializer::bindSocketToAddress(int& socket, const serverConfig& con
 	}
 }
 
-void	ServerInitializer::setSocketListeningMode(int& socket) {
+void	ServerInitializer::setSocketListeningMode(int socket) {
 
 	if (listen(socket, SOMAXCONN) < 0) {
 		close(socket);
@@ -35,7 +35,7 @@ void	ServerInitializer::setSocketListeningMode(int& socket) {
 	}
 }
 
-void	ServerInitializer::addSocketToEpoll(int& socket) {
+void	ServerInitializer::addSocketToEpoll(int socket) {
 
 	struct epoll_event	ev;
 
@@ -63,8 +63,9 @@ std::set<int>	ServerInitializer::initServers(void) {
 		setSocketImmediatReuse(sock);
 		bindSocketToAddress(sock, config);
 		setSocketListeningMode(sock);
+		addSocketToEpoll(sock);
 
-		bindSocketToAddress(sock, config);
+		_configs.bindSocketToConfig(sock, config);
 		serversSockets.insert(sock);
 	}
 	return (serversSockets);

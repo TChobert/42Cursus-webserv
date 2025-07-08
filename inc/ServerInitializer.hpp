@@ -24,8 +24,8 @@ class ServerInitializer {
 	~ServerInitializer(void);
 
 	std::set<int>	initServers(void);
-	void			setSocketImmediatReuse(int& socket);
-	void			bindSocketToAddress(int& socket, const serverConfig& config);
-	void			setSocketListeningMode(int& socket);
-	void			addSocketToEpoll(int& socket);
+	void			setSocketImmediatReuse(int socket);
+	void			bindSocketToAddress(int socket, const serverConfig& config);
+	void			setSocketListeningMode(int socket);
+	void			addSocketToEpoll(int socket);
 };
