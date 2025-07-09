@@ -25,6 +25,7 @@ std::map<int, std::string> StatusLineBuilder::createStatusTexts()
 	m.insert(std::make_pair(431, "Request Header Fields Too Large"));
 	m.insert(std::make_pair(500, "Internal Server Error"));
 	m.insert(std::make_pair(501, "Not Implemented"));
+	m.insert(std::make_pair(505, "HTTP Version Not Supported"));
 
 	return m;
 }
