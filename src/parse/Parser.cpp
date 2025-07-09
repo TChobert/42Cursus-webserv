@@ -85,11 +85,14 @@ void Parser::parseBodyChunked(Conversation& conv) {
 		extractSize(s, 16);
 		deleteChunkExt(s);
 
+		//Incorrect for trailers
 		if (!chunkSize) {
 			conv.pState = START;
 			conv.state = EXEC;
 			return;
 		}
+		if (conv.req.body.size() + chunkSize > bodyMax)
+			return earlyResponse(conv, CONTENT_TOO_LARGE);
 		conv.req.body += s.substr(0, chunkSize);
 		s.erase(0, chunkSize);
 		if (s.compare(0, 2, "\r\n"))
