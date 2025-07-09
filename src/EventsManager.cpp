@@ -58,6 +58,21 @@ void EventsManager::handleClientEvent(int fd) {
 	}
 }
 
+void	EventsManager::setSocketNonBlocking(int fd) {
+
+	int	flags = fcntl(fd, F_GETFL, 0);
+	if (flags < 0) {
+		std::ostringstream	oss;
+		oss << "fcntl failed on client fd: " << fd << " while setting it nonblocking";
+		throw std::runtime_error(oss.str());
+	}
+	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+		std::ostringstream	oss;
+		oss << "fcntl failed on client: " << fd << " while setting it nonblocking";
+		throw std::runtime_error(oss.str());
+	}
+}
+
 void	EventsManager::setClientConversation(int serverFd, int clientFd) {
 
 	Conversation	clientConversation;
@@ -80,6 +95,7 @@ int	EventsManager::acceptClient(int serverFd) {
 		oss << "Failed to add client to socket: " << serverFd;
 		throw std::runtime_error(oss.str());
 	}
+	setSocketNonBlocking(clientFd);
 	return (clientFd);
 }
 

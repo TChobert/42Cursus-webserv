@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <sys/epoll.h>
+#include <fcntl.h>
 #include <stdexcept>
 #include <map>
 #include <set>
@@ -39,6 +40,7 @@ class EventsManager {
 	int		acceptClient(int fd);
 	void	setClientConversation(int serverFd, int clientFd);
 	void	addClientToInterestList(int clientFd);
+	void	setSocketNonBlocking(int fd);
 	void	handleClientEvent(int fd);
 	void	deleteClient(int fd); // supprimer un client si conversation close, erreur ou timeout -> a voir si ici ?
 	void	deleteAllClients(void);

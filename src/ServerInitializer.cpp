@@ -15,6 +15,21 @@ void	ServerInitializer::setSocketImmediatReuse(int socket) {
 	}
 }
 
+void	ServerInitializer::setSocketNonBlocking(int socket) {
+
+	int	flags = fcntl(socket, F_GETFL, 0);
+	if (flags < 0) {
+		std::ostringstream	oss;
+		oss << "fcntl failed on server socket: " << socket << " while setting it nonblocking";
+		throw std::runtime_error(oss.str());
+	}
+	if (fcntl(socket, F_SETFL, flags | O_NONBLOCK) == -1) {
+		std::ostringstream	oss;
+		oss << "fcntl failed on client: " << socket << " while setting it nonblocking";
+		throw std::runtime_error(oss.str());
+	}
+}
+
 void	ServerInitializer::bindSocketToAddress(int socket, const serverConfig& config ) {
 
 	sockaddr_in	address;
@@ -70,6 +85,7 @@ std::set<int>	ServerInitializer::initServers(void) {
 		}
 
 		setSocketImmediatReuse(sock);
+		setSocketNonBlocking(sock);
 		bindSocketToAddress(sock, config);
 		setSocketListeningMode(sock);
 		addSocketToEpoll(sock);

@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <sys/epoll.h>
 #include <sstream>
+#include <fcntl.h>
 
 #include "ConfigStore.hpp"
 
@@ -28,5 +29,6 @@ class ServerInitializer {
 	void			setSocketImmediatReuse(int socket);
 	void			bindSocketToAddress(int socket, const serverConfig& config);
 	void			setSocketListeningMode(int socket);
+	void			setSocketNonBlocking(int socket);
 	void			addSocketToEpoll(int socket);
 };
