@@ -37,5 +37,6 @@ class EventsManager {
 	void	handleClientEvent(int fd);
 	void	deleteClient(int fd); // supprimer un client si conversation close, erreur ou timeout -> a voir si ici ?
 	void	deleteAllClients(void);
+	void	deleteServers(void);
 	void	deleteAllNetwork(void);
 };

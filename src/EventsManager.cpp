@@ -11,12 +11,40 @@ EventsManager::EventsManager(ConfigStore& configs,
 	}
 }
 
-EventsManager::~EventsManager(void) {
-	//deleteAllNetwork();
+void	EventsManager::deleteClient(int fd) {
+	close(fd);
+	_clients.erase(fd);
+}
+
+void	EventsManager::deleteAllClients(void) {
+
+	std::map<int, Conversation>::iterator it;
+
+	for (it = _clients.begin(); it != _clients.end(); ++it) {
+		deleteClient(it->first);
+	}
+	_clients.clear();
+}
+
+void	EventsManager::deleteServers(void) {
+
+	std::set<int>::iterator it;
+
+	for (it = _listenSockets.begin(); it != _listenSockets.end(); ++it) {
+		close(*it);
+	}
+	_listenSockets.clear();
 }
 
 void	EventsManager::deleteAllNetwork(void) {
-	// tout nettoyer (FDS + epoll), puis quitter
+
+	deleteAllClients();
+	deleteServers();
+	close (_epollFd);
+}
+
+EventsManager::~EventsManager(void) {
+	deleteAllNetwork();
 }
 
 void EventsManager::handleClientEvent(int fd) {
@@ -25,7 +53,9 @@ void EventsManager::handleClientEvent(int fd) {
 	if (it != _clients.end()) {
 		_dispatcher.dispatch(it->second);
 	}
-	// secu eventuelle a prevoir si il ne le trouve pas
+	else {
+		std::cerr << fd << ": unknown client" << std::endl;
+	}
 }
 
 void	EventsManager::acceptNewClient(int serverFd) {
@@ -84,7 +114,8 @@ void	EventsManager::run(void) {
 	}
 	catch (const std::exception& e) {
 		std::cout << e.what() << std::endl;
-		deleteAllNetwork();
+		//deleteAllNetwork();
+		// EXIT ??
 	}
 	listenEvents(); // A VOIR SI DANS UN TRY CATCH
 }
