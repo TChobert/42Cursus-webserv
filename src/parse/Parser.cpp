@@ -7,6 +7,8 @@ using namespace ParserRoutine;
 
 void Parser::parseStartLine(Conversation& conv) {
 	string& s = conv.buf;
+	while (!s.compare(0, 2, "\r\n"))
+		s.erase(0, 2);
 	size_t pos = s.find("\r\n");
 	if (pos == npos && s.size() <= startLineMax)
 		return;
@@ -101,7 +103,7 @@ void Parser::parseBodyChunked(Conversation& conv) {
 	}
 }
 
-void Parser::parse(Conversation& conv) {
+void Parser::execute(Conversation& conv) {
 	try {
 		if (conv.pState == MAYBE_BODY && conv.state == PARSE_HEADER)
 			conv.pState = SKIP_BODY;

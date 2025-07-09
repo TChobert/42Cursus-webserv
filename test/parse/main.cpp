@@ -10,7 +10,7 @@ void test_valid_start_line() {
                 "Host:   host.com    \r\n"
                 "\r\n";
 
-    parser.parse(conv);
+    parser.execute(conv);
 
     assert(conv.req.method == "GET");
     assert(conv.req.uri == "/index.html");
@@ -26,7 +26,7 @@ void test_huge_start_line_method() {
     Conversation conv;
     conv.buf = std::string(startLineMax + 1, 'A') + " / HTTP/1.1\r\n";
 
-    parser.parse(conv);
+    parser.execute(conv);
 
     assert(conv.state == RESPONSE);
     assert(conv.resp.status == 501);
@@ -39,7 +39,7 @@ void test_header_parsing() {
     Conversation conv;
     conv.buf = "GET / HTTP/1.1\r\nHost: example.com\r\nContent-Length: 4\r\n\r\n";
 
-    parser.parse(conv);
+    parser.execute(conv);
 
     assert(conv.req.header["host"] == "example.com");
     assert(conv.req.header["content-length"] == "4");
@@ -52,12 +52,12 @@ void test_body_parsing() {
     Conversation conv;
     conv.buf = "GET / HTTP/1.1\r\nContent-Length: 5\r\n\r\nHello";
 
-    parser.parse(conv); // HEADER → BODY
+    parser.execute(conv); // HEADER → BODY
 
     conv.state = PARSE_BODY; // simulate state set by server loop
     conv.req.bodyLeft = 5;
 
-    parser.parse(conv); // BODY parsing
+    parser.execute(conv); // BODY parsing
 
     assert(conv.req.body == "Hello");
     assert(conv.state == EXEC);
@@ -75,10 +75,10 @@ void test_chunked_body_parsing() {
         "5\r\npedia\r\n"
         "0\r\n\r\n";
 
-    parser.parse(conv);  // Parse START → HEADER
+    parser.execute(conv);  // Parse START → HEADER
 
     conv.state = PARSE_BODY; // Simulate transition to body phase
-    parser.parse(conv);      // HEADER → MAYBE_BODY → BODY
+    parser.execute(conv);      // HEADER → MAYBE_BODY → BODY
 
     assert(conv.req.body == "Wikipedia");
     assert(conv.state == EXEC);
@@ -97,10 +97,10 @@ void test_multiple_requests_with_skip_body() {
         "GET /second HTTP/1.1\r\n"
         "Host: host.com\r\n\r\n";
 
-    parser.parse(conv); // Parse header
+    parser.execute(conv); // Parse header
     conv.req.bodyLeft = 10;
     conv.state = PARSE_HEADER;
-    parser.parse(conv); // Will flip to SKIP_BODY on PARSE_HEADER + BODY
+    parser.execute(conv); // Will flip to SKIP_BODY on PARSE_HEADER + BODY
 
     assert(conv.req.method == "GET");
     assert(conv.req.uri == "/second");

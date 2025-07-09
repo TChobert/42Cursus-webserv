@@ -13,11 +13,6 @@ void parseThrow(string what) {
 	throw exception();
 }
 
-void toLower(string& s) {
-	for (size_t i = 0; i < s.size(); i++)
-		s[i] = tolower(s[i]);
-}
-
 string extractToken(string& s) {
 	size_t pos = s.find_first_not_of(tchar);
 	if (pos == npos)

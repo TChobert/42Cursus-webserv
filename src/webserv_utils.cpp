@@ -5,6 +5,11 @@
 
 using namespace std;
 
+void toLower(string& s) {
+	for (size_t i = 0; i < s.size(); i++)
+		s[i] = tolower(s[i]);
+}
+
 //Calling with 1 param sets base to 10
 size_t extractSize(string& s, int base) {
 	size_t pos;
