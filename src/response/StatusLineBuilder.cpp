@@ -1,5 +1,5 @@
 #include "StatusLineBuilder.hpp"
-#include "utils.hpp"
+#include "webserv_utils.hpp"
 
 /* ---------------- PRIVATE ------------------ */
 
@@ -22,6 +22,7 @@ std::map<int, std::string> StatusLineBuilder::createStatusTexts()
 	m.insert(std::make_pair(408, "Request Timeout"));
 	m.insert(std::make_pair(411, "Length Required"));
 	m.insert(std::make_pair(413, "Payload Too Large"));
+	m.insert(std::make_pair(431, "Request Header Fields Too Large"));
 	m.insert(std::make_pair(500, "Internal Server Error"));
 	m.insert(std::make_pair(501, "Not Implemented"));
 

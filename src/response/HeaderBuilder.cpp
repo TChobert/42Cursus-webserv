@@ -1,27 +1,6 @@
 #include "HeaderBuilder.hpp"
-#include "utils.hpp"
-
-enum statusCode
-{
-	NOT_A_STATUS_CODE = 0,
-	CONTINUE = 100,
-	OK = 200,
-	CREATED = 201,
-	NO_CONTENT = 204,
-	MOVED_PERMANENTLY = 301,
-	FOUND = 302,
-	BAD_REQUEST = 400,
-	FORBIDDEN = 403,
-	NOT_FOUND = 404,
-	METHOD_NOT_ALLOWED = 405,
-	TIMEOUT = 408,
-	LENGTH_REQUIRED = 411,
-	ENTITY_TOO_LARGE = 413,
-	URI_TOO_LONG = 414,
-	REQUEST_HEADER_FIELDS_TOO_LARGE = 431,
-	INTERNAL_SERVER_ERROR = 500,
-	NOT_IMPLEMENTED = 501
-};
+#include "webserv_utils.hpp"
+#include "webserv_enum.hpp"
 
 /* ---------------- PRIVATE METHODS ------------------ */
 
@@ -81,9 +60,6 @@ std::string HeaderBuilder::buildContentTypeHeader(const HttpResponse& response)
 
 std::string HeaderBuilder::buildConnectionHeader(const HttpResponse& response)
 {
-	//check booleen shouldClose pour savoir si la conv doit close ou pas
-	//!attention! reflechir sur update de ce booleen, une partie dans le parser si le client demande
-	//une partie dans la partie metier (validator/exec) ? >> a voir...ou tout dans cette classe ?
 	return response.shouldClose ? "Connection: close\r\n" : "Connection: keep-alive\r\n";
 }
 
@@ -97,7 +73,12 @@ std::string HeaderBuilder::buildLocationHeader(const HttpResponse& response)
 	if (response.location.empty())
 		return "";
 
-	return "Location: " + response.location + "\r\n";
+	int code = response.statusCode;
+
+	if (code == CREATED || (code >= 300 && code < 400))
+		return "Location: " + response.location + "\r\n";
+
+	return "";
 }
 
 std::string HeaderBuilder::buildSetCookieHeaders(const HttpResponse& response)
@@ -114,7 +95,8 @@ std::string HeaderBuilder::buildSetCookieHeaders(const HttpResponse& response)
 
 std::string HeaderBuilder::buildAllowHeader(const HttpResponse& response)
 {
-	if (response.allowedMethods.empty())
+	if ((response.statusCode != METHOD_NOT_ALLOWED && response.statusCode != NOT_IMPLEMENTED)
+		|| response.allowedMethods.empty())
 		return "";
 
 	std::ostringstream line;

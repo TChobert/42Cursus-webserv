@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include "ResponseBuilder.hpp"
+#include "Conversation.hpp"
 
 int main()
 {
