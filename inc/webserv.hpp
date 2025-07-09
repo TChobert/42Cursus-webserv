@@ -4,6 +4,7 @@
 #include "webserv_utils.hpp"
 #include "parse/parse.hpp"
 #include "read/Reader.hpp"
+#include "validate/Validator.hpp"
 
 class request {
 public:
@@ -18,6 +19,8 @@ public:
 struct response {
 	statusCode status;
 	bool shouldClose;
+	mapStr header;
+	std::string body;
 };
 
 class Conversation {
