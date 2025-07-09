@@ -1,9 +1,11 @@
 #pragma once
+
 #include <string>
 #include "webserv_enum.hpp"
 #include "webserv_utils.hpp"
 #include "parse/parse.hpp"
 #include "read/Reader.hpp"
+#include "serverConfig.hpp"
 
 class request {
 public:

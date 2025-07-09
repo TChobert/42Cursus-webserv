@@ -1,5 +1,7 @@
 #pragma once
 
+#include "webserv.hpp"
+#include "webserv_enum.hpp"
 #include "IModule.hpp"
 
 class Conversation;
@@ -8,13 +10,22 @@ class Dispatcher {
 
 	private:
 
-	int&	_epollFd;
+	int&		_epollFd;
+	IModule*	_reader;
+	IModule*	_parser;
+	IModule*	_validator;
+	IModule*	_executor;
+	IModule*	_responseBuilder;
+	IModule*	_sender;
+	IModule*	_postSender;
+
+	void	setInterest(int mode);
 
 	public:
 
-	Dispatcher(const IModule& reader, const IModule& parser, const IModule& validator, const IModule& executor,
-		const IModule& responseBuilder, const IModule& sender, const IModule& postSender, const int& EpollFd);
+	Dispatcher(int& EpollFd, IModule* reader, IModule* parser, IModule* validator, IModule* executor,
+		IModule* responseBuilder, IModule* sender, IModule* postSender);
 	~Dispatcher(void);
 
-	void	dispatch(const Conversation& context);
+	void	dispatch(Conversation& conv);
 };

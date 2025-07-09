@@ -83,6 +83,19 @@ void	EventsManager::setClientConversation(int serverFd, int clientFd) {
 	_clients[clientFd] = clientConversation;
 }
 
+void	EventsManager::addClientToInterestList(int clientFd) {
+
+	struct	epoll_event	ev;
+	ev.data.fd = clientFd;
+	ev.events = EPOLLIN;
+	if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, clientFd, &ev) < 0) {
+		close(clientFd);
+		std::ostringstream	oss;
+		oss << "Failed to add client socket " << clientFd << " to epoll; closing it.";
+		throw std::runtime_error(oss.str());
+	}
+}
+
 int	EventsManager::acceptClient(int serverFd) {
 
 	sockaddr_in	clientAddress;
@@ -97,19 +110,6 @@ int	EventsManager::acceptClient(int serverFd) {
 	}
 	setSocketNonBlocking(clientFd);
 	return (clientFd);
-}
-
-void	EventsManager::addClientToInterestList(int clientFd) {
-
-	struct	epoll_event	ev;
-	ev.data.fd = clientFd;
-	ev.events = EPOLLIN;
-	if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, clientFd, &ev) < 0) {
-		close(clientFd);
-		std::ostringstream	oss;
-		oss << "Failed to add client socket " << clientFd << " to epoll; closing it.";
-		throw std::runtime_error(oss.str());
-	}
 }
 
 void	EventsManager::handleNewClient(int serverFd) {

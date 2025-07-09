@@ -21,29 +21,30 @@ class EventsManager {
 
 	private:
 
-	ConfigStore&				_configs; // stocker les configurations des differents serveurs -> initialisee par le parsing du fichier de config
+	ConfigStore&				_configs;
 	ServerInitializer&			_initializer;
 	Dispatcher&					_dispatcher;
-	std::set<int>				_listenSockets; // stocker les sockets du ou des serveurs actifs et en mode ecoute
-	std::map<int,Conversation>	_clients; // stocker le contexte de chaque client -> un fd associe a un contexte
-	int							_epollFd; // maintenir et interagir avec l'instance epoll
-	struct epoll_event			_events[MAX_EVENTS]; // buffer a passer a epoll_wait pour qu'il puisse ecrire les evenements
+	std::set<int>				_listenSockets;
+	std::map<int,Conversation>	_clients;
+	int							_epollFd;
+	struct epoll_event			_events[MAX_EVENTS];
+
+	void	listenEvents(void);
+	void	handleNewClient(int fd);
+	int		acceptClient(int fd);
+	void	setClientConversation(int serverFd, int clientFd);
+	void	addClientToInterestList(int clientFd);
+	void	setSocketNonBlocking(int fd);
+	void	handleClientEvent(int fd);
+	void	deleteClient(int fd);
+	void	deleteAllClients(void);
+	void	deleteServers(void);
+	void	deleteAllNetwork(void);
 
 	public:
 
 	EventsManager(ConfigStore& configs, ServerInitializer& initializer, Dispatcher& dispatcher);
 	~EventsManager(void);
 
-	void	run(void); // boucle principale, epoll, arrivee clients, appels dispatcher, etc
-	void	listenEvents(void);
-	void	handleNewClient(int fd); // accepter la demande de connexion d'un nouveau client, initialiser son contexte
-	int		acceptClient(int fd);
-	void	setClientConversation(int serverFd, int clientFd);
-	void	addClientToInterestList(int clientFd);
-	void	setSocketNonBlocking(int fd);
-	void	handleClientEvent(int fd);
-	void	deleteClient(int fd); // supprimer un client si conversation close, erreur ou timeout -> a voir si ici ?
-	void	deleteAllClients(void);
-	void	deleteServers(void);
-	void	deleteAllNetwork(void);
+	void	run(void);
 };

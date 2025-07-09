@@ -1,4 +1,4 @@
-#include "ServerInitializer.hpp" 
+#include "ServerInitializer.hpp"
 
 ServerInitializer::ServerInitializer(ConfigStore& configs, int& epollFd) : _configs(configs), _epollFd(epollFd) {}
 
@@ -30,7 +30,7 @@ void	ServerInitializer::setSocketNonBlocking(int socket) {
 	}
 }
 
-void	ServerInitializer::bindSocketToAddress(int socket, const serverConfig& config ) {
+void	ServerInitializer::bindSocket(int socket, const serverConfig& config ) {
 
 	sockaddr_in	address;
 	std::memset(&address, 0, sizeof(address));
@@ -84,9 +84,9 @@ std::set<int>	ServerInitializer::initServers(void) {
 			throw std::runtime_error("Failed to initalized socket");
 		}
 
-		setSocketImmediatReuse(sock);
 		setSocketNonBlocking(sock);
-		bindSocketToAddress(sock, config);
+		setSocketImmediatReuse(sock);
+		bindSocket(sock, config);
 		setSocketListeningMode(sock);
 		addSocketToEpoll(sock);
 
