@@ -1,4 +1,5 @@
 #include "../../inc/webserv.hpp"
+#include <stdexcept>
 
 using namespace std;
 
@@ -21,4 +22,47 @@ void Validator::validateVersion(Conversation& conv) {
 
 
 void Validator::validateBodyFormat(Conversation& conv) {
+	if (conv.req.header.count("content-length")
+			&& conv.req.header.count("transfer-encoding"))
+		return earlyResponse(conv, BAD_REQUEST);
+	conv.req.bodyLeft = 0;
 
+	if (conv.req.header.count("content-length")) {
+		try {
+			conv.req.bodyLeft = peekSize(conv.req.header["content-length"]);
+		} catch (std::overflow_error& e) {
+			return earlyResponse(conv, CONTENT_TOO_LARGE);
+		} catch (std::invalid_argument& e) {
+			return earlyResponse(conv, BAD_REQUEST);
+		}
+		if (conv.req.bodyLeft > bodyMax)
+			return earlyResponse(conv, CONTENT_TOO_LARGE);
+		if (conv.req.header["content-size"].find_first_not_of(base10) != npos)
+			return earlyResponse(conv, BAD_REQUEST);
+
+	} else if (conv.req.header.count("transfer-encoding")) {
+		if (conv.req.header["transfer-encoding"] != "chunked")
+			return earlyResponse(conv, NOT_IMPLEMENTED);
+	}
+}
+
+void Validator::validateBenign(Conversation& conv) {
+	validateMethod(conv);
+	if (conv.state != VALIDATE)
+		return;
+	validateUri(conv);
+	if (conv.state != VALIDATE)
+		return;
+	validateHeader(conv);
+	if (conv.state != VALIDATE)
+		return;
+}
+
+void Validator::validateMethod(Conversation& conv) {
+	if (conv.req.method != "GET" && conv.req.method != "POST"
+			&& conv.req.method != "DELETE")
+		earlyResponse(conv, NOT_IMPLEMENTED);
+}
+
+void Validator::validateUri(Conversation& conv) {}
+void Validator::validateHeader(Conversation& conv) {}
