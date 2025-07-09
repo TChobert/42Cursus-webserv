@@ -12,7 +12,7 @@ class ConfigStore {
 	private:
 
 	const std::vector<serverConfig>	_preInitConfigs;
-	std::map<int, serverConfig>	_configs;
+	std::map<int, serverConfig>		_configs;
 
 	public:
 

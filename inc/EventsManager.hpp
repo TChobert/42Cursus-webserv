@@ -12,6 +12,8 @@
 #include "Dispatcher.hpp"
 #include "Conversation.hpp"
 
+#include "webserv_enum.hpp"
+
 #define MAX_EVENTS 64 // arbitraire, a changer ou non
 
 class EventsManager {
@@ -33,7 +35,10 @@ class EventsManager {
 
 	void	run(void); // boucle principale, epoll, arrivee clients, appels dispatcher, etc
 	void	listenEvents(void);
-	void	acceptNewClient(int fd); // accepter la demande de connexion d'un nouveau client, initialiser son contexte
+	void	handleNewClient(int fd); // accepter la demande de connexion d'un nouveau client, initialiser son contexte
+	int		acceptClient(int fd);
+	void	setClientConversation(int serverFd, int clientFd);
+	void	addClientToInterestList(int clientFd);
 	void	handleClientEvent(int fd);
 	void	deleteClient(int fd); // supprimer un client si conversation close, erreur ou timeout -> a voir si ici ?
 	void	deleteAllClients(void);

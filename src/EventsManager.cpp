@@ -58,26 +58,50 @@ void EventsManager::handleClientEvent(int fd) {
 	}
 }
 
-void	EventsManager::acceptNewClient(int serverFd) {
+void	EventsManager::setClientConversation(int serverFd, int clientFd) {
+
+	Conversation	clientConversation;
+	serverConfig	config = _configs.getConfig(serverFd);
+
+	clientConversation._config = config;
+	clientConversation._fd = clientFd;
+	_clients[clientFd] = clientConversation;
+}
+
+int	EventsManager::acceptClient(int serverFd) {
+
+	sockaddr_in	clientAddress;
+	std::memset(&clientAddress, 0, sizeof(clientAddress));
+	socklen_t	clientLen = sizeof(clientAddress);
+
+	int	clientFd = accept (serverFd, (sockaddr *)&clientAddress, &clientLen);
+	if (clientFd < 0) {
+		std::ostringstream	oss;
+		oss << "Failed to add client to socket: " << serverFd;
+		throw std::runtime_error(oss.str());
+	}
+	return (clientFd);
+}
+
+void	EventsManager::addClientToInterestList(int clientFd) {
+
+	struct	epoll_event	ev;
+	ev.data.fd = clientFd;
+	ev.events = EPOLLIN;
+	if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, clientFd, &ev) < 0) {
+		close(clientFd);
+		std::ostringstream	oss;
+		oss << "Failed to add client socket " << clientFd << " to epoll; closing it.";
+		throw std::runtime_error(oss.str());
+	}
+}
+
+void	EventsManager::handleNewClient(int serverFd) {
 
 	try {
-		Conversation	clientConversation;
-		serverConfig	config = _configs.getConfig(serverFd);
-
-		clientConversation._config = config;
-
-		sockaddr_in	clientAddress;
-		std::memset(&clientAddress, 0, sizeof(clientAddress));
-		socklen_t	clientLen = sizeof(clientAddress);
-
-		int	clientFd = accept (serverFd, (sockaddr *)&clientAddress, &clientLen);
-		if (clientFd < 0) {
-			std::ostringstream	oss;
-			oss << "Failed to add client to socket: " << serverFd;
-			throw std::runtime_error(oss.str());
-		}
-		clientConversation.fd = clientFd;
-		_clients[clientFd] = clientConversation;
+		int	clientFd = acceptClient(serverFd);
+		setClientConversation(serverFd, clientFd);
+		addClientToInterestList(clientFd);
 	}
 	catch (const std::exception& e) {
 		std::cerr << "acceptNewClient error: " << e.what() << std::endl;
@@ -98,7 +122,7 @@ void	EventsManager::listenEvents(void) {
 			int currentFd = _events[i].data.fd;
 
 			if (_listenSockets.count(currentFd) > 0) {
-				acceptNewClient(currentFd);
+				handleNewClient(currentFd);
 			}
 			else {
 				handleClientEvent(currentFd);
