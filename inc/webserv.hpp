@@ -3,6 +3,7 @@
 #include "webserv_enum.hpp"
 #include "webserv_utils.hpp"
 #include "parse/parse.hpp"
+#include "read/Reader.hpp"
 
 class request {
 public:
