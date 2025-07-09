@@ -5,6 +5,6 @@ class Reader {
 private:
 	static const int BUFFER_SIZE = 1 << 16;
 public:
-	void read(Conversation& conv);
+	void execute(Conversation& conv);
 };
 

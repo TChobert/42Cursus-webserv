@@ -7,7 +7,7 @@ using namespace std;
 //read failing means the client has left
 //read returning 0 means we encounter EOF
 //either we successfully served or request is malformed
-void Reader::read(Conversation& conv) {
+void Reader::execute(Conversation& conv) {
 	char toAdd[BUFFER_SIZE];
 	int byteRead = ::read(conv.fd, toAdd, BUFFER_SIZE);
 	if (byteRead == -1) {
