@@ -29,14 +29,12 @@ void PostSender::execute(Conversation& conv)
 		conv.state = PARSE_BODY;
 		return ;
 	}
-
 	if (isKeepAlive(conv))
 	{
 		conv.state = PARSE_HEADER;
-		conv.bytesSent = 0; // ou dispatcher qui reset ??
-		conv.final_response.clear(); // ou dispatcher qui reset ? (tout serait centralise)
+		conv.bytesSent = 0;
+		conv.final_response.clear();
 		return ;
 	}
-
 	conv.state = FINISH;
 }
