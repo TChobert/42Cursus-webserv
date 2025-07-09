@@ -1,6 +1,9 @@
 #ifndef SENDER_HPP
 # define SENDER_HPP
 
+# include <unistd.h>
+# include <cstring>
+# include "webserv_enum.hpp"
 # include "Conversation.hpp"
 
 class Sender

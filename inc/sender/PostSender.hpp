@@ -1,7 +1,11 @@
 #ifndef POSTSENDER_HPP
 # define POSTSENDER_HPP
 
+# include "webserv_utils.hpp"
+# include "webserv_enum.hpp"
 # include "Conversation.hpp"
+
+class Conversation;
 
 class PostSender
 {

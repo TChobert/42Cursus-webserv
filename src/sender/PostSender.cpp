@@ -8,11 +8,9 @@ bool PostSender::isKeepAlive(const Conversation& conv)
 
 	if (it != conv.request.headers.end())
 	{
-		//ATTENTION: HTTP headers insensibles a la casse..
-		//Keep-Alive / KEEP-ALIVE > Dans ce cas, faire une fonction toLower pour comparer directement
-		return it->second == "keep-alive";
+		return toLower(it->second) == "keep-alive";
 	}
-	return (true); //par defaut, keep-alive ?
+	return (true); //par defaut, keep-alive
 }
 
 bool PostSender::isContinueStatus(const Conversation& conv)
@@ -26,7 +24,7 @@ void PostSender::execute(Conversation& conv)
 {
 	if (isContinueStatus(conv))
 	{
-		conv.state = PARSE_BODY;
+		conv.state = PARSE_BODY; //on doit envoyer headers + body en 2eme reponse (donc pas de clear de final_response)
 		return ;
 	}
 	if (isKeepAlive(conv))

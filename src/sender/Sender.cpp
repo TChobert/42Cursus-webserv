@@ -1,8 +1,4 @@
 #include "Sender.hpp"
-#include <unistd.h>
-#include <errno.h>
-#include <iostream>
-#include <cstring>
 
 /* ---------------- PRIVATE METHODS ------------------ */
 
