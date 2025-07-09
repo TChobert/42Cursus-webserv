@@ -78,8 +78,8 @@ void	EventsManager::setClientConversation(int serverFd, int clientFd) {
 	Conversation	clientConversation;
 	serverConfig	config = _configs.getConfig(serverFd);
 
-	clientConversation._config = config;
-	clientConversation._fd = clientFd;
+	clientConversation.config = config;
+	clientConversation.fd = clientFd;
 	_clients[clientFd] = clientConversation;
 }
 

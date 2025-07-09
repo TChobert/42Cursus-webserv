@@ -23,10 +23,12 @@ struct response {
 class Conversation {
 public:
 	int fd;
+	serverConfig config;
 	request req;
 	response resp;
 	convState state;
 	std::string buf;
 	parseState pState;
 	Conversation() : fd(-1), state(DRAIN_BUFFER), pState(START) {};
+	~Conversation(void) {}
 };
