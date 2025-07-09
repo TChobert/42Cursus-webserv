@@ -9,6 +9,7 @@ mapStr parseAllField(string& s) {
 	mapStr res;
 	while (s.compare(0, 2, "\r\n")) {
 		pairStr h = extractOneField(s);
+		// Cookies ?
 		if (res.count(h.first)) {
 			mapStr::iterator it = res.find(h.first);
 			it->second += ", ";

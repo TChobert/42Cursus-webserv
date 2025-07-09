@@ -11,5 +11,5 @@ private:
 	void parseBodyChunked(Conversation& conv);
 
 public:
-	void parse(Conversation& conv);
+	void execute(Conversation& conv);
 };

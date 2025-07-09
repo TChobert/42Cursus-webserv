@@ -11,7 +11,6 @@ const std::string upalpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const std::string alpha = loalpha + upalpha;
 const std::string tchar = alpha + "!#$%&'*+-.^_|~";
 
-void toLower(std::string& s);
 void parseThrow(std::string what);
 std::string extractToken(std::string& s);
 void deleteLeadOWS(std::string& s);
