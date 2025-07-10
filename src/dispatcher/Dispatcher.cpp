@@ -33,7 +33,7 @@ void	Dispatcher::removeClientFromEpoll(int clientFd) {
 }
 
 void	Dispatcher::dispatch(Conversation& conv) {
-	
+
 	if (conv.state == WRITE_CLIENT)
 		conv.state = TO_SEND;
 	else if (conv.state == READ_CLIENT)

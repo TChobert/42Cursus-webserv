@@ -80,18 +80,19 @@ std::set<int>	ServerInitializer::initServers(void) {
 		const serverConfig& config = *it;
 
 		int	sock = socket(AF_INET, SOCK_STREAM, 0);
-		// if (sock == -1) {
-		// 	throw std::runtime_error("Failed to initalized socket");
-		// }
+		if (sock > 0) {
+			setSocketNonBlocking(sock);
+			setSocketImmediatReuse(sock);
+			bindSocket(sock, config);
+			setSocketListeningMode(sock);
+			addSocketToEpoll(sock);
 
-		setSocketNonBlocking(sock);
-		setSocketImmediatReuse(sock);
-		bindSocket(sock, config);
-		setSocketListeningMode(sock);
-		addSocketToEpoll(sock);
-
-		_configs.bindSocketToConfig(sock, config);
-		serversSockets.insert(sock);
+			_configs.bindSocketToConfig(sock, config);
+			serversSockets.insert(sock);
+		}
+		else {
+			std::cerr << "Failed to initialize server known as: " << config.identity.host << std::endl;
+		}
 	}
 	return (serversSockets);
 }
