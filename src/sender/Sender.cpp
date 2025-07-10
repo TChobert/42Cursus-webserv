@@ -4,12 +4,12 @@
 
 bool	Sender::isAlreadySent(Conversation &conv)
 {
-	return conv.bytesSent >= conv.final_response.size();
+	return conv.bytesSent >= conv.finalResponse.size();
 }
 
 ssize_t	Sender::trySend(Conversation &conv)
 {
-	const std::string& responseData = conv.final_response;
+	const std::string& responseData = conv.finalResponse;
 	size_t alreadySent = conv.bytesSent;
 	size_t bytesRemaining = responseData.size() - alreadySent;
 
@@ -34,9 +34,9 @@ void	Sender::updateStateAfterSend(Conversation &conv, ssize_t bytesSentNow)
 	conv.bytesSent += static_cast<size_t>(bytesSentNow);
 
 	 //protection supplementaire si c'est accidentellement plus eleve...
-	if (conv.bytesSent > conv.final_response.size())
-		conv.bytesSent = conv.final_response.size();
-	if (conv.bytesSent == conv.final_response.size())
+	if (conv.bytesSent > conv.finalResponse.size())
+		conv.bytesSent = conv.finalResponse.size();
+	if (conv.bytesSent == conv.finalResponse.size())
 		conv.state = IS_SENT;
 	else
 		conv.state = WRITE_CLIENT; // reste des donnees a envoyer >> attention dispatcher
@@ -47,7 +47,7 @@ void	Sender::updateStateAfterSend(Conversation &conv, ssize_t bytesSentNow)
 
 void Sender::execute(Conversation& conv)
 {
-	if (conv.final_response.empty() || isAlreadySent(conv))
+	if (conv.finalResponse.empty() || isAlreadySent(conv))
 	{
 		conv.state = IS_SENT;
 		return;

@@ -15,7 +15,7 @@ bool PostSender::isKeepAlive(const Conversation& conv)
 
 bool PostSender::isContinueStatus(const Conversation& conv)
 {
-	return conv.response.statusCode == 100;
+	return conv.resp.statusCode == 100;
 }
 
 /* ---------------- PUBLIC METHODS ------------------ */
@@ -24,14 +24,14 @@ void PostSender::execute(Conversation& conv)
 {
 	if (isContinueStatus(conv))
 	{
-		conv.state = PARSE_BODY; //on doit envoyer headers + body en 2eme reponse (donc pas de clear de final_response)
+		conv.state = PARSE_BODY; //on doit envoyer headers + body en 2eme reponse (donc pas de clear de finalResponse)
 		return ;
 	}
 	if (isKeepAlive(conv))
 	{
-		conv.state = PARSE_HEADER;
+		conv.state = PARSE;
 		conv.bytesSent = 0;
-		conv.final_response.clear();
+		conv.finalResponse.clear();
 		return ;
 	}
 	conv.state = FINISH;
