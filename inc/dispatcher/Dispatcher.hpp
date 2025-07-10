@@ -1,10 +1,19 @@
 #pragma once
 
+#include <sys/epoll.h>
+#include <stdexcept>
+#include <sstream>
+#include <iostream>
+
 #include "webserv.hpp"
 #include "webserv_enum.hpp"
 #include "IModule.hpp"
 
-class Conversation;
+typedef enum e_interest_mode {
+
+	READ,
+	WRITE
+};
 
 class Dispatcher {
 
@@ -19,7 +28,8 @@ class Dispatcher {
 	IModule*	_sender;
 	IModule*	_postSender;
 
-	void	setInterest(int mode);
+	void	setEpollInterest(int clientFd, e_interest_mode mode);
+	void	removeClientFromEpoll(int clientFd);
 
 	public:
 

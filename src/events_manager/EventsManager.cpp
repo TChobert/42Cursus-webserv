@@ -49,7 +49,7 @@ EventsManager::~EventsManager(void) {
 
 void EventsManager::handleClientEvent(int fd) {
 
-	std::map<int, Conversation>::const_iterator it = _clients.find(fd);
+	std::map<int, Conversation>::iterator it = _clients.find(fd);
 	if (it != _clients.end()) {
 		_dispatcher.dispatch(it->second);
 	}
@@ -124,10 +124,29 @@ void	EventsManager::handleNewClient(int serverFd) {
 	}
 }
 
+void	EventsManager::closeFinishedClients(void) {
+
+	std::vector<int>	to_remove;
+	std::map<int, Conversation>::iterator it;
+
+	for (it = _clients.begin(); it != _clients.end(); ++it) {
+		Conversation&	currentClient = it->second;
+
+		if (currentClient.state == FINISH) {
+			to_remove.push_back(it->first);
+		}
+	}
+
+	for (size_t i = 0; i < to_remove.size(); ++i) {
+		deleteClient(to_remove[i]);
+	}
+}
+
 void	EventsManager::listenEvents(void) {
 
 	while (true) {
 
+		closeFinishedClients();
 		int	fdsNumber = epoll_wait(_epollFd, _events, MAX_EVENTS, - 1);
 		if (fdsNumber == -1) {
 			//gestion d'erreur a definir + SIGNAL HANDLING

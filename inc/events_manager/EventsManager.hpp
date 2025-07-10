@@ -36,6 +36,7 @@ class EventsManager {
 	void	addClientToInterestList(int clientFd);
 	void	setSocketNonBlocking(int fd);
 	void	handleClientEvent(int fd);
+	void	closeFinishedClients(void);
 	void	deleteClient(int fd);
 	void	deleteAllClients(void);
 	void	deleteServers(void);
