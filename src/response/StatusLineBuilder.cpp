@@ -47,6 +47,23 @@ std::string StatusLineBuilder::build(const HttpResponse& response)
 
 	if (it != _statusTexts.end()) //trouver le  message associe au code
 		message = it->second;
+	else //ceci est necessaire si mauvais code mis par les etapes d'avant... sinon on pourrait enlever..
+	{
+		//si dans plage HTTP mais pas implementee...
+		if (code >= 100 && code <= 599)
+		{
+			code = 501;
+			std::map<int, std::string>::const_iterator fallback = _statusTexts.find(501);
+			message = (fallback != _statusTexts.end()) ? fallback->second : "Not Implemented";
+		}
+		// si pas dans plage tout court..
+		else
+		{
+			code = 500;
+			std::map<int, std::string>::const_iterator fallback = _statusTexts.find(500);
+			message = (fallback != _statusTexts.end()) ? fallback->second : "Internal Server Error";
+		}
+	}
 
 	std::string httpVersion = "HTTP/1.1";
 	std::string statusCodeString = intToString(code);
@@ -54,4 +71,12 @@ std::string StatusLineBuilder::build(const HttpResponse& response)
 	std::string statusLine = httpVersion + " " + statusCodeString + " " + message + "\r\n";
 
 	return statusLine;
+}
+
+std::string StatusLineBuilder::getStatusText(int code)
+{
+	std::map<int, std::string>::const_iterator it = _statusTexts.find(code);
+	if (it != _statusTexts.end())
+		return it->second;
+	return "Unknown";
 }

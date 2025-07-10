@@ -14,9 +14,10 @@ class StatusLineBuilder
 
 		//fonction utilitaire pour init la map au-dessus
 		static std::map<int, std::string> createStatusTexts();
-		
+
 	public:
 		static std::string build(const HttpResponse& response);
+		static std::string getStatusText(int code);
 };
 
 #endif
