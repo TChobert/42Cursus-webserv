@@ -2,29 +2,19 @@
 
 /* ---------------- PRIVATE METHODS ------------------ */
 
-bool	Sender::isAlreadySent(Conversation &conv)
-{
-	return conv.bytesSent >= conv.finalResponse.size();
-}
-
 ssize_t	Sender::trySend(Conversation &conv)
 {
 	const std::string& responseData = conv.finalResponse;
 	size_t alreadySent = conv.bytesSent;
 	size_t bytesRemaining = responseData.size() - alreadySent;
 
-	//send() retourne le nb d'octets reellement envoyes (peut-etre moins !!)
-	//ssize_t send(int sockfd, const void *buf, size_t len, int flags);
-	//std::string::data() donne un const char * vers le debut du buffer de la string
 	ssize_t bytesSentNow = ::send(conv.client_fd,
-									responseData.data() + alreadySent, // pointeur vers la partie non envoyee.
-									bytesRemaining, //longueur de ce qu'il reste a envoyer
-									0); //flag a 0 = comportement normal
+									responseData.data() + alreadySent,
+									bytesRemaining,
+									0);
 
-	 if (bytesSentNow <= 0) // cas ou send a echoue..
+	 if (bytesSentNow <= 0)
 		return -1;
-	//send == 0, c'est possible : rien n'a ete envoye + aucune erreur bloquante levee
-	//arrive si socket est connecte, mais ferme de l'autre cote ou shutdown partiel SOCK_STREAM
 
 	return bytesSentNow;
 }
@@ -33,13 +23,10 @@ void	Sender::updateStateAfterSend(Conversation &conv, ssize_t bytesSentNow)
 {
 	conv.bytesSent += static_cast<size_t>(bytesSentNow);
 
-	 //protection supplementaire si c'est accidentellement plus eleve...
-	if (conv.bytesSent > conv.finalResponse.size())
-		conv.bytesSent = conv.finalResponse.size();
 	if (conv.bytesSent == conv.finalResponse.size())
 		conv.state = IS_SENT;
 	else
-		conv.state = WRITE_CLIENT; // reste des donnees a envoyer >> attention dispatcher
+		conv.state = WRITE_CLIENT;
 }
 
 
@@ -47,7 +34,7 @@ void	Sender::updateStateAfterSend(Conversation &conv, ssize_t bytesSentNow)
 
 void Sender::execute(Conversation& conv)
 {
-	if (conv.finalResponse.empty() || isAlreadySent(conv))
+	if (conv.finalResponse.empty())
 	{
 		conv.state = IS_SENT;
 		return;

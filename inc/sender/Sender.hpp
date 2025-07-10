@@ -9,7 +9,6 @@
 class Sender
 {
 	private:
-		static bool		isAlreadySent(Conversation &conv);
 		static ssize_t	trySend(Conversation &conv);
 		static void		updateStateAfterSend(Conversation &conv, ssize_t bytes);
 
