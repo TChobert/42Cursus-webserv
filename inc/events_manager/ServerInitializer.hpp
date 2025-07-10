@@ -21,15 +21,17 @@ class ServerInitializer {
 	ConfigStore&	_configs;
 	int				_epollFd;
 
+	void			socketInitProcess(int socket, const serverConfig& config);
+	void			setSocketImmediatReuse(int socket);
+	void			bindSocket(int socket, const serverConfig& config);
+	void			setSocketListeningMode(int socket);
+	void			setSocketNonBlocking(int socket);
+	void			addSocketToEpoll(int socket);
+
 	public:
 
 	ServerInitializer(ConfigStore& configs, int& epollFd);
 	~ServerInitializer(void);
 
 	std::set<int>	initServers(void);
-	void			setSocketImmediatReuse(int socket);
-	void			bindSocket(int socket, const serverConfig& config);
-	void			setSocketListeningMode(int socket);
-	void			setSocketNonBlocking(int socket);
-	void			addSocketToEpoll(int socket);
 };
