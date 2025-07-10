@@ -121,7 +121,6 @@ std::string HeaderBuilder::build(const HttpResponse& response)
 
 	headers << HeaderBuilder::buildGenericHeaders(response);
 	headers << HeaderBuilder::buildCustomHeaders(response);
-	headers << "\r\n";
 
 	return headers.str();
 }

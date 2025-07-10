@@ -28,13 +28,14 @@ enum statusCode
 	NOT_IMPLEMENTED = 501
 };
 
-struct Conversation {
-    HttpResponse response;
-    std::string final_response;
-    int statusCode;
-    State state;
+class Conversation {
+	public:
+    	HttpResponse response;
+   	 	std::string final_response;
+   	 	int statusCode;
+    	State state;
 
-    Conversation() : statusCode(200), state(OTHER) {}
+    	Conversation() : statusCode(200), state(OTHER) {}
 };
 
 #endif

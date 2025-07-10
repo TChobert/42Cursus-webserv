@@ -9,7 +9,7 @@ class BodyBuilder
 		//static std::string generateBodyError(int statusCode);
 
 	public:
-		static std::string BodyBuilder::build(const HttpResponse& response);
+		static std::string build(const HttpResponse& response);
 };
 
 #endif
