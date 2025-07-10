@@ -35,6 +35,7 @@ std::string HeaderBuilder::buildDateHeader()
 
 std::string HeaderBuilder::buildContentLengthHeader(const HttpResponse& response)
 {
+	//100 condition ou cas ou pas le droit de mettre content-length
 	// Les codes qui n'ont jamais de body
 	if (response.statusCode == NO_CONTENT || (response.statusCode >= 100 && response.statusCode < 200))
 	{
@@ -93,7 +94,7 @@ std::string HeaderBuilder::buildSetCookieHeaders(const HttpResponse& response)
 	return headers.str();
 }
 
-std::string HeaderBuilder::buildAllowHeader(const HttpResponse& response)
+std::string HeaderBuilder::buildAllowHeader(const HttpResponse& response) //changer avec conversation > stocke dans _config.locationConfig.allowedMethods
 {
 	if ((response.statusCode != METHOD_NOT_ALLOWED && response.statusCode != NOT_IMPLEMENTED)
 		|| response.allowedMethods.empty())
