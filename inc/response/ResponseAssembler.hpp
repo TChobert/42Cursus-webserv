@@ -1,7 +1,7 @@
 #ifndef RESPONSEASSEMBLER_HPP
 # define RESPONSEASSEMBLER_HPP
 
-# include "HttpResponse.hpp"
+# include "Response.hpp"
 
 class ResponseAssembler
 {

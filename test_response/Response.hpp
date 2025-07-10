@@ -1,11 +1,11 @@
-#ifndef HTTPRESPONSE_HPP
-#define HTTPRESPONSE_HPP
+#ifndef RESPONSE_HPP
+#define RESPONSE_HPP
 
 #include <string>
 #include <vector>
 #include <map>
 
-class HttpResponse
+class Response
 {
 public:
     int statusCode;
@@ -18,7 +18,7 @@ public:
     std::vector<std::string> allowedMethods;
     std::map<std::string, std::string> headers;
 
-    HttpResponse() : statusCode(200), shouldClose(false), chunked(false) {}
+    Response() : statusCode(200), shouldClose(false), chunked(false) {}
 };
 
 #endif

@@ -3,29 +3,28 @@
 
 # include <string>
 # include <sstream>
-# include "HttpResponse.hpp"
+# include "Response.hpp"
 
 class HttpResponse;
 
 class HeaderBuilder
 {
 	private:
-		static std::string buildGenericHeaders(const HttpResponse& response);
+		static std::string buildGenericHeaders(const Response& resp);
 		static std::string buildDateHeader();
-		static std::string buildContentLengthHeader(const HttpResponse& response);
-		static std::string buildContentTypeHeader(const HttpResponse& response);
+		static std::string buildContentLengthHeader(const Response& resp);
+		static std::string buildContentTypeHeader(const Response& resp);
 		static std::string buildServerHeader();
-		static std::string buildConnectionHeader(const HttpResponse& response);
-		//question du body lorsque chunk, a gerer ou pas ?
-		// dans ce cas, prevoir Transfer-Encoding: chunked (et mieux gerer body ?)
+		static std::string buildConnectionHeader(const Response& resp);
+		static bool isBodyForbidden(int statusCode);
 
-		static std::string buildCustomHeaders(const HttpResponse& response);
-		static std::string buildLocationHeader(const HttpResponse& response);
-		static std::string buildSetCookieHeaders(const HttpResponse& response);
-		static std::string buildAllowHeader(const HttpResponse& response);
+		static std::string buildCustomHeaders(const Response& resp);
+		static std::string buildLocationHeader(const Response& resp);
+		static std::string buildSetCookieHeaders(const Response& resp);
+		static std::string buildAllowHeader(const Response& resp);
 
 	public:
-		static std::string build(const HttpResponse& response);
+		static std::string build(const Response& resp);
 };
 
 #endif

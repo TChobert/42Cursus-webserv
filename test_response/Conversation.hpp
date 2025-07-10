@@ -2,7 +2,7 @@
 #define CONVERSATION_HPP
 
 #include <string>
-#include "HttpResponse.hpp"
+#include "Response.hpp"
 
 enum State { OTHER, WRITE_CLIENT };
 
@@ -30,8 +30,8 @@ enum statusCode
 
 class Conversation {
 	public:
-    	HttpResponse response;
-   	 	std::string final_response;
+    	Response resp;
+   	 	std::string finalResponse;
    	 	int statusCode;
     	State state;
 

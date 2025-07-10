@@ -4,7 +4,6 @@
 # include <string>
 # include "StatusLineBuilder.hpp"
 # include "HeaderBuilder.hpp"
-# include "BodyBuilder.hpp"
 # include "ResponseAssembler.hpp"
 
 class Conversation;

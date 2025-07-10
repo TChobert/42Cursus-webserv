@@ -5,11 +5,11 @@
 
 void	ResponseBuilder::build(Conversation& conv)
 {
-	std::string statusLine = StatusLineBuilder::build(conv.response);
-	std::string headers = HeaderBuilder::build(conv.response);
-	std::string body = conv.response.body;
+	std::string statusLine = StatusLineBuilder::build(conv.resp);
+	std::string headers = HeaderBuilder::build(conv.resp);
+	std::string body = conv.resp.body;
 
-	conv.final_response = ResponseAssembler::assemble(statusLine, headers, body);
+	conv.finalResponse = ResponseAssembler::assemble(statusLine, headers, body);
 }
 
 /* ---------------- PUBLIC ------------------ */
