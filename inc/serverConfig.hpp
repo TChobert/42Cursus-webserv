@@ -44,5 +44,14 @@ struct serverConfig {
 
 	serverInfo		identity;
 	errorPages		errorPagesPaths;
+	std::map<int, std::string>	errorPagesCodes;
 	std::map<locationName, locationConfig> locations;
 };
+
+// std::map<int, int> m;
+//  m[2] = 4;
+//  m[3] = 6;
+//  if (m[2] == 4)
+// 	do();
+// if ( m.count(5) && m[5] == 63)
+// 	do();

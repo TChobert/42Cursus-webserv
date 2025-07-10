@@ -53,9 +53,6 @@ void EventsManager::handleClientEvent(int fd) {
 	if (it != _clients.end()) {
 		_dispatcher.dispatch(it->second);
 	}
-	else {
-		std::cerr << fd << ": unknown client" << std::endl;
-	}
 }
 
 void	EventsManager::setSocketNonBlocking(int fd) {
@@ -168,13 +165,6 @@ void	EventsManager::listenEvents(void) {
 
 void	EventsManager::run(void) {
 
-	try {
-		_listenSockets = _initializer.initServers();
-	}
-	catch (const std::exception& e) {
-		std::cout << e.what() << std::endl;
-		//deleteAllNetwork();
-		// EXIT ??
-	}
-	listenEvents(); // A VOIR SI DANS UN TRY CATCH
+	_listenSockets = _initializer.initServers();
+	listenEvents();
 }

@@ -33,29 +33,40 @@ void	Dispatcher::removeClientFromEpoll(int clientFd) {
 }
 
 void	Dispatcher::dispatch(Conversation& conv) {
+	
+	if (conv.state == WRITE_CLIENT)
+		conv.state = TO_SEND;
+	else if (conv.state == READ_CLIENT)
+		conv.state = TO_READ;
+	//exec
 
 	while (true) {
 
-		if (conv.state == RESPONSE) {
+		if (conv.state == TO_SEND) {
+			_sender->execute(conv);
+		}
+		else if (conv.state == TO_READ) {
+			_reader->execute(conv);
+		}
+		else if (conv.state == RESPONSE) {
 			_responseBuilder->execute(conv);
-			setEpollInterest(conv.fd, WRITE);
-			break ;
+		}
+		else if (conv.state == IS_SENT) {
+			_postSender->execute(conv);
+		}
+		else if (conv.state == PARSE || PARSE_BODY || SKIP_BODY || EOF_CLIENT) {
+			_parser->execute(conv);
+		}
+		else if (conv.state == VALIDATE) {
+			_validator->execute(conv);
 		}
 		else if (conv.state == READ_CLIENT) {
 			setEpollInterest(conv.fd, READ);
 			break ;
 		}
 		else if (conv.state == WRITE_CLIENT) {
-			_sender->execute(conv);
-		}
-		else if (conv.state == IS_SENT) {
-			_postSender->execute(conv);
-		}
-		else if (conv.state == DRAIN_BUFFER || PARSE_HEADER || PARSE_BODY || SKIP_BODY || EOF_CLIENT) {
-			_parser->execute(conv);
-		}
-		else if (conv.state == VALIDATE) {
-			_validator->execute(conv);
+			setEpollInterest(conv.fd, WRITE);
+			break ;
 		}
 		else if (conv.state == FINISH) {
 			removeClientFromEpoll(conv.fd);

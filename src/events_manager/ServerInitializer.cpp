@@ -80,9 +80,9 @@ std::set<int>	ServerInitializer::initServers(void) {
 		const serverConfig& config = *it;
 
 		int	sock = socket(AF_INET, SOCK_STREAM, 0);
-		if (sock == -1) {
-			throw std::runtime_error("Failed to initalized socket");
-		}
+		// if (sock == -1) {
+		// 	throw std::runtime_error("Failed to initalized socket");
+		// }
 
 		setSocketNonBlocking(sock);
 		setSocketImmediatReuse(sock);
