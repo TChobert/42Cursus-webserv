@@ -16,17 +16,18 @@ void	EventsManager::deleteClient(int fd) {
 	_clients.erase(fd);
 }
 
-void	EventsManager::deleteAllClients(void) {
+void EventsManager::deleteAllClients(void) {
 
-	std::map<int, Conversation>::iterator it;
-
-	for (it = _clients.begin(); it != _clients.end(); ++it) {
-		deleteClient(it->first);
+	std::vector<int> toDelete;
+	for (std::map<int, Conversation>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+		toDelete.push_back(it->first);
 	}
-	_clients.clear();
+	for (size_t i = 0; i < toDelete.size(); ++i) {
+		deleteClient(toDelete[i]);
+	}
 }
 
-void	EventsManager::deleteServers(void) {
+void	EventsManager::deleteAllServers(void) {
 
 	std::set<int>::iterator it;
 
@@ -39,8 +40,9 @@ void	EventsManager::deleteServers(void) {
 void	EventsManager::deleteAllNetwork(void) {
 
 	deleteAllClients();
-	deleteServers();
-	close (_epollFd);
+	deleteAllServers();
+	if (_epollFd >= 0)
+		close (_epollFd);
 }
 
 EventsManager::~EventsManager(void) {
@@ -130,19 +132,34 @@ void	EventsManager::handleNewClient(int serverFd) {
 
 void	EventsManager::closeFinishedClients(void) {
 
-	std::vector<int>	to_remove;
+	std::vector<int>	toRemove;
 	std::map<int, Conversation>::iterator it;
 
 	for (it = _clients.begin(); it != _clients.end(); ++it) {
 		Conversation&	currentClient = it->second;
 
 		if (currentClient.state == FINISH) {
-			to_remove.push_back(it->first);
+			toRemove.push_back(it->first);
 		}
 	}
 
-	for (size_t i = 0; i < to_remove.size(); ++i) {
-		deleteClient(to_remove[i]);
+	for (size_t i = 0; i < toRemove.size(); ++i) {
+		deleteClient(toRemove[i]);
+	}
+}
+
+void	EventsManager::handleNotifiedEvents(int fdsNumber) {
+
+	for (int i = 0; i < fdsNumber; ++i) {
+
+		int currentFd = _events[i].data.fd;
+
+		if (_listenSockets.count(currentFd) > 0) {
+			handleNewClient(currentFd);
+		}
+		else {
+			handleClientEvent(currentFd);
+		}
 	}
 }
 
@@ -161,18 +178,7 @@ void	EventsManager::listenEvents(void) {
 				throw std::runtime_error("Critical epoll_wait error. Server interruption.");
 			}
 		}
-
-		for (int i = 0; i < fdsNumber; ++i) {
-
-			int currentFd = _events[i].data.fd;
-
-			if (_listenSockets.count(currentFd) > 0) {
-				handleNewClient(currentFd);
-			}
-			else {
-				handleClientEvent(currentFd);
-			}
-		}
+		handleNotifiedEvents(fdsNumber);
 	}
 }
 

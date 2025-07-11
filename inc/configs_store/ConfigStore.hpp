@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <vector>
 #include <map>
+#include <iostream>
 
 #include "serverConfig.hpp"
 
@@ -20,9 +21,8 @@ class ConfigStore {
 	~ConfigStore(void);
 
 	void									bindSocketToConfig(const int serverSocket, const serverConfig& config);
-
 	const std::vector<serverConfig>&		getPreInitConfigs(void) const;
 	serverConfig							getConfig(int serverSocket) const;
 	const std::map<int, serverConfig>&		getAllConfigs(void) const;
-	size_t									size(void);
+	size_t									size(void) const;
 };

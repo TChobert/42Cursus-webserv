@@ -30,6 +30,7 @@ class EventsManager {
 	struct epoll_event			_events[MAX_EVENTS];
 
 	void	listenEvents(void);
+	void	handleNotifiedEvents(int fdsNumber);
 	void	handleNewClient(int fd);
 	int		acceptClient(int fd);
 	void	setClientConversation(int serverFd, int clientFd);
@@ -39,7 +40,7 @@ class EventsManager {
 	void	closeFinishedClients(void);
 	void	deleteClient(int fd);
 	void	deleteAllClients(void);
-	void	deleteServers(void);
+	void	deleteAllServers(void);
 	void	deleteAllNetwork(void);
 
 	public:

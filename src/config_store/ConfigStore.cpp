@@ -18,7 +18,7 @@ serverConfig	ConfigStore::getConfig(int serverSocket) const {
 
 	std::map<int, serverConfig>::const_iterator it = _configs.find(serverSocket);
 	if (it == _configs.end()) {
-		throw std::runtime_error("No configs found for the current socket");
+		throw std::runtime_error("No configuration found for the current socket");
 	}
 	return (it->second);
 }
