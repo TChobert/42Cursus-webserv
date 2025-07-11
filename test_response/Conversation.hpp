@@ -1,6 +1,13 @@
-#pragma once
+#ifndef CONVERSATION_HPP
+#define CONVERSATION_HPP
 
-enum statusCode {
+#include <string>
+#include "Response.hpp"
+
+enum State { OTHER, WRITE_CLIENT };
+
+enum statusCode
+{
 	NOT_A_STATUS_CODE = 0,
 	CONTINUE = 100,
 	OK = 200,
@@ -18,24 +25,17 @@ enum statusCode {
 	URI_TOO_LONG = 414,
 	REQUEST_HEADER_FIELDS_TOO_LARGE = 431,
 	INTERNAL_SERVER_ERROR = 500,
-	NOT_IMPLEMENTED = 501,
-	HTTP_VERSION_NOT_SUPPORTED = 505,
+	NOT_IMPLEMENTED = 501
 };
 
-enum convState {
-	READ_CLIENT,
-	WRITE_CLIENT,
-	EOF_CLIENT,
-	FINISH,
-	READ_EXEC,
-	WRITE_EXEC,
-	PARSE,
-	PARSE_BODY,
-	SKIP_BODY,
-	VALIDATE,
-	RESPONSE,
-	EXEC,
-	TO_READ,
-	TO_SEND,
-	IS_SENT
+class Conversation {
+	public:
+    	Response resp;
+   	 	std::string finalResponse;
+   	 	int statusCode;
+    	State state;
+
+    	Conversation() : statusCode(200), state(OTHER) {}
 };
+
+#endif
