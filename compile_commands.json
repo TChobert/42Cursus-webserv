@@ -1,0 +1,18 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/c++",
+      "-g3",
+      "-std=c++98",
+      "-Wall",
+      "-Wextra",
+      "-c",
+      "-o",
+      ".obj/parse/Parser.o",
+      "src/parse/Parser.cpp"
+    ],
+    "directory": "/home/parden/Github/webserv",
+    "file": "/home/parden/Github/webserv/src/parse/Parser.cpp",
+    "output": "/home/parden/Github/webserv/.obj/parse/Parser.o"
+  }
+]

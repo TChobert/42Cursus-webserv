@@ -15,7 +15,7 @@ enum parseState {
 	HEADER,
 	MAYBE_BODY,
 	BODY,
-	SKIP_BODY
+	//SKIP_BODY
 };
 
 namespace ParserRoutine {

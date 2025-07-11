@@ -1,5 +1,6 @@
 #include "../../inc/webserv.hpp"
 #include <stdexcept>
+#include <algorithm>
 
 using namespace std;
 
@@ -47,10 +48,10 @@ void Validator::validateBodyFormat(Conversation& conv) {
 }
 
 void Validator::validateBenign(Conversation& conv) {
-	validateMethod(conv);
+	validateUri(conv);
 	if (conv.state != VALIDATE)
 		return;
-	validateUri(conv);
+	validateMethod(conv);
 	if (conv.state != VALIDATE)
 		return;
 	validateHeader(conv);
@@ -60,8 +61,14 @@ void Validator::validateBenign(Conversation& conv) {
 
 void Validator::validateMethod(Conversation& conv) {
 	if (conv.req.method != "GET" && conv.req.method != "POST"
-			&& conv.req.method != "DELETE")
-		earlyResponse(conv, NOT_IMPLEMENTED);
+			&& conv.req.method != "DELETE") {
+		skipBody(conv, NOT_IMPLEMENTED);
+		return;
+	}
+	vector<string>& meth = conv.location->allowedMethods;
+	if (find(meth.begin(), meth.end(), conv.req.method) == meth.end())
+		skipBody(conv, METHOD_NOT_ALLOWED);
+
 }
 
 void Validator::validateUri(Conversation& conv) {}

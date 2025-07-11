@@ -49,6 +49,7 @@ void Parser::parseHeader(Conversation& conv) {
 	return;
 }
 
+//Needs to handle empty body ?
 void Parser::parseBody(Conversation& conv) {
 	if (conv.req.header.count("content-length")) {
 		size_t pos = min(conv.buf.size(), conv.req.bodyLeft);
