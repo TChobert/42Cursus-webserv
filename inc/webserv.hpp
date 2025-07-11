@@ -31,6 +31,5 @@ public:
 	convState state;
 	std::string buf;
 	parseState pState;
-	Conversation() : fd(-1), state(DRAIN_BUFFER), pState(START) {};
-	~Conversation(void) {}
+	Conversation() : fd(-1), state(PARSE), pState(START) {};
 };
