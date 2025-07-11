@@ -25,10 +25,12 @@ void	Dispatcher::setEpollInterest(int clientFd, e_interest_mode mode) {
 	}
 }
 
-void	Dispatcher::removeClientFromEpoll(int clientFd) {
+void	Dispatcher::removeClientFromEpoll(Conversation& conv) {
+
+	int	clientFd = conv.fd;
 
 	if (epoll_ctl(_epollFd, EPOLL_CTL_DEL, clientFd, NULL) < 0) {
-		std::cerr << "Failed to remove fd " << clientFd << " from epoll\n";
+		std::cerr << "Failed to remove fd " << conv.config.identity.host << " from epoll\n";
 	}
 }
 
@@ -69,7 +71,7 @@ void	Dispatcher::dispatch(Conversation& conv) {
 			break ;
 		}
 		else if (conv.state == FINISH) {
-			removeClientFromEpoll(conv.fd);
+			removeClientFromEpoll(conv);
 			break ;
 		}
 	}

@@ -29,7 +29,7 @@ class Dispatcher {
 	IModule*	_postSender;
 
 	void	setEpollInterest(int clientFd, e_interest_mode mode);
-	void	removeClientFromEpoll(int clientFd);
+	void	removeClientFromEpoll(Conversation& conv);
 
 	public:
 
