@@ -80,7 +80,7 @@ void Parser::parseBodyChunked(Conversation& conv) {
 		try {
 			chunkSize = peekSize(s, 16);
 		} catch (std::overflow_error& e) {
-			return earlyResponse(conv, CONTENT_TOO_LARGE);
+			return earlyResponse(conv, ENTITY_TOO_LARGE);
 		}
 
 		if (s.size() - (pos + 2) < chunkSize + 2)
@@ -95,7 +95,7 @@ void Parser::parseBodyChunked(Conversation& conv) {
 			return;
 		}
 		if (conv.req.body.size() + chunkSize > bodyMax)
-			return earlyResponse(conv, CONTENT_TOO_LARGE);
+			return earlyResponse(conv, ENTITY_TOO_LARGE);
 		conv.req.body += s.substr(0, chunkSize);
 		s.erase(0, chunkSize);
 		if (s.compare(0, 2, "\r\n"))

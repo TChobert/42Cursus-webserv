@@ -10,8 +10,11 @@ private:
 
 	//Worst case we skip the body
 	void validateBenign(Conversation& conv);
-	void validateMethod(Conversation& conv);
 	void validateUri(Conversation& conv);
+	size_t matchLoc(Conversation& conv);
+	void stripHost(Conversation& conv);
+	void validateMethod(Conversation& conv);
+
 	void validateHeader(Conversation& conv);
 public:
 	void execute(Conversation& conv);
