@@ -59,13 +59,15 @@ void	EventsManager::setSocketNonBlocking(int fd) {
 
 	int	flags = fcntl(fd, F_GETFL, 0);
 	if (flags < 0) {
+		close(fd);
 		std::ostringstream	oss;
-		oss << "fcntl failed on client fd: " << fd << " while setting it nonblocking";
+		oss << "fcntl failed on client fd: " << fd << " while setting it nonblocking, closing it.";
 		throw std::runtime_error(oss.str());
 	}
 	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+		close(fd);
 		std::ostringstream	oss;
-		oss << "fcntl failed on client: " << fd << " while setting it nonblocking";
+		oss << "fcntl failed on client: " << fd << " while setting it nonblocking, closing it.";
 		throw std::runtime_error(oss.str());
 	}
 }
@@ -101,6 +103,9 @@ int	EventsManager::acceptClient(int serverFd) {
 
 	int	clientFd = accept (serverFd, (sockaddr *)&clientAddress, &clientLen);
 	if (clientFd < 0) {
+		if (errno == EAGAIN || errno ==EWOULDBLOCK) {
+			return (-1);
+		}
 		std::ostringstream	oss;
 		oss << "Failed to add client to socket: " << serverFd;
 		throw std::runtime_error(oss.str());
@@ -113,8 +118,10 @@ void	EventsManager::handleNewClient(int serverFd) {
 
 	try {
 		int	clientFd = acceptClient(serverFd);
-		setClientConversation(serverFd, clientFd);
-		addClientToInterestList(clientFd);
+		if (clientFd != -1) {
+			setClientConversation(serverFd, clientFd);
+			addClientToInterestList(clientFd);
+		}
 	}
 	catch (const std::exception& e) {
 		std::cerr << "acceptNewClient error: " << e.what() << std::endl;
