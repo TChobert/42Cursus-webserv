@@ -153,7 +153,13 @@ void	EventsManager::listenEvents(void) {
 		closeFinishedClients();
 		int	fdsNumber = epoll_wait(_epollFd, _events, MAX_EVENTS, - 1);
 		if (fdsNumber == -1) {
-			//gestion d'erreur a definir + SIGNAL HANDLING
+			if (errno == EINTR) {
+				continue ;
+			}
+			else {
+				deleteAllNetwork();
+				throw std::runtime_error("Critical epoll_wait error. Server interruption.");
+			}
 		}
 
 		for (int i = 0; i < fdsNumber; ++i) {
