@@ -7,8 +7,8 @@
 
 using namespace std;
 
-void toLower(string& s) {
-	for (size_t i = 0; i < s.size(); i++)
+void toLower(string& s, size_t start, size_t len) {
+	for (size_t i = start; i < s.size() && i-start < len; i++)
 		s[i] = tolower(s[i]);
 }
 

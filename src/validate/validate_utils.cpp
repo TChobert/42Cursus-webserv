@@ -5,5 +5,5 @@ void skipBody(Conversation& conv, statusCode status) {
 	if (!conv.req.header.count("transfer-encoding") && !conv.req.bodyLeft)
 		conv.state = EXEC;
 	else
-		conv.state = SKIP_BODY;
+		conv.state = PARSE_BODY;
 }

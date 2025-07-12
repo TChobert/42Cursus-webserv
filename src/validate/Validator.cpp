@@ -66,16 +66,85 @@ void Validator::validateUri(Conversation& conv) {
 		stripHost(conv);
 	if (conv.state != VALIDATE)
 		return;
+	parsePath(conv);
 	size_t best = matchLoc(conv);
 	if (!best)
 		skipBody(conv, NOT_FOUND);
 }
 
+void Validator::parsePath(Conversation& conv) {
+	string& s = conv.req.uri;
+	vector<string>& vec = conv.req.path.seg;
+	while (s.size() && s[0] == '/') {
+		while (s.size() && s[0] == '/')
+			s.erase(0, 1);
+		if (!s.size() || s[0] == '?')
+			break;
+		size_t pos = s.find_first_of("/?");
+		if (pos == npos)
+			pos = s.size();
+		vec.push_back(s.substr(0, pos));
+		s.erase(0, pos);
+	}
+	if (!vec.size())
+		vec.push_back("");
+	if (s.size()) {
+		s.erase(0,1);
+		conv.req.path.hasQuery = true;
+		conv.req.path.query = s;
+	}
+	for (size_t i = 0; i < vec.size(); i++) {
+		string repl = "";
+		for (size_t j = 0; j < vec[i].size();) {
+			if (vec[i][j] == '%') {
+				if (j + 2 >= vec[i].size() || base16.find(vec[i][j+1]) == npos
+						|| base16.find(vec[i][j+2]) == npos)
+					return earlyResponse(conv, BAD_REQUEST);
+				string esc = vec[i].substr(j+1,2);
+				repl += peekSize(esc, 16);
+				j+=2;
+			} else {
+				if (pchar.find(vec[i][j]) == npos)
+					return earlyResponse(conv, BAD_REQUEST);
+				repl += vec[i][j];
+				j++;
+			}
+		}
+		vec[i] = repl;
+		if (vec[i] == "." || vec[i] == "..")
+			return earlyResponse(conv, BAD_REQUEST);
+	}
+	string& quer = conv.req.path.query;
+	for (size_t j = 0; j < quer.size();) {
+		if (quer[j] == '%') {
+			if (j + 2 >= quer.size() || base16.find(quer[j+1]) == npos
+					|| base16.find(quer[j+2]) == npos)
+				return earlyResponse(conv, BAD_REQUEST);
+			j+=2;
+		} else {
+			if (qchar.find(quer[j]) == npos)
+				return earlyResponse(conv, BAD_REQUEST);
+			j++;
+		}
+	}
+}
+
+
 void Validator::stripHost(Conversation& conv) {
 	string& s = conv.req.uri;
-	if (s.compare(0, 7,"http://"))
+	toLower(s, 0, 6);
+	if (s.compare(0, 6,"http:/"))
 		return skipBody(conv, BAD_REQUEST);
-	s.erase(0, 7);
+	s.erase(0, 6);
+	if (s.empty())
+		s = "/";
+	if (s[0] == '/')
+		return;
+	s.erase(0, 1);
+	size_t pos = s.find("/");
+	if (pos == npos)
+		pos = s.size();
+	toLower(s, 0, pos);
 	if (s.compare(0, conv.config.identity.host.size(), conv.config.identity.host))
 		return skipBody(conv, BAD_REQUEST);
 	s.erase(0, conv.config.identity.host.size());
@@ -108,10 +177,18 @@ size_t Validator::matchLoc(Conversation& conv) {
 	size_t res = 0;
 	for (locIt it = conv.config.locations.begin(); it != conv.config.locations.end(); it++) {
 		size_t curr = 0;
-		while (curr < min(it->first.size(), conv.req.uri.size())
-				&& it->first[curr] == conv.req.uri[curr])
-			curr++;
-		if (curr > res) {
+		size_t pos = 0;
+		while (pos < it->first.size()) {
+			size_t newPos = it->first.find("/", pos+1);
+			if (newPos == npos)
+				newPos = it->first.size();
+			if (conv.req.path.seg[curr] == it->first.substr(pos+1, newPos-pos-1))
+				curr++;
+			else
+				break;
+			pos = newPos;
+		}
+		if (curr > res && pos == it->first.size()) {
 			res = curr;
 			conv.location = &it->second;
 		}
