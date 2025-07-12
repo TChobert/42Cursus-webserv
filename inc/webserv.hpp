@@ -50,6 +50,7 @@ class request {
 public:
 	std::string method;
 	std::string uri;
+	parsedPath path;
 	std::pair<int,int> version;
 	mapStr header;
 	size_t bodyLeft;
