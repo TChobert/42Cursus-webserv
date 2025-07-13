@@ -14,7 +14,7 @@ class ConfigFileReader {
 	ConfigFileReader(void);
 	~ConfigFileReader(void);
 
-	std::string	loadConfigContent(const std::string& configPath);
+	std::string	loadConfigContent(const std::string& configPath) const;
 
 	class OpenFailureException: public std::exception {
 		virtual const char *what() const throw();

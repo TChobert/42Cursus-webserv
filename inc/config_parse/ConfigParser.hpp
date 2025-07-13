@@ -16,13 +16,13 @@ class ConfigParser {
 
 	std::string _configPath;
 	std::string _rawConfigContent;
-	ConfigFileReader _configReader;
+	const ConfigFileReader _configReader;
 	CommentsRemover _commentsRemover;
 
 	public:
 
-	ConfigParser(ConfigFileReader& configReader);
+	ConfigParser(const std::string& configPath, const ConfigFileReader& configReader);
 	~ConfigParser(void);
 
-	std::vector<serverConfig>	parse(std::string& configContent);
+	std::vector<serverConfig>	parse(void);
 };

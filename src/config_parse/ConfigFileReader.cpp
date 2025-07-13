@@ -4,7 +4,7 @@ ConfigFileReader::ConfigFileReader(void) {}
 
 ConfigFileReader::~ConfigFileReader(void) {}
 
-std::string	ConfigFileReader::loadConfigContent(const std::string& configPath) {
+std::string	ConfigFileReader::loadConfigContent(const std::string& configPath) const {
 
 	std::ifstream fileStream(configPath.c_str());
 
