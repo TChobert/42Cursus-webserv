@@ -10,6 +10,7 @@ typedef std::string locationName;
 struct locationConfig {
 
 	locationName				name;
+	std::string					root;
 	std::vector<std::string>	allowedMethods;
 	std::string					index;
 	bool						autoIndex;
@@ -37,13 +38,12 @@ struct serverInfo {
 
 	unsigned int	port;
 	std::string		host;
-	std::string		root; // move into locationConfig ?
+	std::string		root;
 };
 
 struct serverConfig {
 
 	serverInfo		identity;
-	errorPages		errorPagesPaths;
 	std::map<int, std::string>	errorPagesCodes;
 	std::map<locationName, locationConfig> locations;
 };
