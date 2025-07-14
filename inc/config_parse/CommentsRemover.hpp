@@ -10,12 +10,13 @@ class CommentsRemover {
 
 	private:
 
-	std::string	removeComment(std::string& line, std::size_t operatorPos);
+	static const char COMMENT_OPERATOR = '#';
+	std::string	removeComment(const std::string& line, const std::size_t operatorPos);
 
 	public:
 
 	CommentsRemover(void);
 	~CommentsRemover(void);
 
-	std::string	remove(std::string& configContent);
+	std::string	remove(const std::string& configContent);
 };

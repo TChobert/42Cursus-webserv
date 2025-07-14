@@ -1,0 +1,7 @@
+# This is a full line comment
+# Another comment
+#
+# Comment with spacing
+
+[REAL]
+value=yes

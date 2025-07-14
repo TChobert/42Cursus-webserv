@@ -7,12 +7,18 @@ int	main(int ac, char **av) {
 		return (EXIT_FAILURE);
 	}
 
-	ConfigFileReader reader;
-	std::string rawContent = reader.loadConfigContent(av[1]);
+	try {
+		ConfigFileReader reader;
+		std::string rawContent = reader.loadConfigContent(av[1]);
 
-	CommentsRemover remover;
-	std::string clearContent = remover.remove(rawContent);
+		CommentsRemover remover;
+		std::string clearContent = remover.remove(rawContent);
 
-	std::cout << clearContent;
+		std::cout << clearContent;
+	}
+	catch (const std::exception& e) {
+		std::cout << e.what() << std::endl;
+	}
+
 	return (EXIT_SUCCESS);
 }

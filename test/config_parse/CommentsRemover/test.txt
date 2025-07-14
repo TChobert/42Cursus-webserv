@@ -3,9 +3,7 @@
 var=hello                                    #comment
 var2 = hello #bis repetita
 var3=#
-
 #comment
-
 abcd
 
 #comment2
@@ -14,7 +12,7 @@ abcd
 
 var=1234###########
 
-##################################
+a##################################
 
 line=line
 

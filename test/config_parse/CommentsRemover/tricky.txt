@@ -1,0 +1,4 @@
+value=12345#6
+name=#john
+# This comment starts with a hash
+notacomment=###notacomment
