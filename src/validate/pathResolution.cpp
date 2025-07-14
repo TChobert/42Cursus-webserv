@@ -1,6 +1,7 @@
 #include <string>
 #include "webserv.hpp"
 #include "webserv_enum.hpp"
+#include "validate/Validator.hpp"
 
 using namespace std;
 typedef map<string, locationConfig>::iterator locIt;
@@ -90,7 +91,7 @@ vector<string> Validator::parsePath(Conversation& conv) {
 	return seg;
 }
 
-void	segmentLinter(Conversation& conv, vector<string>& seg) {
+void Validator::segmentLinter(Conversation& conv, vector<string>& seg) {
 	for (size_t i = 0; i < seg.size(); i++) {
 		string decoded = "";
 		for (size_t j = 0; j < seg[i].size();) {
@@ -116,7 +117,7 @@ void	segmentLinter(Conversation& conv, vector<string>& seg) {
 	}
 }
 
-void	queryLinter(Conversation& conv) {
+void Validator::queryLinter(Conversation& conv) {
 	string& quer = conv.req.query;
 	for (size_t j = 0; j < quer.size();) {
 		if (quer[j] == '%') {

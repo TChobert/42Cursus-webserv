@@ -49,7 +49,6 @@ void Parser::parseHeader(Conversation& conv) {
 	return;
 }
 
-//Needs to handle empty body ?
 void Parser::parseBody(Conversation& conv) {
 	if (conv.req.header.count("content-length")) {
 		size_t pos = min(conv.buf.size(), conv.req.bodyLeft);
@@ -68,7 +67,7 @@ void Parser::parseBody(Conversation& conv) {
 }
 
 void Parser::parseBodyChunked(Conversation& conv) {
-	string s = conv.buf;
+	string& s = conv.buf;
 	while (true) {
 		size_t pos = s.find("\r\n");
 		if (pos == npos && s.size() <= bodyMax)
@@ -138,7 +137,7 @@ void Parser::execute(Conversation& conv) {
 		if (conv.pState == BODY)
 			parseBody(conv);
 		if (conv.pState == TRAILER)
-			parseBody(conv);
+			parseTrailer(conv);
 	} catch (std::exception& e) {
 		return earlyResponse(conv, BAD_REQUEST);
 	}
