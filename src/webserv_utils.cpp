@@ -58,7 +58,7 @@ size_t peekSize(string& s, int base) {
 
 //Calling with 2 params sets close to true
 void earlyResponse(Conversation& conv, statusCode status, bool close) {
-	conv.state = RESPONSE;
+	conv.state = EXEC;
 	conv.resp.status = status;
 	conv.resp.shouldClose = close;
 }

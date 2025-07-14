@@ -6,6 +6,41 @@
       "-std=c++98",
       "-Wall",
       "-Wextra",
+      "-Iinc/",
+      "-c",
+      "-o",
+      ".obj/parse/header.o",
+      "src/parse/header.cpp"
+    ],
+    "directory": "/home/parden/Github/webserv",
+    "file": "/home/parden/Github/webserv/src/parse/header.cpp",
+    "output": "/home/parden/Github/webserv/.obj/parse/header.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/c++",
+      "-g3",
+      "-std=c++98",
+      "-Wall",
+      "-Wextra",
+      "-Iinc/",
+      "-c",
+      "-o",
+      ".obj/parse/parse_utils.o",
+      "src/parse/parse_utils.cpp"
+    ],
+    "directory": "/home/parden/Github/webserv",
+    "file": "/home/parden/Github/webserv/src/parse/parse_utils.cpp",
+    "output": "/home/parden/Github/webserv/.obj/parse/parse_utils.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/c++",
+      "-g3",
+      "-std=c++98",
+      "-Wall",
+      "-Wextra",
+      "-Iinc/",
       "-c",
       "-o",
       ".obj/parse/Parser.o",

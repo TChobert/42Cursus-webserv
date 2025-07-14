@@ -7,7 +7,6 @@ SRC_DIR := src/
 SRC := $(shell find src -name '*.cpp')
 
 INC_DIR := inc/
-INC := $(shell find inc -name '*.hpp')
 
 OBJ_DIR := .obj/
 OBJ := $(patsubst $(SRC_DIR)%.cpp, $(OBJ_DIR)%.o, $(SRC))
@@ -18,11 +17,11 @@ all: $(NAME)
 bonus: all
 
 $(NAME): $(OBJ)
-	$(CXX) $(CXXFLAGS) -I$(INC) $^ -o $@
+	$(CXX) $(CXXFLAGS) -I$(INC_DIR) $^ -o $@
 
 $(OBJ_DIR)%.o: $(SRC_DIR)%.cpp
 	@ mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS)  -MMD -MP  -c $< -o $@ 
+	$(CXX) $(CXXFLAGS) -I$(INC_DIR) -MMD -MP  -c $< -o $@ 
 
 -include $(DEP)
 

@@ -14,7 +14,8 @@ class request {
 public:
 	std::string method;
 	std::string uri;
-	parsedPath path;
+	bool hasQuery;
+	std::string query;
 	std::pair<int,int> version;
 	mapStr header;
 	size_t bodyLeft;
