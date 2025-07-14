@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 #include <vector>
 #include <map>
@@ -7,44 +8,7 @@
 #include "parse/parse.hpp"
 #include "read/Reader.hpp"
 #include "validate/validate.hpp"
-
-struct locationConfig {
-	std::string name;
-	std::vector<std::string> allowedMethods;
-	std::string index;
-	bool autoIndex;
-	bool hasReturn;
-	int returnCode;
-	std::string returnURL;
-};
-
-struct serverInfo {
-
-	unsigned int	port;
-	std::string		host;
-	std::string		server_name;
-	size_t clientMaxBodySize;
-};
-
-struct errorPages {
-
-	std::string	error_400;
-	std::string	error_403;
-	std::string	error_404;
-	std::string	error_405;
-	std::string	error_408;
-	std::string	error_413;
-	std::string	error_500;
-	std::string	error_501;
-	std::string	error_504;
-};
-
-struct serverConfig {
-	serverInfo		identity;
-	errorPages		errorPagesPaths;
-	std::map<int, std::string>	errorPagesCodes;
-	std::map<std::string, locationConfig> locations;
-};
+#include "serverConfig.hpp"
 
 class request {
 public:

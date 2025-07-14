@@ -1,8 +1,10 @@
 #pragma once
-#include <string>
-class Conversation;
 
-class Parser {
+#include "IModule.hpp"
+#include <string>
+
+
+class Parser : public IModule {
 private:
 	void parseStartLine(Conversation& conv);
 	void handleHugeStart(Conversation& conv);
