@@ -19,4 +19,8 @@ class ConfigFileReader {
 	class OpenFailureException: public std::exception {
 		virtual const char *what() const throw();
 	};
+
+	class EmptyContentException: public std::exception {
+		virtual const char *what() const throw();
+	};
 };

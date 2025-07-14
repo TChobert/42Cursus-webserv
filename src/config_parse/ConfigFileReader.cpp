@@ -15,12 +15,22 @@ std::string	ConfigFileReader::loadConfigContent(const std::string& configPath) c
 	std::stringstream rawConfigContent;
 	rawConfigContent << fileStream.rdbuf();
 
-	return rawConfigContent.str();
+	std::string rawConfigString = rawConfigContent.str();
+	if (rawConfigString.empty()) {
+		throw EmptyContentException();
+	}
+
+	return rawConfigString;
 }
 
 // EXCEPTIONS //
 
 const char	*ConfigFileReader::OpenFailureException::what() const throw() {
 
-	return ("Error: webserv: cannot open configuration file");
+	return ("Error: webserv: cannot open configuration file.");
+}
+
+const char	*ConfigFileReader::EmptyContentException::what() const throw() {
+
+	return ("Error: webserv: empty configuration file.");
 }

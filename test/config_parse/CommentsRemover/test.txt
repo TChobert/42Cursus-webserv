@@ -1,0 +1,23 @@
+[A SIMPLE TEST WITH COMMENTS]
+
+var=hello                                    #comment
+var2 = hello #bis repetita
+var3=#
+
+#comment
+
+abcd
+
+#comment2
+
+[ROUTE]
+
+var=1234###########
+
+##################################
+
+line=line
+
+123456#
+
+#

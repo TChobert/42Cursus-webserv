@@ -8,4 +8,5 @@ ConfigParser::~ConfigParser(void) {}
 std::vector<serverConfig>	ConfigParser::parse(void) {
 
 	_rawConfigContent = _configReader.loadConfigContent(_configPath);
+	std::cout << _rawConfigContent;
 }

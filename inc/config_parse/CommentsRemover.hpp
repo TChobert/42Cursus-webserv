@@ -4,8 +4,13 @@
 #include <cstdlib>
 #include <iostream>
 #include <exception>
+#include <sstream>
 
 class CommentsRemover {
+
+	private:
+
+	std::string	removeComment(std::string& line, std::size_t operatorPos);
 
 	public:
 
