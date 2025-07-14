@@ -19,5 +19,5 @@ void Reader::execute(Conversation& conv) {
 		return;
 	}
 	conv.buf.insert(0, toAdd, byteRead);
-	conv.state = DRAIN_BUFFER;
+	conv.state = PARSE;
 }

@@ -1,5 +1,8 @@
 #include "../../inc/webserv.hpp"
-#include <exception>
+#include "parse/parse_utils.hpp"
+#include "validate/validate.hpp"
+#include "webserv_enum.hpp"
+#include "webserv_utils.hpp"
 #include <stdexcept>
 #include <algorithm>
 
@@ -70,4 +73,30 @@ void Validator::validateMethod(Conversation& conv) {
 		skipBody(conv, METHOD_NOT_ALLOWED);
 }
 
-void Validator::validateHeader(Conversation& conv) {}
+void Validator::validateHeader(Conversation& conv) {
+	mapStr& head = conv.req.header;
+	if (!head.count("host") 
+			|| (head["host"] != conv.config.identity.host
+				&& head["host"] != conv.config.identity.host + ':' + intToString(conv.config.identity.port)))
+		return earlyResponse(conv, BAD_REQUEST);
+	if (head.count("content-encoding"))
+		return skipBody(conv, NOT_IMPLEMENTED);
+	if (head.count("connection")) {
+		if (head["connection"] == "close") {
+			conv.resp.shouldClose = true;
+		} else if (head["connection"] != "keep-alive")
+			return skipBody(conv, NOT_IMPLEMENTED);
+	}
+	//if (head.count("cookie")) {
+	//	conv.req.cookie = head["cookie"];
+	//}
+	if (head.count("expect")) {
+		if (head["expect"] == "100-continue") {
+			if (!conv.resp.status) {
+				conv.resp.status = CONTINUE;
+				conv.state = RESPONSE;
+			}
+		} else
+			return earlyResponse(conv, EXPECTATION_FAILED);
+	}
+}

@@ -45,7 +45,7 @@ void Parser::parseHeader(Conversation& conv) {
 	conv.req.header = parseAllField(s);
 	conv.req.body = "";
 	conv.state = VALIDATE;
-	conv.pState = MAYBE_BODY;
+	conv.pState = START;
 	return;
 }
 
@@ -88,12 +88,11 @@ void Parser::parseBodyChunked(Conversation& conv) {
 		extractSize(s, 16);
 		deleteChunkExt(s);
 
-		//Incorrect for trailers
 		if (!chunkSize) {
-			conv.pState = START;
-			conv.state = EXEC;
+			conv.pState = TRAILER;
 			return;
 		}
+		s.erase(0, 2);
 		if (conv.req.body.size() + chunkSize > bodyMax)
 			return earlyResponse(conv, ENTITY_TOO_LARGE);
 		conv.req.body += s.substr(0, chunkSize);
@@ -104,15 +103,27 @@ void Parser::parseBodyChunked(Conversation& conv) {
 	}
 }
 
+void Parser::parseTrailer(Conversation& conv) {
+	string& s = conv.buf;
+	size_t pos = s.find("\r\n\r\n");
+	if (pos == npos) {
+		if (s.size() > headerMax)
+			return earlyResponse(conv, REQUEST_HEADER_FIELDS_TOO_LARGE);
+		conv.state = READ_CLIENT;
+		return;
+	}
+	parseAllField(s);
+	conv.state = EXEC;
+	conv.pState = START;
+	return;
+}
+
 void Parser::execute(Conversation& conv) {
 	try {
-		if (conv.pState == MAYBE_BODY && conv.state == PARSE_HEADER)
-			conv.pState = SKIP_BODY;
-		if (conv.pState == MAYBE_BODY && conv.state == PARSE_BODY)
+		if (conv.state == PARSE_BODY)
 			conv.pState = BODY;
 		if (conv.state == EOF_CLIENT) {
-			if (conv.buf.empty() &&
-					(conv.pState == START || conv.pState == MAYBE_BODY))
+			if (conv.buf.empty() && conv.pState == START)
 				conv.state = FINISH;
 			else {
 				return earlyResponse(conv, BAD_REQUEST);
@@ -120,13 +131,13 @@ void Parser::execute(Conversation& conv) {
 			return;
 		}
 
-		if (conv.pState == SKIP_BODY)
-			parseBody(conv);
 		if (conv.pState == START)
 			parseStartLine(conv);
 		if (conv.pState == HEADER)
 			parseHeader(conv);
 		if (conv.pState == BODY)
+			parseBody(conv);
+		if (conv.pState == TRAILER)
 			parseBody(conv);
 	} catch (std::exception& e) {
 		return earlyResponse(conv, BAD_REQUEST);

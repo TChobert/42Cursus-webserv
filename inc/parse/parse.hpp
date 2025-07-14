@@ -13,9 +13,8 @@ const size_t bodyMax = 1e5;
 enum parseState {
 	START = 0,
 	HEADER,
-	MAYBE_BODY,
 	BODY,
-	//SKIP_BODY
+	TRAILER
 };
 
 namespace ParserRoutine {
