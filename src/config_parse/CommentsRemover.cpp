@@ -4,12 +4,42 @@ CommentsRemover::CommentsRemover(void) {}
 
 CommentsRemover::~CommentsRemover(void) {}
 
-std::string	CommentsRemover::removeComment(const std::string& line, const std::size_t operatorPos) {
+// std::string	CommentsRemover::removeComment(const std::string& line) {
+
+// 	std::string	clearLine;
+// 	bool	isInQuotes = false;
+
+// 	for (size_t i = 0; i < line.length(); ++i) {
+// 		if (line[i] == '"')
+// 			isInQuotes = !isInQuotes;
+// 		if (line[i] == COMMENT_OPERATOR && isInQuotes == false) {
+// 			clearLine = line.substr(0, i);
+// 			break ;
+// 		}
+// 	}
+// 	return (clearLine);
+// }
+
+std::string	CommentsRemover::removeComment(const std::string& line) {
 
 	std::string	clearLine;
 
-	clearLine = line.substr(0, operatorPos);
-	return (clearLine);
+	for (size_t i = 0; i < line.length(); ++i) {
+		if (line[i] == '"') {
+			size_t closingQuote = line.find('"', i + 1);
+			if (closingQuote == std::string::npos) {
+				throw UnclosedQuotesException();
+			}
+			i = closingQuote;
+			continue ;
+		}
+		if (line[i] == COMMENT_OPERATOR) {
+			clearLine = line.substr(0, i);
+			return clearLine;
+		}
+	}
+	clearLine = line;
+	return clearLine;
 }
 
 std::string	CommentsRemover::remove(const std::string& configContent) {
@@ -27,9 +57,16 @@ std::string	CommentsRemover::remove(const std::string& configContent) {
 			removedContent += currentLine + '\n';
 		}
 		else if (commentOperator != 0) {
-			removedContent += removeComment(currentLine, commentOperator) + '\n';
+			removedContent += removeComment(currentLine) + '\n';
 		}
 	}
 
 	return (removedContent);
+}
+
+// EXCEPTIONS
+
+const char	*CommentsRemover::UnclosedQuotesException::what() const throw() {
+
+	return ("Error: webserv: unclosed quotes in configuration file.");
 }

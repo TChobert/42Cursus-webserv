@@ -1,0 +1,9 @@
+[CLOSED QUOTES]
+
+var=123
+var2=##
+
+var3=\"#hello\"#merde
+
+var4=41413411414
+

@@ -11,7 +11,7 @@ class CommentsRemover {
 	private:
 
 	static const char COMMENT_OPERATOR = '#';
-	std::string	removeComment(const std::string& line, const std::size_t operatorPos);
+	std::string	removeComment(const std::string& line);
 
 	public:
 
@@ -19,4 +19,8 @@ class CommentsRemover {
 	~CommentsRemover(void);
 
 	std::string	remove(const std::string& configContent);
+
+	class UnclosedQuotesException: public std::exception {
+		virtual const char *what() const throw();
+	};
 };
