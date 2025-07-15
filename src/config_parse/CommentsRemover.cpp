@@ -1,24 +1,20 @@
 #include "CommentsRemover.hpp"
 
+const std::string CommentsRemover::COMMENTS_OPERATORS = "#;";
+
 CommentsRemover::CommentsRemover(void) {}
 
 CommentsRemover::~CommentsRemover(void) {}
 
-// std::string	CommentsRemover::removeComment(const std::string& line) {
+size_t	CommentsRemover::skipQuotes(const std::string& line, size_t position) {
 
-// 	std::string	clearLine;
-// 	bool	isInQuotes = false;
-
-// 	for (size_t i = 0; i < line.length(); ++i) {
-// 		if (line[i] == '"')
-// 			isInQuotes = !isInQuotes;
-// 		if (line[i] == COMMENT_OPERATOR && isInQuotes == false) {
-// 			clearLine = line.substr(0, i);
-// 			break ;
-// 		}
-// 	}
-// 	return (clearLine);
-// }
+	size_t closingQuote = line.find('"', position + 1);
+	if (closingQuote == std::string::npos) {
+		throw UnclosedQuotesException();
+	}
+	position = closingQuote;
+	return (position);
+}
 
 std::string	CommentsRemover::removeComment(const std::string& line) {
 
@@ -26,14 +22,10 @@ std::string	CommentsRemover::removeComment(const std::string& line) {
 
 	for (size_t i = 0; i < line.length(); ++i) {
 		if (line[i] == '"') {
-			size_t closingQuote = line.find('"', i + 1);
-			if (closingQuote == std::string::npos) {
-				throw UnclosedQuotesException();
-			}
-			i = closingQuote;
+			i = skipQuotes(line, i);
 			continue ;
 		}
-		if (line[i] == COMMENT_OPERATOR) {
+		if (COMMENTS_OPERATORS.find_first_of(line[i]) != std::string::npos) {
 			clearLine = line.substr(0, i);
 			return clearLine;
 		}
@@ -49,16 +41,11 @@ std::string	CommentsRemover::remove(const std::string& configContent) {
 	std::stringstream	rawContent;
 
 	rawContent << configContent;
+	
 	while (getline(rawContent, currentLine)) {
 
-		std::size_t	commentOperator = currentLine.find_first_of(COMMENT_OPERATOR);
-
-		if (commentOperator == std::string::npos) {
-			removedContent += currentLine + '\n';
-		}
-		else if (commentOperator != 0) {
-			removedContent += removeComment(currentLine) + '\n';
-		}
+		std::string cleaned = removeComment(currentLine);
+		removedContent += cleaned + '\n';
 	}
 
 	return (removedContent);

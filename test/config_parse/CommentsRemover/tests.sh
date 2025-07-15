@@ -11,6 +11,8 @@ test_files=(
   "no_comments"
   "test"
   "tricky"
+  "tricky_with_semicolon"
+  "test_edge_cases"
 )
 
 for file in "${test_files[@]}"; do

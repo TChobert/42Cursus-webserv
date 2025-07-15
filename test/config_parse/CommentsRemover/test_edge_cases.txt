@@ -1,0 +1,7 @@
+key=some value # comment # another comment
+key2=some value ; comment ; another comment
+key3="string with # hash"
+key4="string with ; semicolon"
+key5=;comment without value
+key6=#another comment without value
+key7=normalvalue

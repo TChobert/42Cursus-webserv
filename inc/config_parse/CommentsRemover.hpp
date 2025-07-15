@@ -10,8 +10,9 @@ class CommentsRemover {
 
 	private:
 
-	static const char COMMENT_OPERATOR = '#';
+	static const std::string COMMENTS_OPERATORS;
 	std::string	removeComment(const std::string& line);
+	size_t	skipQuotes(const std::string& line, size_t position);
 
 	public:
 

@@ -1,0 +1,8 @@
+[COMMENTS COMMA VERSION]
+
+var=2
+var=23;4
+
+;should not appear
+
+this ;too;

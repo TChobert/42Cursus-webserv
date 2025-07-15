@@ -1,0 +1,10 @@
+value=12345#6
+name=#john
+# This comment starts with a hash
+notacomment=###notacomment
+key1=value1;this is a comment
+key2=some value ; another comment
+; full line comment with semicolon
+key3=val;ue3
+key4=val";"ue4
+key5="val;ue5" ; comment here
