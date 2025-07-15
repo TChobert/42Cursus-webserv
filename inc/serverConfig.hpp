@@ -1,49 +1,44 @@
 #pragma once
 
+#include "webserv_enum.hpp"
 #include <string>
 #include <map>
 #include <vector>
 
 typedef std::string locationName;
+typedef std::string cgiExtension;
+typedef std::string cgiHandler;
 
 // Information for each location
 struct locationConfig {
 
 	locationName				name;
+	bool						hasRoot;
+	std::string					root;
 	std::vector<std::string>	allowedMethods;
 	std::string					index;
 	bool						autoIndex;
 	size_t						clientMaxBodySize;
-	bool						hasReturn;
-	int							returnCode;
-	std::string					returnURL;
-};
-
-// Error pages paths. Optionnal for some of them. We can add more later or remove some of them if necessary
-struct errorPages {
-
-	std::string	error_400;
-	std::string	error_403;
-	std::string	error_404;
-	std::string	error_405;
-	std::string	error_408;
-	std::string	error_413;
-	std::string	error_500;
-	std::string	error_501;
-	std::string	error_504;
+	bool						hasRedir;
+	statusCode					redirCode;
+	std::string					redirURL;
+	bool						uploadEnabled;
+	std::string					uploadStore;
+	std::map<cgiExtension, cgiHandler> cgiHandlers;
 };
 
 struct serverInfo {
 
 	unsigned int	port;
 	std::string		host;
-	std::string		root; // move into locationConfig ?
+	std::string		server_name;
+	std::string		root;
+	bool			hasRoot;
 };
 
 struct serverConfig {
 
 	serverInfo		identity;
-	errorPages		errorPagesPaths;
 	std::map<int, std::string>	errorPagesCodes;
 	std::map<locationName, locationConfig> locations;
 };
