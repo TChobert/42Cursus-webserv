@@ -12,6 +12,7 @@ test_files=(
   "test"
   "tricky"
   "tricky_with_semicolon"
+  "test_empty_and_whitespace"
   "test_edge_cases"
 )
 
