@@ -9,6 +9,7 @@
 #include "CommentsRemover.hpp"
 #include "serverConfig.hpp"
 #include "ConfigFileReader.hpp"
+#include "Formatter.hpp"
 
 class ConfigParser {
 
@@ -18,7 +19,8 @@ class ConfigParser {
 	std::string _rawConfigContent;
 	const ConfigFileReader _configReader;
 	CommentsRemover _commentsRemover;
-
+	Formatter _formatter;
+	
 	public:
 
 	ConfigParser(const std::string& configPath, const ConfigFileReader& configReader);

@@ -1,0 +1,32 @@
+[TEST2]
+
+                                                     a lot of spaces
+###########################################big comment
+
+
+
+
+Empty lines ahead
+
+
+
+
+More empty lines
+
+;comment
+;comment2
+#comment3
+
+var=12
+
+quotes""
+
+quotes_bis";"
+quotes_bis_bis"#;"
+
+#
+;
+
+[HEY]
+
+end;
