@@ -21,7 +21,7 @@
 
 // 	std::string input = "   hello\n\t\tworld\n  		foo bar\n";
 // 	std::string expected = "hello\nworld\nfoo bar\n";
-// 	assert(f.removeSpaces(input) == expected);
+// 	assert(f.removeLeadingSpaces(input) == expected);
 
 // 	std::cout << "✅ test_removeSpaces passed" << std::endl;
 // }
