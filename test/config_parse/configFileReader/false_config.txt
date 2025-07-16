@@ -1,0 +1,20 @@
+[Hello]
+test=test
+abc=def
+
+
+;
+
+[GG]
+a=b
+c=12222222222
+d=
+e
+
+#faux fichier pour juste un test!!
+#oui oui                                                    oui
+
+
+		abce
+
+

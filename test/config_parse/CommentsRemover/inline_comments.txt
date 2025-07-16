@@ -1,0 +1,4 @@
+key=value # only a comment
+another=more data#another comment
+#start with comment
+valid=ok

@@ -1,0 +1,7 @@
+[SECTION]
+key=value
+another=1234
+
+[OTHER]
+text=hello world
+line=line

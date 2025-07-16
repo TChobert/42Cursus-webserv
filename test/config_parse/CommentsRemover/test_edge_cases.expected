@@ -1,0 +1,7 @@
+key=some value 
+key2=some value 
+key3="string with # hash"
+key4="string with ; semicolon"
+key5=
+key6=
+key7=normalvalue

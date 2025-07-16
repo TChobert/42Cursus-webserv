@@ -1,0 +1,9 @@
+[UNCLOSED QUOTES]
+
+var=123
+var2=##
+
+var3="#hello
+
+var4=41413411414
+
