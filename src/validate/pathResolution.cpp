@@ -24,7 +24,6 @@ void Validator::validateUri(Conversation& conv) {
 	assembleUri(conv, seg, match);
 }
 
-#include <iostream>
 void Validator::stripHost(Conversation& conv) {
 	string& s = conv.req.uri;
 	toLower(s, 0, 7);
@@ -47,25 +46,6 @@ void Validator::stripHost(Conversation& conv) {
 		s.erase(0, hostFull.size());
 	else
 		s.erase(0, host.size());
-	if (!s.size())
-		s = "/";
-	if (s[0] == '/')
-		return;
-	if (s[0] != ':')
-		return skipBody(conv, BAD_REQUEST);
-	s.erase(0, 1);
-	size_t dgt = s.find_first_not_of(base10);
-	if (dgt == npos)
-		dgt = s.size();
-	size_t port;
-	try {
-		port = extractSize(s);
-	} catch (exception& e) {
-		return skipBody(conv, BAD_REQUEST);
-	}
-	if (port != conv.config.identity.port)
-		return skipBody(conv, BAD_REQUEST);
-	s.erase(0, dgt);
 	if (!s.size())
 		s = "/";
 	if (s[0] != '/')

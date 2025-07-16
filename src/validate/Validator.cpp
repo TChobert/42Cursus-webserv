@@ -8,7 +8,6 @@
 
 using namespace std;
 
-#include <iostream>
 void Validator::execute(Conversation& conv) {
 	validateCritical(conv);
 	if (conv.state != VALIDATE)
