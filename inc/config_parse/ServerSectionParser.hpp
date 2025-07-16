@@ -7,7 +7,7 @@
 
 #include "ConfigParser.hpp"
 
-class ServerConfigParser {
+class ServerSectionParser {
 
 	private:
 
@@ -16,6 +16,9 @@ class ServerConfigParser {
 	keyType getKeyType(const std::string& key);
 
 	public:
+
+	ServerSectionParser(void);
+	~ServerSectionParser(void);
 
 	void extractCurrentDirective(const std::string& directive, parserState *state);
 };

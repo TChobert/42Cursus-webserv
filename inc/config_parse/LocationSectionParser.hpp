@@ -7,7 +7,7 @@
 
 #include "ConfigParser.hpp"
 
-class LocationConfigParser {
+class LocationSectionParser {
 
 	private:
 
@@ -16,6 +16,9 @@ class LocationConfigParser {
 	//keyType getKeyType(const std::string& key);
 
 	public:
+
+	LocationSectionParser(void);
+	~LocationSectionParser(void);
 
 	void extractCurrentDirective(const std::string& directive, parserState *state);
 };
