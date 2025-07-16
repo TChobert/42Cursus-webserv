@@ -6,12 +6,14 @@
 using namespace std;
 typedef map<string, locationConfig>::iterator locIt;
 
+#include <iostream>
 void Validator::validateUri(Conversation& conv) {
 	if (conv.req.uri[0] != '/')
 		stripHost(conv);
 	if (conv.state != VALIDATE)
 		return;
 	vector<string> seg = parsePath(conv);
+	cerr << seg[0] << " here\n";
 	if (conv.state != VALIDATE)
 		return;
 	size_t match = matchLoc(conv, seg);
@@ -157,6 +159,7 @@ size_t Validator::matchLoc(Conversation& conv, vector<string>& seg) {
 }
 
 void Validator::assembleUri(Conversation& conv, vector<string>& seg, size_t match) {
+	conv.req.uri = "";
 	if (conv.location->hasRedir) {
 		conv.req.uri += conv.location->redirURL;
 		conv.resp.status = conv.location->redirCode;

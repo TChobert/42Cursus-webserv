@@ -16,7 +16,6 @@ struct locationConfig {
 	std::vector<std::string>	allowedMethods;
 	std::string					index;
 	bool						autoIndex;
-	size_t						clientMaxBodySize;
 	bool						hasRedir;
 	statusCode					redirCode;
 	std::string					redirURL;

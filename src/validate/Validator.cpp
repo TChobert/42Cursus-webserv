@@ -8,11 +8,18 @@
 
 using namespace std;
 
+#include <iostream>
 void Validator::execute(Conversation& conv) {
 	validateCritical(conv);
 	if (conv.state != VALIDATE)
 		return;
 	validateBenign(conv);
+	if (conv.state == VALIDATE) {
+		if (conv.req.bodyLeft || conv.req.header.count("transfer-encoding"))
+			conv.state = PARSE_BODY;
+		else
+			conv.state = EXEC;
+	}
 }
 
 void Validator::validateCritical(Conversation& conv) {
