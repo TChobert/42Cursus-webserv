@@ -1,8 +1,6 @@
 #pragma once
 
 #include "IModule.hpp"
-#include <string>
-
 
 class Parser : public IModule {
 private:
@@ -11,6 +9,7 @@ private:
 	void parseHeader(Conversation& conv);
 	void parseBody(Conversation& conv);
 	void parseBodyChunked(Conversation& conv);
+	void parseTrailer(Conversation& conv);
 
 public:
 	void execute(Conversation& conv);

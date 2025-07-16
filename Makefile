@@ -6,6 +6,8 @@ NAME := webserv
 SRC_DIR := src/
 SRC := $(shell find src -name '*.cpp')
 
+INC := inc/
+
 OBJ_DIR := .obj/
 OBJ := $(patsubst $(SRC_DIR)%.cpp, $(OBJ_DIR)%.o, $(SRC))
 DEP := $(patsubst $(SRC_DIR)%.cpp, $(OBJ_DIR)%.d, $(SRC))
@@ -15,11 +17,11 @@ all: $(NAME)
 bonus: all
 
 $(NAME): $(OBJ)
-	$(CXX) $(CXXFLAGS) $^ -o $@
+	$(CXX) $(CXXFLAGS) -I$(INC) $^ -o $@
 
 $(OBJ_DIR)%.o: $(SRC_DIR)%.cpp
 	@ mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@ 
+	$(CXX) $(CXXFLAGS) -I$(INC) -MMD -MP  -c $< -o $@ 
 
 -include $(DEP)
 

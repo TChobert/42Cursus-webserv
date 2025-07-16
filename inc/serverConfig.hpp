@@ -1,5 +1,6 @@
 #pragma once
 
+#include "webserv_enum.hpp"
 #include <string>
 #include <map>
 #include <vector>
@@ -10,13 +11,14 @@ typedef std::string locationName;
 struct locationConfig {
 
 	locationName				name;
+	bool						hasRoot;
+	std::string					root;
 	std::vector<std::string>	allowedMethods;
 	std::string					index;
 	bool						autoIndex;
-	size_t						clientMaxBodySize;
-	bool						hasReturn;
-	int							returnCode;
-	std::string					returnURL;
+	bool						hasRedir;
+	statusCode					redirCode;
+	std::string					redirURL;
 };
 
 // Error pages paths. Optionnal for some of them. We can add more later or remove some of them if necessary
@@ -37,7 +39,7 @@ struct serverInfo {
 
 	unsigned int	port;
 	std::string		host;
-	std::string		root; // move into locationConfig ?
+	std::string		server_name;
 };
 
 struct serverConfig {

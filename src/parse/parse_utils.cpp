@@ -59,7 +59,6 @@ void deleteChunkExt(string& s) {
 			}
 		}
 	}
-	s.erase(0, 2);
 }
 
 void deleteQuotedString(string& s) {
