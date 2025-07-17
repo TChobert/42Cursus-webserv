@@ -11,8 +11,12 @@ class HeaderSectionParser {
 
 	private:
 
+	static const char HEADER_OPEN = '[';
+	static const char HEADER_CLOSE = ']';
 	enum headerType {SERVER, LOCATION};
-	size_t getHeaderLastChar(const std::string& header);
+
+	void ensureHeaderIsEnclosed(const std::string& header);
+	std::string trimHeader(const std::string& header);
 	headerType getHeaderType(const std::string& header);
 
 	public:
@@ -23,6 +27,9 @@ class HeaderSectionParser {
 	void handleCurrentHeader(const std::string& header, parserState *state);
 
 	class InvalidHeaderException : public std::exception {
+		virtual const char *what() const throw();
+	};
+	class ServerlessSectionException : public std::exception {
 		virtual const char *what() const throw();
 	};
 };

@@ -16,15 +16,16 @@
 
 enum currentState {
 	START,
-	SECTION_HEADER,
-	SERVER,
-	LOCATION,
+	HEADER_SECTION,
+	SERVER_SECTION,
+	LOCATION_SECTION,
 	END,
 };
 
 struct parserState {
 	currentState state;
 	bool isInServerScope;
+	bool isConfigComplete;
 	serverConfig currentConfig;
 };
 
@@ -42,7 +43,6 @@ class ConfigParser {
 	LocationSectionParser _locationParser;
 	std::vector<serverConfig> _configs;
 
-	void getSectionHeaderType(const std::string& header, parserState *state);
 	void extractConfigs(const std::vector<std::string> formattedContent);
 
 	public:
