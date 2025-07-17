@@ -39,5 +39,6 @@ public:
 	convState state;
 	std::string buf;
 	parseState pState;
+	std::string finalResponse;
 	Conversation() : fd(-1), state(PARSE), pState(START) {};
 };
