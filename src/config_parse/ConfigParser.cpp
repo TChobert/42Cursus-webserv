@@ -16,12 +16,16 @@ void	ConfigParser::extractConfigs(const std::vector<std::string> formattedConten
 
 	for (std::vector<std::string>::const_iterator it = formattedContent.begin(); it != formattedContent.end(); ++it)  {
 		switch (context.state) {
-			case START || HEADER_SECTION:
-				_headerParser.handleCurrentHeader(*it, &context);
-			case SERVER_SECTION :
-				_serverParser.extractCurrentDirective(*it, &context);
-			case LOCATION_SECTION :
-				_locationParser.extractCurrentDirective(*it, &context);
+		case START:
+		case HEADER_SECTION:
+			_headerParser.handleCurrentHeader(*it, &context);
+			break;
+		case SERVER_SECTION:
+			_serverParser.extractCurrentDirective(*it, &context);
+			break;
+		case LOCATION_SECTION:
+			_locationParser.extractCurrentDirective(*it, &context);
+			break;
 		}
 	}
 }
