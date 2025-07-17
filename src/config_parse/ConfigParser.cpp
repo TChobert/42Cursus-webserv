@@ -22,7 +22,7 @@ void	ConfigParser::extractConfigs(const std::vector<std::string> formattedConten
 	for (std::vector<std::string>::const_iterator it = formattedContent.begin(); it != formattedContent.end(); ++it)  {
 		switch (parseState.state) {
 			case START || SECTION_HEADER:
-				handleHeaderSection(*it, &parseState);
+				_headerParser.handleCurrentHeader(*it, &parseState);
 			case SERVER :
 				_serverParser.extractCurrentDirective(*it, &parseState);
 			case LOCATION :
