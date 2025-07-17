@@ -6,7 +6,7 @@
 #include <sstream>
 #include <cstring>
 
-#include "ConfigParser.hpp"
+struct parserContext;
 
 class HeaderSectionParser {
 
@@ -18,15 +18,15 @@ class HeaderSectionParser {
 	static const char* const SERVER_KEYWORD;
 	enum headerType {SERVER, LOCATION};
 
-	void ensureHeaderIsEnclosed(const std::string& header);
-	void getLocationName(const std::string& header, parserContext* context);
-	std::string trimHeader(const std::string& header);
-	headerType getHeaderType(const std::string& header);
-
 	public:
 
 	HeaderSectionParser(void);
 	~HeaderSectionParser(void);
+
+	void ensureHeaderIsEnclosed(const std::string& header);
+	void getLocationName(const std::string& header, parserContext* context);
+	std::string trimHeader(const std::string& header);
+	headerType getHeaderType(const std::string& header);
 
 	void handleCurrentHeader(const std::string& header, parserContext *context);
 

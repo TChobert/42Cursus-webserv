@@ -9,16 +9,16 @@
 
 class LocationSectionParser {
 
-	private:
+	// private:
 
-	//enum keyType{PORT, HOST, NAME, ROOT};
-	bool IsSectionHeader(const std::string& currentLine);
-	//keyType getKeyType(const std::string& key);
+	// //enum keyType{PORT, HOST, NAME, ROOT};
+	// bool IsSectionHeader(const std::string& currentLine);
+	// //keyType getKeyType(const std::string& key);
 
-	public:
+	// public:
 
-	LocationSectionParser(void);
-	~LocationSectionParser(void);
+	// LocationSectionParser(void);
+	// ~LocationSectionParser(void);
 
-	void extractCurrentDirective(const std::string& directive, parserState *state);
+	// void extractCurrentDirective(const std::string& directive, parserContext *context);
 };

@@ -1,4 +1,5 @@
 #include "HeaderSectionParser.hpp"
+#include "ConfigParser.hpp"
 
 const char* const HeaderSectionParser::LOCATION_KEYWORD = "LOCATION";
 const char* const HeaderSectionParser::SERVER_KEYWORD = "SERVER";
@@ -14,7 +15,7 @@ void HeaderSectionParser::ensureHeaderIsEnclosed(const std::string& header) {
 	if (header[0] != HEADER_OPEN || headerClose == std::string::npos)
 		throw InvalidHeaderException();
 
-	for (size_t i = headerClose; i < header.size(); ++i) {
+	for (size_t i = (headerClose + 1); i < header.size(); ++i) {
 		if (!isspace(static_cast<unsigned char>(header[i]))) {
 			throw InvalidHeaderException();
 		}
@@ -51,7 +52,6 @@ void HeaderSectionParser::getLocationName(const std::string& header, parserConte
 		throw InvalidHeaderException();
 	}
 	locationConfig config;
-	memset(&config, 0, sizeof(config));
 	context->currentConfig.locations[locationName] = config;
 	context->currentLocationName = locationName;
 }
@@ -84,4 +84,18 @@ void HeaderSectionParser::handleCurrentHeader(const std::string& header, parserC
 		getLocationName(trimmedHeader, context);
 		context->state = LOCATION_SECTION;
 	}
+}
+
+//EXCEPTIONS
+
+const char* HeaderSectionParser::InvalidHeaderException::what() const throw() {
+	return "Invalid header format.";
+}
+
+const char* HeaderSectionParser::ServerlessSectionException::what() const throw() {
+	return "LOCATION section found before any SERVER section.";
+}
+
+const char* HeaderSectionParser::InvalidLocationName::what() const throw() {
+	return "Invalid location name.";
 }
