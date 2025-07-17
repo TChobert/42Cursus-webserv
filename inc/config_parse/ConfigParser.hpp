@@ -22,10 +22,11 @@ enum currentState {
 	END,
 };
 
-struct parserState {
+struct parserContext {
 	currentState state;
 	bool isInServerScope;
 	bool isConfigComplete;
+	std::string currentLocationName;
 	serverConfig currentConfig;
 };
 

@@ -1,5 +1,8 @@
 #include "HeaderSectionParser.hpp"
 
+const char* const HeaderSectionParser::LOCATION_KEYWORD = "LOCATION";
+const char* const HeaderSectionParser::SERVER_KEYWORD = "SERVER";
+
 HeaderSectionParser::HeaderSectionParser(void) {}
 
 HeaderSectionParser::~HeaderSectionParser(void) {}
@@ -34,31 +37,51 @@ std::string HeaderSectionParser::trimHeader(const std::string& header) {
 	return (trimmedHeader.substr(start, end - start));
 }
 
+void HeaderSectionParser::getLocationName(const std::string& header, parserContext *context) {
+
+	std::string locationName = header.substr(std::strlen(LOCATION_KEYWORD));
+
+	size_t i = 0;
+	while (i < locationName.size() && isspace(static_cast<unsigned char>(locationName[i]))) {
+		++i;
+	}
+	locationName = locationName.substr(i);
+	size_t prefixPosition = locationName.find('/');
+	if (prefixPosition == std::string::npos || prefixPosition != 0) {
+		throw InvalidHeaderException();
+	}
+	locationConfig config;
+	memset(&config, 0, sizeof(config));
+	context->currentConfig.locations[locationName] = config;
+	context->currentLocationName = locationName;
+}
+
 HeaderSectionParser::headerType HeaderSectionParser::getHeaderType(const std::string& header) {
 
-	if (header == "SERVER") 
+	if (header == SERVER_KEYWORD) 
 			return (SERVER);
-	else if (header.find("LOCATION") == 0) {
+	else if (header.find(LOCATION_KEYWORD) == 0) {
 		return (LOCATION);
 	}
 	else
 		throw InvalidHeaderException();
 }
 
-void HeaderSectionParser::handleCurrentHeader(const std::string& header, parserState *state) {
+void HeaderSectionParser::handleCurrentHeader(const std::string& header, parserContext *context) {
 
 	ensureHeaderIsEnclosed(header);
 	std::string trimmedHeader = trimHeader(header);
 	headerType type = getHeaderType(trimmedHeader);
 
-	if (type == SERVER && state->isInServerScope == true) {
-		state->isConfigComplete = true;
-		state->state = SERVER_SECTION;
+	if (type == SERVER && context->isInServerScope == true) {
+		context->isConfigComplete = true;
+		context->state = SERVER_SECTION;
 	}
 	else if (type == LOCATION) {
-		if (state->isInServerScope == false) {
+		if (context->isInServerScope == false) {
 			throw ServerlessSectionException();
 		}
-		state->state = LOCATION_SECTION;
+		getLocationName(trimmedHeader, context);
+		context->state = LOCATION_SECTION;
 	}
 }
