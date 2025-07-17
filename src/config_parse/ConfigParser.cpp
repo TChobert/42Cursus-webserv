@@ -10,23 +10,18 @@ std::vector<serverConfig> ConfigParser::getConfigs(void) const {
 	return (_configs);
 }
 
-void	ConfigParser::getSectionHeaderType(const std::string& header, parserState *state) {
-
-
-}
-
 void	ConfigParser::extractConfigs(const std::vector<std::string> formattedContent) {
 
-	parserState parseState;
+	parserContext context;
 
 	for (std::vector<std::string>::const_iterator it = formattedContent.begin(); it != formattedContent.end(); ++it)  {
-		switch (parseState.state) {
-			case START || SECTION_HEADER:
-				_headerParser.handleCurrentHeader(*it, &parseState);
-			case SERVER :
-				_serverParser.extractCurrentDirective(*it, &parseState);
-			case LOCATION :
-				_locationParser.extractCurrentDirective(*it, &parseState);
+		switch (context.state) {
+			case START || HEADER_SECTION:
+				_headerParser.handleCurrentHeader(*it, &context);
+			case SERVER_SECTION :
+				_serverParser.extractCurrentDirective(*it, &context);
+			case LOCATION_SECTION :
+				_locationParser.extractCurrentDirective(*it, &context);
 		}
 	}
 }

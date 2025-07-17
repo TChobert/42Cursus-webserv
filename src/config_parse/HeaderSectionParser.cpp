@@ -77,6 +77,10 @@ void HeaderSectionParser::handleCurrentHeader(const std::string& header, parserC
 		context->isConfigComplete = true;
 		context->state = SERVER_SECTION;
 	}
+	else if (type == SERVER && context->isInServerScope == false) {
+		context->isInServerScope = true;
+		context->state = SERVER_SECTION;
+	}
 	else if (type == LOCATION) {
 		if (context->isInServerScope == false) {
 			throw ServerlessSectionException();

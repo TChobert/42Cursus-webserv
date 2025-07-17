@@ -28,6 +28,7 @@ struct parserContext {
 	bool isConfigComplete;
 	std::string currentLocationName;
 	serverConfig currentConfig;
+	parserContext() : state(START), isInServerScope(false), isConfigComplete(false) {}
 };
 
 class ConfigParser {
