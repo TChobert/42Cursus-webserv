@@ -62,3 +62,14 @@ bool ResourceChecker::isExecutable(const std::string& path)
 	else
 		return false;
 }
+
+statusCode ResourceChecker::checkAccess(const std::string& path)
+{
+	if (!exists(path))
+		return NOT_FOUND;
+	if (!isFile(path) && !isDir(path))
+		return FORBIDDEN;
+	if (!isReadable(path))
+		return FORBIDDEN;
+	return NOT_A_STATUS_CODE;
+}
