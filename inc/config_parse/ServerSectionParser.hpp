@@ -6,14 +6,15 @@
 #include <exception>
 
 #include "ConfigParser.hpp"
+#include "ServerDirectivesProcessor.hpp"
 
 class ServerSectionParser {
 
 	private:
 
-	enum keyType{PORT, HOST, NAME, ROOT};
-	bool IsSectionHeader(const std::string& currentLine);
-	keyType getKeyType(const std::string& key);
+	static const char HEADER_START = '[';
+	bool IsSectionHeader(const std::string& currentDirective);
+	ServerDirectivesProcessor _directivesPorcessor;
 
 	public:
 
