@@ -7,25 +7,10 @@
 
 void	Executor::execute(Conversation& conv)
 {
-	if (conv.resp.status != NOT_A_STATUS_CODE && conv.resp.status != CONTINUE)
-		return;
-
-	const std::string& method = conv.req.method;
-
-	if (method == "GET")
-		GetExecutor::handleGet(conv);
-	else if (method == "POST")
-		PostExecutor::handlePost(conv);
-	else if (method == "DELETE")
-		DeleteExecutor::handleDelete(conv);
-	else
-		conv.resp.status = NOT_IMPLEMENTED;
-}
-
-void	Executor::resume(Conversation& conv)
-{
-	switch (conv.state)
+	switch (conv.eState)
 	{
+		case EXEC_START:
+			Executor::executeStart(conv);
 //cas pour GET
 		case READ_EXEC_GET_STATIC:
 			GetExecutor::resumeStatic(conv);
@@ -58,7 +43,26 @@ void	Executor::resume(Conversation& conv)
 			break;
 
 		default:
+			//ATTENTION: MAJ Struct Response?
 			conv.resp.status = INTERNAL_SERVER_ERROR;
 			break;
 	}
+}
+
+void	Executor::executeStart(Conversation& conv)
+{
+	if (conv.resp.status != NOT_A_STATUS_CODE && conv.resp.status != CONTINUE)
+		return;
+
+	const std::string& method = conv.req.method;
+
+	if (method == "GET")
+		GetExecutor::handleGet(conv);
+	else if (method == "POST")
+		PostExecutor::handlePost(conv);
+	else if (method == "DELETE")
+		DeleteExecutor::handleDelete(conv);
+	else
+		//ATTENTION: MAJ Struct Response?
+		conv.resp.status = NOT_IMPLEMENTED;
 }

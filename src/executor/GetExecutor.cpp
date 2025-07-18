@@ -16,6 +16,7 @@ void	GetExecutor::handleGet(Conversation& conv)
 	else if (ResourceChecker::isDir(path))
 		handleDirectory(conv);
 	else
+	//ATTENTION: MAJ Struct Response?
 		conv.resp.status = FORBIDDEN;
 }
 
@@ -47,6 +48,7 @@ void	GetExecutor::handleDirectory(Conversation& conv)
 	if (conv.location->autoIndex)
 		handleAutoindex(conv);
 	else
+	//ATTENTION: MAJ Struct Response?
 		conv.resp.status = FORBIDDEN;
 }
 
@@ -72,6 +74,7 @@ void GetExecutor::resumeStatic(Conversation& conv)
 		close(conv.tempFd);
 		conv.tempFd = -1;
 		conv.resp.status = OK;
+		//ATTENTION: MAJ Struct Response?
 		conv.state = RESPONSE;
 		return;
 	}
@@ -80,6 +83,7 @@ void GetExecutor::resumeStatic(Conversation& conv)
 		close(conv.tempFd);
 		conv.tempFd = -1;
 		conv.resp.status = INTERNAL_SERVER_ERROR;
+		//ATTENTION: MAJ Struct Response?
 		conv.state = RESPONSE;
 		return;
 	}

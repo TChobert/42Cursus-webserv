@@ -9,6 +9,7 @@
 #include "read/Reader.hpp"
 #include "validate/validate.hpp"
 #include "serverConfig.hpp"
+#include "executor/Executor.hpp"
 
 class request {
 public:
@@ -33,6 +34,7 @@ class Conversation {
 public:
 	int fd;
 	int tempFd;
+	execState eState;
 	serverConfig config;
 	locationConfig* location;
 	request req;
@@ -41,5 +43,5 @@ public:
 	std::string buf;
 	parseState pState;
 	std::string finalResponse;
-	Conversation() : fd(-1), state(PARSE), pState(START) {};
+	Conversation() : fd(-1), state(PARSE), pState(START), eState(EXEC_START) {};
 };

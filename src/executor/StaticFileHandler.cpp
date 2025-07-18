@@ -14,7 +14,7 @@ void	StaticFileHandler::handleStaticFile(Conversation& conv)
 	}
 
 	conv.tempFd = fd;
-	conv.state = READ_EXEC_GET_STATIC;
-
-	//EventsManager::watchRead(conv.tempFd) non ?
+	conv.state = READ_EXEC;
+	conv.eState = READ_EXEC_GET_STATIC;
+	return;
 }
