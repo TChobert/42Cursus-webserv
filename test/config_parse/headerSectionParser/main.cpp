@@ -45,12 +45,6 @@ int main(void) {
     HeaderSectionParser parser;
     parserContext context;
 
-    // Initialisation explicite du contexte pour éviter valeurs indéfinies
-    context.state = START;
-    context.isInServerScope = false;
-    context.isConfigComplete = false;
-    context.currentLocationName = "";
-
     std::cout << "----- Test 1: ensureHeaderIsEnclosed with valid [SERVER] -----\n";
     try {
         parser.ensureHeaderIsEnclosed("[SERVER]");
@@ -70,7 +64,7 @@ int main(void) {
     assert(parser.getHeaderType("SERVER") == 0); // SERVER enum = 0
     std::cout << "PASS: Header type is SERVER\n";
 
-    std::cout << "----- Test 4: handleCurrentHeader with [SERVER] -----\n";
+    std::cout << "----- Test 4: handleCurrentHeader with [SERVER]-----\n";
     parser.handleCurrentHeader("[SERVER]", &context);
     assert(context.state == SERVER_SECTION);
     assert(context.isInServerScope == true);

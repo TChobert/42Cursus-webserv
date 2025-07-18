@@ -28,6 +28,10 @@ void	ConfigParser::extractConfigs(const std::vector<std::string> formattedConten
 			break;
 		}
 	}
+	if (context.isInServerScope) {
+		context.finishedConfigs.push_back(context.currentConfig);
+	}
+	_configs.swap(context.finishedConfigs);
 }
 
 void	ConfigParser::parse(void) {

@@ -23,12 +23,14 @@ enum currentState {
 };
 
 struct parserContext {
+
 	currentState state;
 	bool isInServerScope;
-	bool isConfigComplete;
 	std::string currentLocationName;
 	serverConfig currentConfig;
-	parserContext() : state(START), isInServerScope(false), isConfigComplete(false) {}
+	std::vector<serverConfig> finishedConfigs;
+
+	parserContext() : state(START), isInServerScope(false), currentLocationName("") {}
 };
 
 class ConfigParser {

@@ -73,11 +73,11 @@ void HeaderSectionParser::handleCurrentHeader(const std::string& header, parserC
 	std::string trimmedHeader = trimHeader(header);
 	headerType type = getHeaderType(trimmedHeader);
 
-	if (type == SERVER && context->isInServerScope == true) {
-		context->isConfigComplete = true;
-		context->state = SERVER_SECTION;
-	}
-	else if (type == SERVER && context->isInServerScope == false) {
+	if (type == SERVER) {
+		if  (context->isInServerScope) {
+			context->finishedConfigs.push_back(context->currentConfig);
+			context->currentConfig = serverConfig();
+		}
 		context->isInServerScope = true;
 		context->state = SERVER_SECTION;
 	}
