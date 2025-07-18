@@ -32,6 +32,7 @@ struct response {
 class Conversation {
 public:
 	int fd;
+	int tempFd;
 	serverConfig config;
 	locationConfig* location;
 	request req;

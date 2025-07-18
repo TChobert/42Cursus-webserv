@@ -13,11 +13,11 @@ void	Executor::execute(Conversation& conv)
 	const std::string& method = conv.req.method;
 
 	if (method == "GET")
-		handleGet(conv);
+		GetExecutor::handleGet(conv);
 	else if (method == "POST")
-		handlePost(conv);
+		PostExecutor::handlePost(conv);
 	else if (method == "DELETE")
-		handleDelete(conv);
+		DeleteExecutor::handleDelete(conv);
 	else
 		conv.resp.status = NOT_IMPLEMENTED;
 }
@@ -27,7 +27,7 @@ void	Executor::resume(Conversation& conv)
 	switch (conv.state)
 	{
 //cas pour GET
-		case WRITE_EXEC_GET_STATIC:
+		case READ_EXEC_GET_STATIC:
 			GetExecutor::resumeStatic(conv);
 			break;
 		case WRITE_EXEC_GET_AUTOINDEX:
@@ -58,6 +58,7 @@ void	Executor::resume(Conversation& conv)
 			break;
 
 		default:
+			conv.resp.status = INTERNAL_SERVER_ERROR;
 			break;
 	}
 }

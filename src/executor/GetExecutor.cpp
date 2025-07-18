@@ -1,4 +1,5 @@
 #include "GetExecutor.hpp"
+#include <unistd.h>
 
 void	GetExecutor::handleGet(Conversation& conv)
 {
@@ -54,9 +55,35 @@ void	GetExecutor::handleAutoindex(Conversation& conv)
 	//ATTENTION operation write body : fd a envoyer a epoll...
 }
 
-void GetExecutor::resumeStatic(Conversation&)
+void GetExecutor::resumeStatic(Conversation& conv)
 {
+	const size_t BUFFER_SIZE = 4096;
+	char buffer[BUFFER_SIZE];
 
+	ssize_t bytesRead = read(conv.tempFd, buffer, BUFFER_SIZE);
+
+	if (bytesRead > 0)
+	{
+		conv.resp.body.append(buffer, bytesRead);
+		return; //on attend prochain EPOLLIN (encore donnees a lire)
+	}
+	else if (bytesRead == 0)
+	{
+		close(conv.tempFd);
+		conv.tempFd = -1;
+		conv.resp.status = OK;
+		conv.state = RESPONSE;
+		return;
+	}
+	else
+	{
+		close(conv.tempFd);
+		conv.tempFd = -1;
+		conv.resp.status = INTERNAL_SERVER_ERROR;
+		conv.state = RESPONSE;
+		return;
+	}
+	//autre chose a faire ?? Content-Type ? Content-Length ?
 }
 
 void GetExecutor::resumeAutoIndex(Conversation&)

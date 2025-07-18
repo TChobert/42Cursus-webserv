@@ -6,9 +6,6 @@
 
 class StaticFileHandler
 {
-	private:
-
-
 	public:
-		static void handleStaticFile(const Conversation& conv);
+		static void handleStaticFile(Conversation& conv);
 };

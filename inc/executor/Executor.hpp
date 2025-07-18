@@ -9,11 +9,6 @@
 
 class Executor : public IModule
 {
-	private:
-		void	handleGet(Conversation& conv);
-		void	handlePost(Conversation& conv);
-		void	handleDelete(Conversation& conv);
-
 	public:
 		void	execute(Conversation& conv);
 		void	resume(Conversation& conv);
