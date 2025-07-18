@@ -5,21 +5,40 @@
 #include <vector>
 #include <exception>
 
-#include "ConfigParser.hpp"
 #include "ServerDirectivesProcessor.hpp"
+
+struct parserContext;
+
+struct keyValue {
+	std::string key;
+	std::string value;
+};
 
 class ServerSectionParser {
 
 	private:
 
 	static const char HEADER_START = '[';
-	bool IsSectionHeader(const std::string& currentDirective);
-	ServerDirectivesProcessor _directivesPorcessor;
+	ServerDirectivesProcessor _directivesProcessor;
+
+	bool IsSectionHeader(const std::string& property);
+	keyValue extractKeyValueFromProperty(const std::string& directive);
+	void splitProperty(keyValue *storage, const std::string& property, size_t delimiter);
+	void trimSpaces(std::string& toTrim);
 
 	public:
 
 	ServerSectionParser(void);
 	~ServerSectionParser(void);
 
-	void extractCurrentDirective(const std::string& directive, parserContext *context);
+	void extractCurrentDirective(const std::string& property, parserContext *context);
+
+	class InvalidPropertyDelimiter : public std::exception {
+	public:
+		virtual const char *what() const throw();
+	};
+	class InvalidProperty : public std::exception {
+	public:
+		virtual const char *what() const throw();
+	};
 };

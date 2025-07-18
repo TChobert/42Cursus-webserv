@@ -5,7 +5,7 @@
 #include <vector>
 #include <exception>
 
-#include "ConfigParser.hpp"
+struct parserContext;
 
 class LocationSectionParser {
 

@@ -1,50 +1,55 @@
 #include "ServerDirectivesProcessor.hpp"
+#include "ConfigParser.hpp"
 
 ServerDirectivesProcessor::ServerDirectivesProcessor(void) {}
 
 ServerDirectivesProcessor::~ServerDirectivesProcessor(void) {}
 
-ServerDirectivesProcessor::keyType ServerDirectivesProcessor::getKeyType(const std::string& directive) {
+ServerDirectivesProcessor::keyType ServerDirectivesProcessor::getKeyType(const std::string& directiveKey) {
 
-	if (directive.compare("port") == 0)
+	if (directiveKey.compare("port") == 0)
 		return (PORT);
-	else if (directive.compare("host") == 0)
+	else if (directiveKey.compare("host") == 0)
 		return (HOST);
-	else if (directive.compare("name") == 0) 
+	else if (directiveKey.compare("name") == 0) 
 		return (NAME);
-	else if (directive.compare("root") == 0)
+	else if (directiveKey.compare("root") == 0)
 		return (ROOT);
 	else
 		return (UNKNOWN);
 }
 
-void ServerDirectivesProcessor::processPortDirective(const std::string& directive) {
+void ServerDirectivesProcessor::processPortDirective(const std::string& directiveValue, parserContext *context) {
 
-	(void)directive;
+	(void)directiveValue;
+	(void)context;
 	std::cout << "PORT" << std::endl;
 }
 
-void ServerDirectivesProcessor::processHostDirective(const std::string& directive) {
+void ServerDirectivesProcessor::processHostDirective(const std::string& directiveValue, parserContext *context) {
 
-	(void)directive;
+	(void)directiveValue;
+	(void)context;
 	std::cout << "HOST" << std::endl;
 }
 
-void ServerDirectivesProcessor::processNameDirective(const std::string& directive) {
+void ServerDirectivesProcessor::processNameDirective(const std::string& directiveValue, parserContext *context) {
 
-	(void)directive;
+	(void)directiveValue;
+	(void)context;
 	std::cout << "NAME" << std::endl;
 }
 
-void ServerDirectivesProcessor::processRootDirective(const std::string& directive) {
+void ServerDirectivesProcessor::processRootDirective(const std::string& directiveValue, parserContext *context) {
 
-	(void)directive;
+	(void)directiveValue;
+	(void)context;
 	std::cout << "ROOT" << std::endl;
 }
 
-ServerDirectivesProcessor::ProcessPtr ServerDirectivesProcessor::getDirectiveProcess(const std::string& directive) {
+ServerDirectivesProcessor::ProcessPtr ServerDirectivesProcessor::getDirectiveProcess(const std::string& directiveKey) {
 
-	keyType type = getKeyType(directive);
+	keyType type = getKeyType(directiveKey);
 
 	if (type == UNKNOWN) {
 		throw InvalidDirectiveException();
@@ -52,17 +57,19 @@ ServerDirectivesProcessor::ProcessPtr ServerDirectivesProcessor::getDirectivePro
 	switch (type) {
 		case PORT :
 			return &ServerDirectivesProcessor::processPortDirective;
-			break ;
 		case HOST :
 			return &ServerDirectivesProcessor::processHostDirective;
-			break ;
 		case NAME :
 			return &ServerDirectivesProcessor::processNameDirective;
-			break ;
 		case ROOT :
 			return &ServerDirectivesProcessor::processRootDirective;
-			break ;
 		default:
 			throw InvalidDirectiveException();
 	}
+}
+
+//EXCEPTIONS
+
+const char* ServerDirectivesProcessor::InvalidDirectiveException::what() const throw() {
+	return "Invalid directive exception";
 }

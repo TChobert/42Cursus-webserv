@@ -13,6 +13,7 @@
 #include "ServerSectionParser.hpp"
 #include "LocationSectionParser.hpp"
 #include "HeaderSectionParser.hpp"
+#include "ServerSectionParser.hpp"
 
 enum currentState {
 	START,
