@@ -14,6 +14,7 @@
 #include "LocationSectionParser.hpp"
 #include "HeaderSectionParser.hpp"
 #include "ServerSectionParser.hpp"
+#include "serverPropertiesFlags.hpp"
 
 enum currentState {
 	START,
@@ -26,6 +27,7 @@ enum currentState {
 struct parserContext {
 
 	currentState state;
+	serverPropertiesFlags seenServerProperties;
 	bool isInServerScope;
 	std::string currentLocationName;
 	serverConfig currentConfig;

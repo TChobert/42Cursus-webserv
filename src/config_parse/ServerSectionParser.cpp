@@ -53,7 +53,7 @@ keyValue ServerSectionParser::extractKeyValueFromProperty(const std::string& pro
 void ServerSectionParser::extractCurrentProperty(const std::string& property, parserContext *context) {
 
 	if (IsSectionHeader(property) == true) {
-		//ensure
+	// 	//ensure
 		context->state = HEADER_SECTION;
 	}
 	else {

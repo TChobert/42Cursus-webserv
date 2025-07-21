@@ -23,20 +23,27 @@ ServerPropertiesProcessor::keyType ServerPropertiesProcessor::getKeyType(const s
 
 void ServerPropertiesProcessor::processPortProperty(const std::string& propertyValue, parserContext *context) {
 
-	int port;
-	try {
-		port = std::stoi(propertyValue);
-	}
-	catch (const std::exception& e) {
-		throw std::runtime_error("Error: webserv: Invalid PORT property detected in configuration file. Not a integer");
-	}
-	if (port < 0 || port > 65535 )
+	if (context->seenServerProperties.portSeen) {
 		throw InvalidPortPropertyException();
+	}
+	const char *propertyStr = propertyValue.c_str();
+	char *endPtr = NULL;
+
+	errno = 0;
+	long port = std::strtol(propertyStr, &endPtr, 10);
+	if (errno != 0 || endPtr == propertyStr || *endPtr != '\0') {
+		throw InvalidPortPropertyException();
+	}
+	if (port < 0 || port > 65535) {
+		throw InvalidPortPropertyException();
+	}
+	context->seenServerProperties.portSeen = true;
 	context->currentConfig.identity.port = static_cast<uint16_t>(port);
 }
 
 void ServerPropertiesProcessor::processHostProperty(const std::string& propertyValue, parserContext *context) {
 
+	std::cout << "HOST" << std::endl;
 	if (propertyValue.empty()) {
 		throw InvalidHostPropertyException();
 	}
@@ -45,6 +52,7 @@ void ServerPropertiesProcessor::processHostProperty(const std::string& propertyV
 
 void ServerPropertiesProcessor::processNameProperty(const std::string& propertyValue, parserContext *context) {
 
+	std::cout << "NAME" << std::endl;
 	if (propertyValue.empty())
 		throw InvalidNamePropertyException();
 	size_t i = 0;
@@ -52,16 +60,19 @@ void ServerPropertiesProcessor::processNameProperty(const std::string& propertyV
 		if (std::isspace(static_cast<unsigned char>(propertyValue[i]))) {
 			throw InvalidNamePropertyException();
 		}
+		++i;
 	}
 	context->currentConfig.identity.serverName = propertyValue;
 }
 
 void ServerPropertiesProcessor::processRootProperty(const std::string& propertyValue, parserContext *context) {
 
+	std::cout << "ROOT" << std::endl;
 	if (propertyValue.empty() || propertyValue[0] != '/') {
 		throw InvalidServerRootException();
 	}
 	context->currentConfig.identity.root = propertyValue;
+	context->currentConfig.identity.hasRoot = true;
 }
 
 ServerPropertiesProcessor::ProcessPtr ServerPropertiesProcessor::getPropertyProcess(const std::string& directiveKey) {
@@ -92,7 +103,7 @@ const char* ServerPropertiesProcessor::InvalidPropertyException::what() const th
 }
 
 const char *ServerPropertiesProcessor::InvalidPortPropertyException::what() const throw() {
-	return "Error: webserv: Invalid property detected in configuration file. Out of range (0 - 65535)";
+	return "Error: webserv: Invalid port detected in configuration file. Must be an integer in range 0 - 65535";
 }
 
 const char *ServerPropertiesProcessor::InvalidHostPropertyException::what() const throw() {

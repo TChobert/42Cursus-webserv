@@ -41,6 +41,7 @@ struct serverConfig {
 	serverInfo		identity;
 	std::map<int, std::string>	errorPagesCodes;
 	std::map<locationName, locationConfig> locations;
+	// CONSTRUCTOR ??
 };
 
 // std::map<int, int> m;
