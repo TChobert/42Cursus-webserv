@@ -21,7 +21,7 @@ void	ConfigParser::extractConfigs(const std::vector<std::string> formattedConten
 			_headerParser.handleCurrentHeader(*it, &context);
 			break;
 		case SERVER_SECTION:
-			_serverParser.extractCurrentDirective(*it, &context);
+			_serverParser.extractCurrentProperty(*it, &context);
 			break;
 		case LOCATION_SECTION:
 			_locationParser.extractCurrentDirective(*it, &context);

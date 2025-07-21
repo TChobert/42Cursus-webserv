@@ -29,7 +29,7 @@ struct locationConfig {
 
 struct serverInfo {
 
-	unsigned int	port;
+	uint16_t		port;
 	std::string		host;
 	std::string		server_name;
 	std::string		root;

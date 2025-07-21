@@ -52,10 +52,16 @@ keyValue ServerSectionParser::extractKeyValueFromProperty(const std::string& pro
 
 void ServerSectionParser::extractCurrentProperty(const std::string& property, parserContext *context) {
 
-	keyValue propertyKeyValue = extractKeyValueFromProperty(property);
+	if (IsSectionHeader(property) == true) {
+		//ensure
+		context->state = HEADER_SECTION;
+	}
+	else {
+		keyValue propertyKeyValue = extractKeyValueFromProperty(property);
 
-	ServerPropertiesProcessor::ProcessPtr processFunction = _propertiesProcessor.getPropertyProcess(propertyKeyValue.key);
-	(_propertiesProcessor.*processFunction)(propertyKeyValue.value, context);
+		ServerPropertiesProcessor::ProcessPtr processFunction = _propertiesProcessor.getPropertyProcess(propertyKeyValue.key);
+		(_propertiesProcessor.*processFunction)(propertyKeyValue.value, context);
+	}
 }
 
 //EXCEPTIONS

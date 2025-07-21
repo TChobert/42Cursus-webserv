@@ -31,16 +31,17 @@ void	ServerInitializer::setSocketNonBlocking(int socket) {
 
 void	ServerInitializer::bindSocket(int socket, const serverConfig& config ) {
 
+	const std::string ip = config.identity.host;
 	sockaddr_in	address;
 	std::memset(&address, 0, sizeof(address));
 	address.sin_family = AF_INET;
 	address.sin_port = htons(config.identity.port);
-	address.sin_addr.s_addr = inet_addr(config.identity.host.c_str());
+	if (inet_pton(AF_INET, ip.c_str(), &address.sin_addr) != 1) {
+		throw std::runtime_error("inet_pton() fail on " + ip + ":" + std::to_string(config.identity.port) + ". Closing it.");
+	}
 
 	if (bind(socket, (struct sockaddr *)&address, sizeof(address)) < 0) {
-		std::ostringstream oss;
-		oss << "Failed to bind socket on " << config.identity.host << ":" << config.identity.port << ". Closing it.";
-		throw std::runtime_error(oss.str());
+		throw std::runtime_error("Failed to bind socket on " + ip + ":" + std::to_string(config.identity.port) + ". Closing it.");
 	}
 }
 
