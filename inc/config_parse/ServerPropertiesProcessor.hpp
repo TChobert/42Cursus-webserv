@@ -43,6 +43,12 @@ class ServerPropertiesProcessor {
 	class InvalidHostPropertyException : public std::exception {
 		virtual const char *what() const throw();
 	};
+	class InvalidNamePropertyException : public std::exception {
+		virtual const char *what() const throw();
+	};
+	class InvalidServerRootException : public std::exception {
+		virtual const char *what() const throw();
+	};
 	// class MissingPropertyException : public std::exception {
 	// public:
 	// 	virtual const char *what() const throw();

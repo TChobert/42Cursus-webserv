@@ -31,7 +31,7 @@ struct serverInfo {
 
 	uint16_t		port;
 	std::string		host;
-	std::string		server_name;
+	std::string		serverName;
 	std::string		root;
 	bool			hasRoot;
 };

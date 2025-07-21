@@ -37,9 +37,7 @@ void ServerPropertiesProcessor::processPortProperty(const std::string& propertyV
 
 void ServerPropertiesProcessor::processHostProperty(const std::string& propertyValue, parserContext *context) {
 
-	struct in_addr addr;
-
-	if (inet_pton(AF_INET, propertyValue.c_str(), &addr) != 1) {
+	if (propertyValue.empty()) {
 		throw InvalidHostPropertyException();
 	}
 	context->currentConfig.identity.host = propertyValue;
@@ -47,16 +45,23 @@ void ServerPropertiesProcessor::processHostProperty(const std::string& propertyV
 
 void ServerPropertiesProcessor::processNameProperty(const std::string& propertyValue, parserContext *context) {
 
-	(void)propertyValue;
-	(void)context;
-	std::cout << "NAME" << std::endl;
+	if (propertyValue.empty())
+		throw InvalidNamePropertyException();
+	size_t i = 0;
+	while (i < propertyValue.size()) {
+		if (std::isspace(static_cast<unsigned char>(propertyValue[i]))) {
+			throw InvalidNamePropertyException();
+		}
+	}
+	context->currentConfig.identity.serverName = propertyValue;
 }
 
 void ServerPropertiesProcessor::processRootProperty(const std::string& propertyValue, parserContext *context) {
 
-	(void)propertyValue;
-	(void)context;
-	std::cout << "ROOT" << std::endl;
+	if (propertyValue.empty() || propertyValue[0] != '/') {
+		throw InvalidServerRootException();
+	}
+	context->currentConfig.identity.root = propertyValue;
 }
 
 ServerPropertiesProcessor::ProcessPtr ServerPropertiesProcessor::getPropertyProcess(const std::string& directiveKey) {
@@ -91,5 +96,13 @@ const char *ServerPropertiesProcessor::InvalidPortPropertyException::what() cons
 }
 
 const char *ServerPropertiesProcessor::InvalidHostPropertyException::what() const throw() {
-	return "Error: webserv: Invalid host detected in configuration file. Can't be setup";
+	return "Error: webserv: Invalid host detected in configuration file. Can't be empty";
+}
+
+const char *ServerPropertiesProcessor::InvalidNamePropertyException::what() const throw() {
+	return "Error: webserv: Invalid server name detected in configuration file. Can't be empty or contains spaces.";
+}
+
+const char *ServerPropertiesProcessor::InvalidServerRootException::what() const throw() {
+	return "Error: webserv: Invalid server root detected in configuration file. Can't be empty and must be an absolut path.";
 }
