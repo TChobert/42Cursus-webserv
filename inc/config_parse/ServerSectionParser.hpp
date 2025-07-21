@@ -5,7 +5,7 @@
 #include <vector>
 #include <exception>
 
-#include "ServerDirectivesProcessor.hpp"
+#include "ServerPropertiesProcessor.hpp"
 
 struct parserContext;
 
@@ -19,7 +19,7 @@ class ServerSectionParser {
 	private:
 
 	static const char HEADER_START = '[';
-	ServerDirectivesProcessor _directivesProcessor;
+	ServerPropertiesProcessor _propertiesProcessor;
 
 	bool IsSectionHeader(const std::string& property);
 	keyValue extractKeyValueFromProperty(const std::string& directive);
@@ -31,7 +31,7 @@ class ServerSectionParser {
 	ServerSectionParser(void);
 	~ServerSectionParser(void);
 
-	void extractCurrentDirective(const std::string& property, parserContext *context);
+	void extractCurrentProperty(const std::string& property, parserContext *context);
 
 	class InvalidPropertyDelimiter : public std::exception {
 	public:

@@ -2,7 +2,7 @@ NAME = test_server_parser
 
 SRCS = main.cpp \
        ../../../src/config_parse/ServerSectionParser.cpp \
-       ../../../src/config_parse/ServerDirectivesProcessor.cpp
+       ../../../src/config_parse/ServerPropertiesProcessor.cpp
 
 OBJS = $(SRCS:.cpp=.o)
 

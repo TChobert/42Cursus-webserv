@@ -50,20 +50,20 @@ keyValue ServerSectionParser::extractKeyValueFromProperty(const std::string& pro
 	return (propertyKeyAndValue);
 }
 
-void ServerSectionParser::extractCurrentDirective(const std::string& property, parserContext *context) {
+void ServerSectionParser::extractCurrentProperty(const std::string& property, parserContext *context) {
 
 	keyValue propertyKeyValue = extractKeyValueFromProperty(property);
 
-	ServerDirectivesProcessor::ProcessPtr processFunction = _directivesProcessor.getDirectiveProcess(propertyKeyValue.key);
-	(_directivesProcessor.*processFunction)(propertyKeyValue.value, context);
+	ServerPropertiesProcessor::ProcessPtr processFunction = _propertiesProcessor.getPropertyProcess(propertyKeyValue.key);
+	(_propertiesProcessor.*processFunction)(propertyKeyValue.value, context);
 }
 
 //EXCEPTIONS
 
 const char* ServerSectionParser::InvalidPropertyDelimiter::what() const throw() {
-	return "Invalid property delimiter";
+	return "Error: webserv: Invalid property delimiter detected in configuration file.";
 }
 
 const char* ServerSectionParser::InvalidProperty::what() const throw() {
-	return "Invalid property";
+	return "Error: webserv: Invalid property detected in configuration file.";
 }
