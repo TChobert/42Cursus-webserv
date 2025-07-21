@@ -26,6 +26,9 @@ public:
 struct response {
 	statusCode status;
 	bool shouldClose;
+	std::string location;
+	std::string contentType;
+	std::vector<std::string> setCookies;
 	mapStr header;
 	std::string body;
 };

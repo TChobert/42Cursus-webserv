@@ -16,3 +16,5 @@ size_t peekSize(std::string& s, int base=10);
 void earlyResponse(Conversation& conv, statusCode status, bool close=true);
 std::string getCurrentHttpDate();
 std::string intToString(int n);
+std::string getFileExtension(const std::string& path);
+std::string getMimeType(const std::string& path);

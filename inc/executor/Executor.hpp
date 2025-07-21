@@ -23,6 +23,9 @@ enum execState
 
 class Executor : public IModule
 {
+	private:
+		void	updateResponseData(Conversation& conv);
+		
 	public:
 		void	execute(Conversation& conv);
 		void	executeStart(Conversation& conv);

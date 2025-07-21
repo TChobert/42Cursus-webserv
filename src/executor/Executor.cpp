@@ -2,6 +2,26 @@
 #include "GetExecutor.hpp"
 #include "PostExecutor.hpp"
 #include "DeleteExecutor.hpp"
+#include "webserv_utils.hpp"
+
+/* ---------------- PRIVATE METHODS ------------------ */
+
+void	Executor::updateResponseData(Conversation& conv)
+{
+	//content-type encore a creuser -- updates en fonction des erreurs...
+	if (conv.resp.contentType.empty())
+		conv.resp.contentType = getMimeType(conv.req.uri); //a revoir d'ou je recupere l'extension..
+		//ex: 404.html est pathOnDisk: est-ce stocke avant dans conv.req.uri ou pas? donc pas forcement conv.req.uri..
+
+	if ((conv.resp.status == CREATED || (conv.resp.status >= 300 && conv.resp.status < 400))
+		&& conv.resp.location.empty())
+	{
+		conv.resp.location = conv.req.uri;
+	}
+
+	// gerer cookies aussi ?
+}
+
 
 /* ---------------- PUBLIC METHODS ------------------ */
 
@@ -11,6 +31,7 @@ void	Executor::execute(Conversation& conv)
 	{
 		case EXEC_START:
 			Executor::executeStart(conv);
+			break;
 //cas pour GET
 		case READ_EXEC_GET_STATIC:
 			GetExecutor::resumeStatic(conv);
@@ -63,6 +84,8 @@ void	Executor::executeStart(Conversation& conv)
 	else if (method == "DELETE")
 		DeleteExecutor::handleDelete(conv);
 	else
-		//ATTENTION: MAJ Struct Response?
+	{
+		updateResponseData(conv);
 		conv.resp.status = NOT_IMPLEMENTED;
+	}
 }

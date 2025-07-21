@@ -23,13 +23,13 @@ std::string HeaderBuilder::buildGenericHeaders(const response& resp)
 	return headers.str();
 }
 
-std::string HeaderBuilder::buildCustomHeaders(const response& resp)
+std::string HeaderBuilder::buildCustomHeaders(const Conversation& conv)
 {
 	std::ostringstream headers;
 
-	headers << buildLocationHeader(resp);
-	headers << buildSetCookieHeaders(resp); //attention il doit y avoir 1 ligne pour chaque cookie
-	headers << buildAllowHeader(resp);
+	headers << buildLocationHeader(conv.resp);
+	headers << buildSetCookieHeaders(conv.resp); //attention il doit y avoir 1 ligne pour chaque cookie
+	headers << buildAllowHeader(conv);
 
 	return headers.str();
 }
@@ -93,19 +93,21 @@ std::string HeaderBuilder::buildSetCookieHeaders(const response& resp)
 	return headers.str();
 }
 
-std::string HeaderBuilder::buildAllowHeader(const response& resp) //changer avec conversation > stocke dans _config.locationConfig.allowedMethods
+std::string HeaderBuilder::buildAllowHeader(const Conversation& conv)
 {
-	if ((resp.status != METHOD_NOT_ALLOWED && resp.status != NOT_IMPLEMENTED)
-		|| resp.allowedMethods.empty())
+	if ((conv.resp.status != METHOD_NOT_ALLOWED && conv.resp.status != NOT_IMPLEMENTED)
+		|| !conv.location || conv.location->allowedMethods.empty())
 		return "";
 
 	std::ostringstream line;
 	line << "Allow: ";
 
-	for (size_t i = 0; i < resp.allowedMethods.size(); ++i)
+	const std::vector<std::string>& methods = conv.location->allowedMethods;
+
+	for (size_t i = 0; i < methods.size(); ++i)
 	{
-		line << resp.allowedMethods[i];
-		if (i != resp.allowedMethods.size() - 1)
+		line << methods[i];
+		if (i != methods.size() - 1)
 			line << ", ";
 	}
 
@@ -115,12 +117,12 @@ std::string HeaderBuilder::buildAllowHeader(const response& resp) //changer avec
 
 /* ---------------- PUBLIC METHODS ------------------ */
 
-std::string HeaderBuilder::build(const response& resp)
+std::string HeaderBuilder::build(const Conversation& conv)
 {
 	std::ostringstream headers;
 
-	headers << HeaderBuilder::buildGenericHeaders(resp);
-	headers << HeaderBuilder::buildCustomHeaders(resp);
+	headers << HeaderBuilder::buildGenericHeaders(conv.resp);
+	headers << HeaderBuilder::buildCustomHeaders(conv);
 
 	return headers.str();
 }
