@@ -46,11 +46,25 @@ void	Executor::updateResponseData(Conversation& conv)
 
 	if (conv.resp.contentType.empty())
 	{
-		std::string type = getMimeType(conv.req.pathOnDisk);
-		if (type == "application/octet-stream")
-			type = "text/plain";
-		conv.resp.contentType = type;
+		if (conv.resp.body.find("<html>") != std::string::npos)
+		{
+			conv.resp.contentType = "text/html";
+		}
+		else
+		{
+			std::string type = getMimeType(conv.req.pathOnDisk);
+			if (type == "application/octet-stream")
+				type = "text/plain";
+			conv.resp.contentType = type;
+		}
 	}
+}
+
+void	Executor::setResponse(Conversation& conv, statusCode code)
+{
+	conv.resp.status = code;
+	updateResponseData(conv);
+	conv.state = RESPONSE;
 }
 
 void	Executor::execute(Conversation& conv)
@@ -87,10 +101,8 @@ void	Executor::execute(Conversation& conv)
 		case WRITE_EXEC_DELETE:
 			DeleteExecutor::resumeDelete(conv);
 			break;
-
 		default:
-			//ATTENTION: MAJ Struct Response?
-			conv.resp.status = INTERNAL_SERVER_ERROR;
+			setResponse(conv, INTERNAL_SERVER_ERROR);
 			break;
 	}
 }
@@ -99,12 +111,11 @@ void	Executor::executeStart(Conversation& conv)
 {
 	if (conv.resp.status != NOT_A_STATUS_CODE && conv.resp.status != CONTINUE)
 	{
-		updateResponseData(conv);
+		setResponse(conv, conv.resp.status);
 		return;
 	}
 
 	const std::string& method = conv.req.method;
-
 	if (method == "GET")
 		GetExecutor::handleGet(conv);
 	else if (method == "POST")
@@ -112,8 +123,5 @@ void	Executor::executeStart(Conversation& conv)
 	else if (method == "DELETE")
 		DeleteExecutor::handleDelete(conv);
 	else
-	{
-		conv.resp.status = NOT_IMPLEMENTED;
-		updateResponseData(conv);
-	}
+		setResponse(conv, NOT_IMPLEMENTED);
 }

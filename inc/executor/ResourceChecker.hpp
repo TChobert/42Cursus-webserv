@@ -6,6 +6,8 @@
 #include "webserv.hpp"
 #include "webserv_enum.hpp"
 
+class Conversation;
+
 class ResourceChecker
 {
 	public:

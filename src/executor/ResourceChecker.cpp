@@ -66,13 +66,10 @@ bool ResourceChecker::isExecutable(const std::string& path)
 statusCode ResourceChecker::checkAccess(const std::string& path)
 {
 	if (!exists(path))
-	//ATTENTION: MAJ Struct Response?
 		return NOT_FOUND;
 	if (!isFile(path) && !isDir(path))
-	//ATTENTION: MAJ Struct Response?
 		return FORBIDDEN;
 	if (!isReadable(path))
-	//ATTENTION: MAJ Struct Response?
 		return FORBIDDEN;
 	return NOT_A_STATUS_CODE;
 }

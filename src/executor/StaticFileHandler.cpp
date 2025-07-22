@@ -9,8 +9,7 @@ void	StaticFileHandler::handleStaticFile(Conversation& conv)
 	int fd = open(path.c_str(), O_RDONLY | O_NONBLOCK);
 	if (fd == -1)
 	{
-		conv.resp.status = INTERNAL_SERVER_ERROR;
-		Executor::updateResponseData(conv);
+		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 		return;
 	}
 

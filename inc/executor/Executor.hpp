@@ -26,4 +26,5 @@ class Executor : public IModule
 		void		execute(Conversation& conv);
 		void		executeStart(Conversation& conv);
 		static void	updateResponseData(Conversation& conv);
+		static void	setResponse(Conversation& conv, statusCode code);
 };

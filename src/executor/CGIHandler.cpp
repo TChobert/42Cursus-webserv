@@ -26,5 +26,5 @@ bool CGIHandler::isCGI(const Conversation& conv)
 
 void CGIHandler::handleCGI(const Conversation& conv)
 {
-
+	//check methode si GET ou POST...
 }

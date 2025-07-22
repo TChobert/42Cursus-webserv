@@ -18,8 +18,7 @@ void	GetExecutor::handleGet(Conversation& conv)
 	statusCode code = ResourceChecker::checkAccess(path);
 	if (code != NOT_A_STATUS_CODE)
 	{
-		conv.resp.status = code;
-		Executor::updateResponseData(conv);
+		Executor::setResponse(conv, code);
 		return;
 	}
 	if (ResourceChecker::isFile(path))
@@ -27,10 +26,7 @@ void	GetExecutor::handleGet(Conversation& conv)
 	else if (ResourceChecker::isDir(path))
 		handleDirectory(conv);
 	else
-	{
-		conv.resp.status = FORBIDDEN;
-		Executor::updateResponseData(conv);
-	}
+		Executor::setResponse(conv, FORBIDDEN);
 }
 
 void	GetExecutor::handleFile(Conversation& conv)
@@ -61,10 +57,7 @@ void	GetExecutor::handleDirectory(Conversation& conv)
 	if (conv.location->autoIndex)
 		handleAutoindex(conv);
 	else
-	{
-		conv.resp.status = FORBIDDEN;
-		Executor::updateResponseData(conv);
-	}
+		Executor::setResponse(conv, FORBIDDEN);
 }
 
 //IMPORTANCE DISTINCTION URI / PATHONDISK pour AutoIndex
@@ -114,8 +107,7 @@ void	GetExecutor::handleAutoindex(Conversation& conv)
 	DIR* dir = opendir(dirPath.c_str()); //pointeur opaque vers un DIR = flux de repertoire ouvert par opendir()
 	if (!dir)
 	{
-		conv.resp.status = INTERNAL_SERVER_ERROR;
-		Executor::updateResponseData(conv);
+		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 		return;
 	}
 
@@ -165,18 +157,14 @@ void GetExecutor::resumeStatic(Conversation& conv)
 	{
 		close(conv.tempFd);
 		conv.tempFd = -1;
-		conv.resp.status = OK;
-		Executor::updateResponseData(conv);
-		conv.state = RESPONSE;
+		Executor::setResponse(conv, OK);
 		return;
 	}
 	else
 	{
 		close(conv.tempFd);
 		conv.tempFd = -1;
-		conv.resp.status = INTERNAL_SERVER_ERROR;
-		Executor::updateResponseData(conv);
-		conv.state = RESPONSE;
+		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 		return;
 	}
 }
