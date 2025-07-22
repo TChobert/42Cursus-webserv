@@ -215,13 +215,47 @@ int main() {
 	};
 	runInvalidTestCase("Round 9.7: Path contains '..'", errorPageDotDot, 1);
 
+	// Round 10 — Incomplete server config before new header
 
-	std::string header = "[HEADER]";
-	ServerSectionParser serverParser;
-	parserContext context;
+	std::string missingPortBeforeHeader[] = {
+		"host=127.0.0.1",
+		"name=my_server",
+		"root=/var/www",
+		"[HEADER]"
+	};
+	runInvalidTestCase("Round 10.1: Missing port before HEADER", missingPortBeforeHeader, 4);
 
-	serverParser.extractCurrentProperty(header, &context);
-	assert(context.state == HEADER_SECTION);
+	std::string missingHostBeforeHeader[] = {
+		"port=8080",
+		"name=my_server",
+		"root=/var/www",
+		"[HEADER]"
+	};
+	runInvalidTestCase("Round 10.2: Missing host before HEADER", missingHostBeforeHeader, 4);
+
+	std::string missingBothBeforeHeader[] = {
+		"name=my_server",
+		"root=/var/www",
+		"[HEADER]"
+	};
+	runInvalidTestCase("Round 10.3: Missing port and host before HEADER", missingBothBeforeHeader, 3);
+
+	// Round 11 — Valid config before header
+	std::string validBeforeHeader[] = {
+		"port=8080",
+		"host=127.0.0.1",
+		"name=my_server",
+		"root=/var/www",
+		"[HEADER]"
+	};
+	serverInfo expected11;
+	expected11.port = 8080;
+	expected11.host = "127.0.0.1";
+	expected11.serverName = "my_server";
+	expected11.root = "/var/www";
+	expected11.hasRoot = true;
+
+	runValidTestCase("Round 11: Valid server config before HEADER", validBeforeHeader, 5, expected11);
 
 	std::cout << "=========== All test rounds completed ===========" << std::endl;
 	return EXIT_SUCCESS;

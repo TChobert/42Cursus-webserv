@@ -50,10 +50,17 @@ keyValue ServerSectionParser::extractKeyValueFromProperty(const std::string& pro
 	return (propertyKeyAndValue);
 }
 
+void ServerSectionParser::ensureServerConfigIsFull(parserContext *context) {
+
+	if (context->seenServerProperties.hostSeen == false || context->seenServerProperties.portSeen == false) {
+		throw UncompleteServerConfigException();
+	}
+}
+
 void ServerSectionParser::extractCurrentProperty(const std::string& property, parserContext *context) {
 
 	if (IsSectionHeader(property) == true) {
-	// 	//ensure
+		ensureServerConfigIsFull(context);
 		context->state = HEADER_SECTION;
 	}
 	else {
@@ -72,4 +79,8 @@ const char* ServerSectionParser::InvalidPropertyDelimiter::what() const throw() 
 
 const char* ServerSectionParser::InvalidProperty::what() const throw() {
 	return "Error: webserv: Invalid property detected in configuration file.";
+}
+
+const char* ServerSectionParser::UncompleteServerConfigException::what() const throw() {
+	return "Error: webserv: Uncomplete server configuration detected in configuration file.\nA server configuration must at least contains a root and a host.";
 }

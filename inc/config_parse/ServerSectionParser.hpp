@@ -25,6 +25,7 @@ class ServerSectionParser {
 	keyValue extractKeyValueFromProperty(const std::string& directive);
 	void splitProperty(keyValue *storage, const std::string& property, size_t delimiter);
 	void trimSpaces(std::string& toTrim);
+	void ensureServerConfigIsFull(parserContext *context);
 
 	public:
 
@@ -34,11 +35,12 @@ class ServerSectionParser {
 	void extractCurrentProperty(const std::string& property, parserContext *context);
 
 	class InvalidPropertyDelimiter : public std::exception {
-	public:
 		virtual const char *what() const throw();
 	};
 	class InvalidProperty : public std::exception {
-	public:
+		virtual const char *what() const throw();
+	};
+	class UncompleteServerConfigException : public std::exception {
 		virtual const char *what() const throw();
 	};
 };
