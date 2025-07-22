@@ -67,21 +67,36 @@ void	GetExecutor::handleDirectory(Conversation& conv)
 	}
 }
 
-std::string generateAutoindexPage(const std::string& dirPath, const std::vector<std::string>& entries)
+//IMPORTANCE DISTINCTION URI / PATHONDISK pour AutoIndex
+
+// DIR* dir = opendir("/var/www/public/documents/"); == pathOnDisk
+
+//mais pour generer les bons liens HTML, je dois ecrire:
+// <a href="/files/documents/file1.txt">
+
+// ET PAS : /var/www/public/documents/file1.txt
+// navigateur ne fonctionne qu'avec URI, comprend pas chemin systeme
+
+std::string generateAutoindexPage(const Conversation& conv, const std::string& dirPath, const std::vector<std::string>& entries)
 {
 	std::ostringstream body;
 	body << "<html><head><title>Index of " << dirPath << "</title></head><body>";
 	body << "<h1>Index of " << dirPath << "</h1><ul>";
+
+	std::string baseUri = conv.req.uri;
+	if (!baseUri.empty() && baseUri[baseUri.size() - 1] != '/')
+		baseUri += "/";
 
 	for (size_t i = 0; i < entries.size(); ++i)
 	{
 		std::string fullPath = dirPath + "/" + entries[i];
 		bool isDir = ResourceChecker::isDir(fullPath);
 
-		body << "<li><a href=\"" << entries[i];
+		std::string href = baseUri + entries[i];
 		if (isDir)
-			body << "/";
-		body << "\">" << entries[i];
+			href += "/";
+
+		body << "<li><a href=\"" << href << "\">" << entries[i];
 		if (isDir)
 			body << "/";
 		body << "</a></li>";
@@ -117,9 +132,10 @@ void	GetExecutor::handleAutoindex(Conversation& conv)
 	closedir(dir);
 
 	//generer la page HTML Autoindex de facon dynamique avec la liste des fichiers/dossiers
-	conv.resp.body = generateAutoindexPage(dirPath, entries);
+	conv.resp.body = generateAutoindexPage(conv, dirPath, entries);
 	conv.resp.contentType = "text/html";
 	conv.resp.status = OK;
+	conv.state = RESPONSE;
 	return;
 }
 
