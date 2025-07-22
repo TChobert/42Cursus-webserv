@@ -1,14 +1,25 @@
 #include "GetExecutor.hpp"
+#include "Executor.hpp"
 #include <unistd.h>
+#include <dirent.h>
+#include <sstream>
 
 void	GetExecutor::handleGet(Conversation& conv)
 {
-	const std::string& path = conv.req.uri;
+	if (conv.location->hasRedir)
+	{
+		conv.resp.status = conv.location->redirCode;
+		conv.resp.location = conv.location->redirURL;
+		Executor::updateResponseData(conv);
+		return;
+	}
 
+	const std::string& path = conv.req.pathOnDisk;
 	statusCode code = ResourceChecker::checkAccess(path);
 	if (code != NOT_A_STATUS_CODE)
 	{
 		conv.resp.status = code;
+		Executor::updateResponseData(conv);
 		return;
 	}
 	if (ResourceChecker::isFile(path))
@@ -16,8 +27,10 @@ void	GetExecutor::handleGet(Conversation& conv)
 	else if (ResourceChecker::isDir(path))
 		handleDirectory(conv);
 	else
-	//ATTENTION: MAJ Struct Response?
+	{
 		conv.resp.status = FORBIDDEN;
+		Executor::updateResponseData(conv);
+	}
 }
 
 void	GetExecutor::handleFile(Conversation& conv)
@@ -30,7 +43,7 @@ void	GetExecutor::handleFile(Conversation& conv)
 
 void	GetExecutor::handleDirectory(Conversation& conv)
 {
-	const std::string& dirPath = conv.req.uri;
+	const std::string& dirPath = conv.req.pathOnDisk;
 	const std::string& indexName = conv.location->index;
 	std::string indexPath = dirPath + "/" + indexName;
 
@@ -40,7 +53,7 @@ void	GetExecutor::handleDirectory(Conversation& conv)
 			ResourceChecker::isFile(indexPath) &&
 			ResourceChecker::isReadable(indexPath))
 		{
-			conv.req.uri = indexPath;
+			conv.req.pathOnDisk = indexPath;
 			handleFile(conv);
 			return;
 		}
@@ -48,14 +61,75 @@ void	GetExecutor::handleDirectory(Conversation& conv)
 	if (conv.location->autoIndex)
 		handleAutoindex(conv);
 	else
-	//ATTENTION: MAJ Struct Response?
+	{
 		conv.resp.status = FORBIDDEN;
+		Executor::updateResponseData(conv);
+	}
 }
 
+std::string generateAutoindexPage(const std::string& dirPath, const std::vector<std::string>& entries)
+{
+	std::ostringstream body;
+	body << "<html><head><title>Index of " << dirPath << "</title></head><body>";
+	body << "<h1>Index of " << dirPath << "</h1><ul>";
+
+	for (size_t i = 0; i < entries.size(); ++i)
+	{
+		std::string fullPath = dirPath + "/" + entries[i];
+		bool isDir = ResourceChecker::isDir(fullPath);
+
+		body << "<li><a href=\"" << entries[i];
+		if (isDir)
+			body << "/";
+		body << "\">" << entries[i];
+		if (isDir)
+			body << "/";
+		body << "</a></li>";
+	}
+
+	body << "</ul></body></html>";
+	return body.str();
+}
+
+//on doit pouvoir lister tous les fichiers et dossiers
 void	GetExecutor::handleAutoindex(Conversation& conv)
 {
-	//ATTENTION operation write body : fd a envoyer a epoll...
+	//ouverture du dossier qui est dans le pathOnDisk
+	const std::string& dirPath = conv.req.pathOnDisk;
+	DIR* dir = opendir(dirPath.c_str()); //pointeur opaque vers un DIR = flux de repertoire ouvert par opendir()
+	if (!dir)
+	{
+		conv.resp.status = INTERNAL_SERVER_ERROR;
+		Executor::updateResponseData(conv);
+		return;
+	}
+
+	//lister et stocker les fichiers/dossiers dans un tableau entries[]
+	std::vector<std::string> entries;
+	struct dirent* entry;
+	while ((entry = readdir(dir)) != NULL)
+	{
+		std::string name = entry->d_name;
+		if (name == "." || name == "..")
+			continue;
+		entries.push_back(name);
+	}
+	closedir(dir);
+
+	//generer la page HTML Autoindex de facon dynamique avec la liste des fichiers/dossiers
+	conv.resp.body = generateAutoindexPage(dirPath, entries);
+	conv.resp.contentType = "text/html";
+	conv.resp.status = OK;
+	return;
 }
+
+// ----- POUR INFO -----
+// struct dirent
+//{
+//		ino_t	d_ino;       // numéro d'inode du fichier
+//		char	d_name[256]; // nom du fichier (attention : longueur max)
+//	+ autres champs
+//};
 
 void GetExecutor::resumeStatic(Conversation& conv)
 {
@@ -67,6 +141,8 @@ void GetExecutor::resumeStatic(Conversation& conv)
 	if (bytesRead > 0)
 	{
 		conv.resp.body.append(buffer, bytesRead);
+		conv.state = READ_EXEC;
+		conv.eState = READ_EXEC_GET_STATIC;
 		return; //on attend prochain EPOLLIN (encore donnees a lire)
 	}
 	else if (bytesRead == 0)
@@ -74,7 +150,7 @@ void GetExecutor::resumeStatic(Conversation& conv)
 		close(conv.tempFd);
 		conv.tempFd = -1;
 		conv.resp.status = OK;
-		//ATTENTION: MAJ Struct Response?
+		Executor::updateResponseData(conv);
 		conv.state = RESPONSE;
 		return;
 	}
@@ -83,16 +159,10 @@ void GetExecutor::resumeStatic(Conversation& conv)
 		close(conv.tempFd);
 		conv.tempFd = -1;
 		conv.resp.status = INTERNAL_SERVER_ERROR;
-		//ATTENTION: MAJ Struct Response?
+		Executor::updateResponseData(conv);
 		conv.state = RESPONSE;
 		return;
 	}
-	//autre chose a faire ?? Content-Type ? Content-Length ?
-}
-
-void GetExecutor::resumeAutoIndex(Conversation&)
-{
-
 }
 
 void GetExecutor::resumeReadCGI(Conversation&)

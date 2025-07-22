@@ -15,7 +15,6 @@ class GetExecutor
 		static void handleDirectory(Conversation& conv);
 		static void handleAutoindex(Conversation& conv);
 		static void resumeStatic(Conversation&);
-		static void resumeAutoIndex(Conversation&);
 		static void resumeReadCGI(Conversation&);
 		static void resumeWriteCGI(Conversation&);
 };

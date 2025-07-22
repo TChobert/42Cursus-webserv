@@ -6,7 +6,7 @@
 #include "DeleteExecutor.hpp"
 #include "webserv_utils.hpp"
 
-/* ---------------- PRIVATE METHODS ------------------ */
+/* ---------------- PUBLIC METHODS ------------------ */
 
 void	Executor::updateResponseData(Conversation& conv)
 {
@@ -41,13 +41,17 @@ void	Executor::updateResponseData(Conversation& conv)
 		&& conv.resp.location.empty())
 	{
 		//MAJ avec la location nouvellement creee
+		//TODO vis a vis de POST
 	}
 
-	//aussi pour le cas 200 + empty (100 n'a pas de content-type)
+	if (conv.resp.contentType.empty())
+	{
+		std::string type = getMimeType(conv.req.pathOnDisk);
+		if (type == "application/octet-stream")
+			type = "text/plain";
+		conv.resp.contentType = type;
+	}
 }
-
-
-/* ---------------- PUBLIC METHODS ------------------ */
 
 void	Executor::execute(Conversation& conv)
 {
@@ -59,9 +63,6 @@ void	Executor::execute(Conversation& conv)
 //cas pour GET
 		case READ_EXEC_GET_STATIC:
 			GetExecutor::resumeStatic(conv);
-			break;
-		case WRITE_EXEC_GET_AUTOINDEX:
-			GetExecutor::resumeAutoIndex(conv);
 			break;
 		case READ_EXEC_GET_CGI:
 			GetExecutor::resumeReadCGI(conv);
@@ -99,7 +100,6 @@ void	Executor::executeStart(Conversation& conv)
 	if (conv.resp.status != NOT_A_STATUS_CODE && conv.resp.status != CONTINUE)
 	{
 		updateResponseData(conv);
-		//check error + MAJ struct response (content-type + body html des erreurs)
 		return;
 	}
 
@@ -113,7 +113,7 @@ void	Executor::executeStart(Conversation& conv)
 		DeleteExecutor::handleDelete(conv);
 	else
 	{
-		updateResponseData(conv);
 		conv.resp.status = NOT_IMPLEMENTED;
+		updateResponseData(conv);
 	}
 }

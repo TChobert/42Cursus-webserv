@@ -15,6 +15,7 @@ class request {
 public:
 	std::string method;
 	std::string uri;
+	std::string pathOnDisk;
 	bool hasQuery;
 	std::string query;
 	std::pair<int,int> version;

@@ -2,7 +2,7 @@
 
 bool CGIHandler::isCGI(const Conversation& conv)
 {
-	const std::string& path = conv.req.uri;
+	const std::string& path = conv.req.pathOnDisk;
 
 	//Trouver l'extension
 	std::size_t dotPos = path.rfind('.');

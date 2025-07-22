@@ -11,7 +11,6 @@ enum execState
 {
 	EXEC_START,
 	READ_EXEC_GET_STATIC,
-	WRITE_EXEC_GET_AUTOINDEX,
 	READ_EXEC_GET_CGI,
 	WRITE_EXEC_GET_CGI,
 	READ_EXEC_POST_BODY,
@@ -23,10 +22,8 @@ enum execState
 
 class Executor : public IModule
 {
-	private:
-		void	updateResponseData(Conversation& conv);
-		
 	public:
-		void	execute(Conversation& conv);
-		void	executeStart(Conversation& conv);
+		void		execute(Conversation& conv);
+		void		executeStart(Conversation& conv);
+		static void	updateResponseData(Conversation& conv);
 };
