@@ -170,6 +170,51 @@ int main() {
 
 	runValidErrorPageTest("Round 8: Valid error_page entries", errorPageProps, 2, expectedErrors);
 
+	// ROUND 9 — Invalid error_page formats
+
+	// Cas 1 : Code invalide (non numérique)
+	std::string errorPageNonNumeric[] = {
+		"error_page=ERR error/404.html"
+	};
+	runInvalidTestCase("Round 9.1: Invalid error code (non-numeric)", errorPageNonNumeric, 1);
+
+	// Cas 2 : Code non listé (ex: 999)
+	std::string errorPageUnknownCode[] = {
+		"error_page=999 error/404.html"
+	};
+	runInvalidTestCase("Round 9.2: Unknown error code", errorPageUnknownCode, 1);
+
+	// Cas 3 : Chemin absolu (interdit)
+	std::string errorPageAbsolutePath[] = {
+		"error_page=404 /error/404.html"
+	};
+	runInvalidTestCase("Round 9.3: Absolute error page path", errorPageAbsolutePath, 1);
+
+	// Cas 4 : Chemin vide
+	std::string errorPageEmptyPath[] = {
+		"error_page=404 "
+	};
+	runInvalidTestCase("Round 9.4: Empty path", errorPageEmptyPath, 1);
+
+	// Cas 5 : Double définition du même code
+	std::string errorPageDuplicateCode[] = {
+		"error_page=404 error/404.html",
+		"error_page=404 error/404_v2.html"
+	};
+	runInvalidTestCase("Round 9.5: Duplicate error code definition", errorPageDuplicateCode, 2);
+
+	// Cas 6 : Chemin inexistant
+	std::string errorPageNonexistentFile[] = {
+		"error_page=404 not_found.html"
+	};
+	runInvalidTestCase("Round 9.6: Error file does not exist", errorPageNonexistentFile, 1);
+
+	// Cas 7 : Présence de `..` dans le chemin (interdit)
+	std::string errorPageDotDot[] = {
+		"error_page=404 ../error/404.html"
+	};
+	runInvalidTestCase("Round 9.7: Path contains '..'", errorPageDotDot, 1);
+
 
 	std::string header = "[HEADER]";
 	ServerSectionParser serverParser;

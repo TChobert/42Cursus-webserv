@@ -21,7 +21,7 @@ class ServerPropertiesProcessor {
 
 	keyType getKeyType(const std::string& directiveKey);
 	int getErrorCodeValue(const std::string& errorCode);
-	bool isErrorPathValid(const std::string& pagePath);
+	void EnsureErrorPathIsValid(const std::string& pagePath);
 	void addErrorPageToErrorMap(parserContext *context, int codeValue, std::string pagePath);
 	bool isValueInMap(const std::map<int, std::string>& map, const std::string& value);
 
@@ -41,11 +41,9 @@ class ServerPropertiesProcessor {
 	ProcessPtr getPropertyProcess(const std::string& propertyKey);
 
 	class InvalidPropertyException : public std::exception {
-	public:
 		virtual const char *what() const throw();
 	};
 	class InvalidPortPropertyException : public std::exception {
-	public:
 		virtual const char *what() const throw();
 	};
 	class InvalidHostPropertyException : public std::exception {
@@ -64,6 +62,12 @@ class ServerPropertiesProcessor {
 		virtual const char *what() const throw();
 	};
 	class UnknownErrorCodeException : public std::exception {
+		virtual const char *what() const throw();
+	};
+	class DoubleErrorPathException : public std::exception {
+		virtual const char *what() const throw();
+	};
+	class UnexistantErrorPageException : public std::exception {
 		virtual const char *what() const throw();
 	};
 	// class MissingPropertyException : public std::exception {

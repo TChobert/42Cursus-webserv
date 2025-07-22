@@ -13,7 +13,7 @@ ServerPropertiesProcessor::keyType ServerPropertiesProcessor::getKeyType(const s
 		return (PORT);
 	else if (propertyKey.compare("host") == 0)
 		return (HOST);
-	else if (propertyKey.compare("name") == 0) 
+	else if (propertyKey.compare("name") == 0)
 		return (NAME);
 	else if (propertyKey.compare("root") == 0)
 		return (ROOT);
@@ -39,22 +39,22 @@ int ServerPropertiesProcessor::getErrorCodeValue(const std::string& errorCode) {
 			return (static_cast<int>(code));
 		}
 	}
-	throw InvalidErrorPageException();
+	throw UnknownErrorCodeException();
 	return (0);
 }
 
-bool ServerPropertiesProcessor::isErrorPathValid(const std::string& pagePath) {
+void ServerPropertiesProcessor::EnsureErrorPathIsValid(const std::string& pagePath) {
 
 	if (pagePath.find("..") != std::string::npos || pagePath.empty()) {
-		return false;
+		throw InvalidErrorPageException();
 	}
 	if (pagePath[0] == '/') {
-		return (false);
+		throw InvalidErrorPageException();
 	}
 	std::ifstream pageStream(pagePath.c_str());
 	if (!pageStream.good()) {
+		throw UnexistantErrorPageException();
 	}
-	return (pageStream.good());
 }
 
 bool ServerPropertiesProcessor::isValueInMap(const std::map<int, std::string>& map, const std::string& value) {
@@ -68,10 +68,10 @@ bool ServerPropertiesProcessor::isValueInMap(const std::map<int, std::string>& m
 void ServerPropertiesProcessor::addErrorPageToErrorMap(parserContext *context, int codeValue, std::string pagePath) {
 
 	if (context->currentConfig.errorPagesCodes.find(codeValue) != context->currentConfig.errorPagesCodes.end()) {
-		throw DoublePropertyException();
+		throw DoubleErrorPathException();
 	}
 	if (isValueInMap(context->currentConfig.errorPagesCodes, pagePath)) {
-		throw DoublePropertyException();
+		throw DoubleErrorPathException();
 	}
 	context->currentConfig.errorPagesCodes[codeValue] = pagePath;
 }
@@ -150,12 +150,8 @@ void ServerPropertiesProcessor::processErrorPageProperty(const std::string& prop
 		throw InvalidErrorPageException();
 	}
 	int codeValue = getErrorCodeValue(code);
-	if (isErrorPathValid(pagePath)) {
-		addErrorPageToErrorMap(context, codeValue, pagePath);
-	}
-	else {
-		throw InvalidErrorPageException();
-	}
+	EnsureErrorPathIsValid(pagePath);
+	addErrorPageToErrorMap(context, codeValue, pagePath);
 }
 
 ServerPropertiesProcessor::ProcessPtr ServerPropertiesProcessor::getPropertyProcess(const std::string& directiveKey) {
@@ -206,7 +202,7 @@ const char *ServerPropertiesProcessor::InvalidServerRootException::what() const 
 }
 
 const char *ServerPropertiesProcessor::InvalidErrorPageException::what() const throw() {
-	return "Error: webserv: Invalid error page path property detected. Must be at format: error_page=404 error/404.html. Absolute paths are not tolerated";
+	return "Error: webserv: Invalid error_page path property detected. Must be at format: error_page=404 error/404.html. Absolute paths are not tolerated";
 }
 
 const char *ServerPropertiesProcessor::DoublePropertyException::what() const throw() {
@@ -215,4 +211,12 @@ const char *ServerPropertiesProcessor::DoublePropertyException::what() const thr
 
 const char *ServerPropertiesProcessor::UnknownErrorCodeException::what() const throw() {
 	return "Error: webserv: unknown error page code in configuration file.";
+}
+
+const char *ServerPropertiesProcessor::DoubleErrorPathException::what() const throw() {
+	return "Error: webserv: duplicate error_page path property detected in configuration file.";
+}
+
+const char *ServerPropertiesProcessor::UnexistantErrorPageException::what() const throw() {
+	return "Error: webserv: non existant error_page path detected in configuration file";
 }
