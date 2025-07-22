@@ -49,6 +49,9 @@ class ServerPropertiesProcessor {
 	class InvalidServerRootException : public std::exception {
 		virtual const char *what() const throw();
 	};
+	class DoublePropertyException : public std::exception {
+		virtual const char *what() const throw();
+	};
 	// class MissingPropertyException : public std::exception {
 	// public:
 	// 	virtual const char *what() const throw();

@@ -1,56 +1,8 @@
-// #include <iostream>
-// #include <assert.h>
-// #include <cstdlib>
-// #include "ServerSectionParser.hpp"
-// #include "ServerPropertiesProcessor.hpp"
-// #include "ConfigParser.hpp"
-
-// int main() {
-//     ServerSectionParser serverParser;
-//     ServerPropertiesProcessor propertiesProcessor;
-
-//     parserContext context;
-
-//     try {
-//         std::cout << "=== Test ServerSectionParser ===" << std::endl;
-
-//         std::string properties[] = {
-//             "port=8080",
-//             "host=127.0.0.1",
-//             "name=my_server",
-//             "root=/var/www"
-//         };
-
-//     	for (size_t i = 0; i < sizeof(properties)/sizeof(properties[0]); ++i) {
-//             std::cout << "Processing property: " << properties[i] << std::endl;
-//             serverParser.extractCurrentProperty(properties[i], &context);
-//         }
-//     }
-// 	catch (const std::exception &e) {
-//         std::cerr << "Erreur attrapée : " << e.what() << std::endl;
-//     }
-
-// 	assert(context.currentConfig.identity.port == 8080);
-// 	assert(context.currentConfig.identity.host.compare("127.0.0.1") == 0);
-// 	assert(context.currentConfig.identity.serverName.compare("my_server") == 0);
-// 	assert(context.currentConfig.identity.root.compare("/var/www") == 0);
-// 	std::cout << "Tous les tests ont réussi !" << std::endl;
-
-// 	return (EXIT_SUCCESS);
-// }
-
-// #include <iostream>
-// #include <assert.h>
-// #include <cstdlib>
-// #include "ServerSectionParser.hpp"
-// #include "ServerPropertiesProcessor.hpp"
-// #include "ConfigParser.hpp"
-
 #include <iostream>
 #include <cassert>
 #include <cstdlib>
 #include "ServerSectionParser.hpp"
-#include "ConfigParser.hpp" // Doit contenir ou inclure serverInfo
+#include "ConfigParser.hpp"
 
 // ✅ Test valide
 void runValidTestCase(const std::string& testName, const std::string props[], size_t size, const serverInfo& expected) {
@@ -138,12 +90,43 @@ int main() {
 	//Round7 - Duplicate port value
 
 	std::string duplicatePort[] = {
-    "port=8080",
-    "port=9090",  // doublon
-    "host=localhost",
-    "name=server"
+		"port=8080",
+		"port=9090", // present twice
+		"host=localhost",
+		"name=server"
 	};
 	runInvalidTestCase("Round X: Duplicate port property", duplicatePort, 4);
+
+	std::string duplicateName[] = {
+		"port=8080",
+		"name=double", // present twice
+		"host=localhost",
+		"name=server"
+	};
+	runInvalidTestCase("Round X: Duplicate name property", duplicateName, 4);
+
+	std::string duplicateHost[] = {
+		"host=localhost",
+		"host=salut" // twice
+		"port=8080",
+		"name=double",
+	};
+	runInvalidTestCase("Round X: Duplicate name property", duplicateHost, 4);
+
+	std::string duplicateRoot[] = {
+		"host=localhost",
+		"root=/salut" // twice
+		"port=8080",
+		"root=/ah",
+	};
+	runInvalidTestCase("Round X: Duplicate name property", duplicateRoot, 4);
+
+	std::string header = "[HEADER]";
+	ServerSectionParser serverParser;
+	parserContext context;
+
+	serverParser.extractCurrentProperty(header, &context);
+	assert(context.state == HEADER_SECTION);
 
 	std::cout << "=========== All test rounds completed ===========" << std::endl;
 	return EXIT_SUCCESS;

@@ -77,6 +77,7 @@ void HeaderSectionParser::handleCurrentHeader(const std::string& header, parserC
 		if  (context->isInServerScope) {
 			context->finishedConfigs.push_back(context->currentConfig);
 			context->currentConfig = serverConfig();
+			context->seenServerProperties.resetFlags();
 		}
 		context->isInServerScope = true;
 		context->state = SERVER_SECTION;

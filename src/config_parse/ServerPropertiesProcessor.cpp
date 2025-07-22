@@ -24,7 +24,7 @@ ServerPropertiesProcessor::keyType ServerPropertiesProcessor::getKeyType(const s
 void ServerPropertiesProcessor::processPortProperty(const std::string& propertyValue, parserContext *context) {
 
 	if (context->seenServerProperties.portSeen) {
-		throw InvalidPortPropertyException();
+		throw DoublePropertyException();
 	}
 	const char *propertyStr = propertyValue.c_str();
 	char *endPtr = NULL;
@@ -43,16 +43,21 @@ void ServerPropertiesProcessor::processPortProperty(const std::string& propertyV
 
 void ServerPropertiesProcessor::processHostProperty(const std::string& propertyValue, parserContext *context) {
 
-	std::cout << "HOST" << std::endl;
+	if (context->seenServerProperties.hostSeen) {
+		throw DoublePropertyException();
+	}
 	if (propertyValue.empty()) {
 		throw InvalidHostPropertyException();
 	}
 	context->currentConfig.identity.host = propertyValue;
+	context->seenServerProperties.hostSeen = true;
 }
 
 void ServerPropertiesProcessor::processNameProperty(const std::string& propertyValue, parserContext *context) {
 
-	std::cout << "NAME" << std::endl;
+	if (context->seenServerProperties.nameSeen) {
+		throw DoublePropertyException();
+	}
 	if (propertyValue.empty())
 		throw InvalidNamePropertyException();
 	size_t i = 0;
@@ -63,16 +68,20 @@ void ServerPropertiesProcessor::processNameProperty(const std::string& propertyV
 		++i;
 	}
 	context->currentConfig.identity.serverName = propertyValue;
+	context->seenServerProperties.nameSeen =true;
 }
 
 void ServerPropertiesProcessor::processRootProperty(const std::string& propertyValue, parserContext *context) {
 
-	std::cout << "ROOT" << std::endl;
+	if (context->seenServerProperties.rootSeen) {
+		throw DoublePropertyException();
+	}
 	if (propertyValue.empty() || propertyValue[0] != '/') {
 		throw InvalidServerRootException();
 	}
 	context->currentConfig.identity.root = propertyValue;
 	context->currentConfig.identity.hasRoot = true;
+	context->seenServerProperties.rootSeen = true;
 }
 
 ServerPropertiesProcessor::ProcessPtr ServerPropertiesProcessor::getPropertyProcess(const std::string& directiveKey) {
@@ -116,4 +125,8 @@ const char *ServerPropertiesProcessor::InvalidNamePropertyException::what() cons
 
 const char *ServerPropertiesProcessor::InvalidServerRootException::what() const throw() {
 	return "Error: webserv: Invalid server root detected in configuration file. Can't be empty and must be an absolut path.";
+}
+
+const char *ServerPropertiesProcessor::DoublePropertyException::what() const throw() {
+	return "Error: webserv: Double property detected in server configuration.";
 }
