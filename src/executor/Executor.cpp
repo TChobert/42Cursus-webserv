@@ -78,29 +78,29 @@ void	Executor::execute(Conversation& conv)
 		case READ_EXEC_GET_STATIC:
 			GetExecutor::resumeStatic(conv);
 			break;
-		case READ_EXEC_GET_CGI:
-			GetExecutor::resumeReadCGI(conv);
-			break;
-		case WRITE_EXEC_GET_CGI:
-			GetExecutor::resumeWriteCGI(conv);
-			break;
-//cas pour POST
-		case READ_EXEC_POST_BODY:
-			PostExecutor::resumePostBody(conv);
-			break;
-		case WRITE_EXEC_POST_UPLOAD:
-			PostExecutor::resumePostUpload(conv);
-			break;
-		case READ_EXEC_POST_CGI:
-			PostExecutor::resumeReadPostCGI(conv);
-			break;
-		case WRITE_EXEC_POST_RESPONSE:
-			PostExecutor::resumePostResponse(conv);
-			break;
-//cas pour DELETE
-		case WRITE_EXEC_DELETE:
-			DeleteExecutor::resumeDelete(conv);
-			break;
+// 		case READ_EXEC_GET_CGI:
+// 			GetExecutor::resumeReadCGI(conv);
+// 			break;
+// 		case WRITE_EXEC_GET_CGI:
+// 			GetExecutor::resumeWriteCGI(conv);
+// 			break;
+// //cas pour POST
+// 		case READ_EXEC_POST_BODY:
+// 			PostExecutor::resumePostBody(conv);
+// 			break;
+// 		case WRITE_EXEC_POST_UPLOAD:
+// 			PostExecutor::resumePostUpload(conv);
+// 			break;
+// 		case READ_EXEC_POST_CGI:
+// 			PostExecutor::resumeReadPostCGI(conv);
+// 			break;
+// 		case WRITE_EXEC_POST_RESPONSE:
+// 			PostExecutor::resumePostResponse(conv);
+// 			break;
+// //cas pour DELETE
+// 		case WRITE_EXEC_DELETE:
+// 			DeleteExecutor::resumeDelete(conv);
+// 			break;
 		default:
 			setResponse(conv, INTERNAL_SERVER_ERROR);
 			break;
@@ -118,10 +118,10 @@ void	Executor::executeStart(Conversation& conv)
 	const std::string& method = conv.req.method;
 	if (method == "GET")
 		GetExecutor::handleGet(conv);
-	else if (method == "POST")
-		PostExecutor::handlePost(conv);
-	else if (method == "DELETE")
-		DeleteExecutor::handleDelete(conv);
+	// else if (method == "POST")
+	// 	PostExecutor::handlePost(conv);
+	// else if (method == "DELETE")
+	// 	DeleteExecutor::handleDelete(conv);
 	else
 		setResponse(conv, NOT_IMPLEMENTED);
 }

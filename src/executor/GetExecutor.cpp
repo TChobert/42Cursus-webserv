@@ -31,9 +31,9 @@ void	GetExecutor::handleGet(Conversation& conv)
 
 void	GetExecutor::handleFile(Conversation& conv)
 {
-	if (CGIHandler::isCGI(conv))
-		CGIHandler::handleCGI(conv);
-	else
+	// if (CGIHandler::isCGI(conv))
+	// 	CGIHandler::handleCGI(conv);
+	// else
 		StaticFileHandler::handleStaticFile(conv);
 }
 
@@ -169,12 +169,12 @@ void GetExecutor::resumeStatic(Conversation& conv)
 	}
 }
 
-void GetExecutor::resumeReadCGI(Conversation&)
-{
+// void GetExecutor::resumeReadCGI(Conversation&)
+// {
 
-}
+// }
 
-void GetExecutor::resumeWriteCGI(Conversation&)
-{
+// void GetExecutor::resumeWriteCGI(Conversation&)
+// {
 
-}
+// }
