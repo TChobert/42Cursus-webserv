@@ -117,8 +117,8 @@ void	Executor::executeStart(Conversation& conv)
 		GetExecutor::handleGet(conv);
 	else if (method == "POST")
 		PostExecutor::handlePost(conv);
-	// else if (method == "DELETE")
-	// 	DeleteExecutor::handleDelete(conv);
+	else if (method == "DELETE")
+		DeleteExecutor::handleDelete(conv);
 	else
 		setResponse(conv, NOT_IMPLEMENTED);
 }

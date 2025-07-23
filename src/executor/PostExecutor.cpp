@@ -20,16 +20,9 @@ void PostExecutor::handlePost(Conversation& conv)
 	// 	return;
 	// }
 	if (!conv.location->uploadEnabled)
-	{
-		Executor::setResponse(conv, FORBIDDEN);
-		return;
-	}
+		return Executor::setResponse(conv, FORBIDDEN);
 	if (conv.location->uploadStore.empty())
-	{
-		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
-		return;
-	}
-
+		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 	if (conv.req.uploadFileName.empty())
 		conv.req.uploadFileName = generateUploadFileName();
 

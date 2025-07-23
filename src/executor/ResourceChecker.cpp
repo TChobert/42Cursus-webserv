@@ -71,3 +71,28 @@ statusCode ResourceChecker::checkAccess(const std::string& path)
 		return FORBIDDEN;
 	return NOT_A_STATUS_CODE;
 }
+
+//pour supprimer un fichier ex: parentDir/fichier.txt
+//systeme a besoin de modifier le contenu du dossier parent
+//car c'est dans ce dossier qu'on enleve l'entree "fichier.txt"
+//>>> ce qui compte: droite d'ecriture sur le dossier parent
+
+bool ResourceChecker::canDelete(const std::string& path)
+{
+	//derniere occurrence de '/' pour trouver le dossier parent
+	std::size_t pos = path.find_last_of('/');
+
+	if (pos == std::string::npos)
+		return false;
+
+	std::string parentDir = path.substr(0, pos);
+
+	if (parentDir.empty())
+		parentDir = "/";
+
+	// check si on a le droit d’ecrire dans le dossier parent
+	if (access(parentDir.c_str(), W_OK) != 0)
+		return false;
+
+	return true;
+}
