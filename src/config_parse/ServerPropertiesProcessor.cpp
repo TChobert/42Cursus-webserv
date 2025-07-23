@@ -7,6 +7,10 @@ ServerPropertiesProcessor::~ServerPropertiesProcessor(void) {}
 
 const int ServerPropertiesProcessor::validErrorCodes[] = {401, 404, 500};
 
+const char *ServerPropertiesProcessor::forbiddenPaths[] = {
+	"/etc", "/bin", "/usr/bin", "/sbin", "/root", "/home", "/proc", "/dev", "/sys"
+};
+
 ServerPropertiesProcessor::keyType ServerPropertiesProcessor::getKeyType(const std::string& propertyKey) {
 
 	if (propertyKey.compare("port") == 0)
@@ -131,9 +135,10 @@ void ServerPropertiesProcessor::processRootProperty(const std::string& propertyV
 	if (context->seenServerProperties.rootSeen) {
 		throw DoublePropertyException();
 	}
-	if (propertyValue.empty() || propertyValue[0] != '/') {
+	if (propertyValue.empty() || propertyValue[0] != '/' || propertyValue.find("..") != std::string::npos) {
 		throw InvalidServerRootException();
 	}
+	ensureRootIsAllowed(propertyValue);
 	context->currentConfig.identity.root = propertyValue;
 	context->currentConfig.identity.hasRoot = true;
 	context->seenServerProperties.rootSeen = true;
@@ -171,9 +176,7 @@ ServerPropertiesProcessor::ProcessPtr ServerPropertiesProcessor::getPropertyProc
 		case ROOT :
 			return &ServerPropertiesProcessor::processRootProperty;
 		case ERROR_PAGE :
-		{
 			return &ServerPropertiesProcessor::processErrorPageProperty;
-		}
 		default:
 			throw InvalidPropertyException();
 	}
@@ -199,6 +202,10 @@ const char *ServerPropertiesProcessor::InvalidNamePropertyException::what() cons
 
 const char *ServerPropertiesProcessor::InvalidServerRootException::what() const throw() {
 	return "Error: webserv: Invalid server root detected in configuration file. Can't be empty and must be an absolut path.";
+}
+
+const char *ServerPropertiesProcessor::ForbiddenServerRootException::what() const throw() {
+	return "Error: webserv: Forbidden server root file detected in configuration file.";
 }
 
 const char *ServerPropertiesProcessor::InvalidErrorPageException::what() const throw() {

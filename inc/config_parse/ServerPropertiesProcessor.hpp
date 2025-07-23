@@ -17,6 +17,7 @@ class ServerPropertiesProcessor {
 	private:
 
 	enum keyType{PORT, HOST, NAME, ROOT, ERROR_PAGE, UNKNOWN};
+	static const char* forbiddenPaths[];
 	static const int validErrorCodes[];
 
 	keyType getKeyType(const std::string& directiveKey);
@@ -36,7 +37,6 @@ class ServerPropertiesProcessor {
 	void processNameProperty(const std::string& property, parserContext *context);
 	void processRootProperty(const std::string& property, parserContext *context);
 	void processErrorPageProperty(const std::string& property, parserContext *context);
-	//void ensureServerConfigIsFull(parserContext *context);
 
 	ProcessPtr getPropertyProcess(const std::string& propertyKey);
 
@@ -55,6 +55,9 @@ class ServerPropertiesProcessor {
 	class InvalidServerRootException : public std::exception {
 		virtual const char *what() const throw();
 	};
+	class ForbiddenServerRootException : public std::exception {
+		virtual const char *what() const throw();
+	};
 	class InvalidErrorPageException : public std::exception {
 		virtual const char *what() const throw();
 	};
@@ -70,8 +73,4 @@ class ServerPropertiesProcessor {
 	class UnexistantErrorPageException : public std::exception {
 		virtual const char *what() const throw();
 	};
-	// class MissingPropertyException : public std::exception {
-	// public:
-	// 	virtual const char *what() const throw();
-	// };
 };
