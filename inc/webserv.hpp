@@ -16,6 +16,7 @@ public:
 	std::string method;
 	std::string uri;
 	std::string pathOnDisk;
+	std::string uploadFileName;
 	bool hasQuery;
 	std::string query;
 	std::pair<int,int> version;

@@ -84,13 +84,10 @@ void	Executor::execute(Conversation& conv)
 // 		case WRITE_EXEC_GET_CGI:
 // 			GetExecutor::resumeWriteCGI(conv);
 // 			break;
-// //cas pour POST
-// 		case READ_EXEC_POST_BODY:
-// 			PostExecutor::resumePostBody(conv);
-// 			break;
-// 		case WRITE_EXEC_POST_UPLOAD:
-// 			PostExecutor::resumePostUpload(conv);
-// 			break;
+//cas pour POST
+		case WRITE_EXEC_POST_BODY:
+			PostExecutor::resumePostWriteBodyToFile(conv);
+			break;
 // 		case READ_EXEC_POST_CGI:
 // 			PostExecutor::resumeReadPostCGI(conv);
 // 			break;
@@ -118,8 +115,8 @@ void	Executor::executeStart(Conversation& conv)
 	const std::string& method = conv.req.method;
 	if (method == "GET")
 		GetExecutor::handleGet(conv);
-	// else if (method == "POST")
-	// 	PostExecutor::handlePost(conv);
+	else if (method == "POST")
+		PostExecutor::handlePost(conv);
 	// else if (method == "DELETE")
 	// 	DeleteExecutor::handleDelete(conv);
 	else
