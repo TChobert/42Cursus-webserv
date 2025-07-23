@@ -132,6 +132,45 @@ int main() {
 		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=/test_root"};
 		runInvalidTestCase("Round 5: Invalid root (no rights)", invalidRoot, 4);
 	}
+
+	// Round 5.4 - Invalid root (no rights, relative path)
+	{
+		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=no_www"};
+		runInvalidTestCase("Round 5: Invalid root (no rights, relative_path: no_www)", invalidRoot, 4);
+	}
+
+	// Round 5.5 - Invalid root (no rights, relative path, bis)
+	{
+		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=no_www"};
+		runInvalidTestCase("Round 5: Invalid root (no rights, relative_path: ./no_www)", invalidRoot, 4);
+	}
+
+	// Round 5.6 - Invalid root (escape)
+	{
+		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=./www/../"};
+		runInvalidTestCase("Round 5: Invalid root (no rights, escape: ./www/../)", invalidRoot, 4);
+	}
+
+	// Round 5.7 - Invalid root (escape bis)
+	{
+		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=../../../"};
+		runInvalidTestCase("Round 5: Invalid root (no rights, escape: ../../../)", invalidRoot, 4);
+	}
+
+	// Round 5.8 - Valid root (relative path)
+	{
+		std::string validRoot[] = {"port=8080", "host=localhost", "name=server1", "root=./www"};
+		serverInfo expected = {8080, "localhost", "server1", "./www", true};
+		runValidTestCase("Round 5: Valid root (relative: ./www)", validRoot, 4, expected);
+	}
+
+	// Round 5.9 - Valid root (relative path bis)
+	{
+		std::string validRoot[] = {"port=8080", "host=localhost", "name=server1", "root=www"};
+		serverInfo expected = {8080, "localhost", "server1", "www", true};
+		runValidTestCase("Round 5: Valid root (relative: www)", validRoot, 4, expected);
+	}
+
 	// Round 6 — Edge cases (port 0 and 65535)
 	std::string minPort[] = {"port=0", "host=localhost", "name=min", "root=/srv"};
 	serverInfo expectedMin = {0, "localhost", "min", "/srv", true};
@@ -149,7 +188,7 @@ int main() {
 		"host=localhost",
 		"name=server"
 	};
-	runInvalidTestCase("Round X: Duplicate port property", duplicatePort, 4);
+	runInvalidTestCase("Round 7: Duplicate port property", duplicatePort, 4);
 
 	std::string duplicateName[] = {
 		"port=8080",
@@ -157,7 +196,7 @@ int main() {
 		"host=localhost",
 		"name=server",
 	};
-	runInvalidTestCase("Round X: Duplicate name property", duplicateName, 4);
+	runInvalidTestCase("Round 7.1: Duplicate name property", duplicateName, 4);
 
 	std::string duplicateHost[] = {
 		"host=localhost",
@@ -165,7 +204,7 @@ int main() {
 		"port=8080",
 		"name=double"
 	};
-	runInvalidTestCase("Round X: Duplicate host property", duplicateHost, 4);
+	runInvalidTestCase("Round 7.2: Duplicate host property", duplicateHost, 4);
 
 	std::string duplicateRoot[] = {
 		"host=localhost",
@@ -173,7 +212,7 @@ int main() {
 		"port=8080",
 		"root=/srv"
 	};
-	runInvalidTestCase("Round X: Duplicate root property", duplicateRoot, 4);
+	runInvalidTestCase("Round 7.3: Duplicate root property", duplicateRoot, 4);
 
 	// ROUND 8 error pages paths
 

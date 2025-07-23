@@ -159,7 +159,7 @@ void ServerPropertiesProcessor::processRootProperty(const std::string& propertyV
 	if (context->seenServerProperties.rootSeen) {
 		throw DoublePropertyException();
 	}
-	if (propertyValue.empty() || propertyValue[0] != '/' || propertyValue.find("..") != std::string::npos) {
+	if (propertyValue.empty() || propertyValue.find("..") != std::string::npos) {
 		throw InvalidServerRootException();
 	}
 	ensureRootIsAllowed(propertyValue);
