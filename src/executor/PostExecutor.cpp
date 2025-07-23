@@ -14,11 +14,11 @@ static std::string	generateUploadFileName()
 
 void PostExecutor::handlePost(Conversation& conv)
 {
-	if (CGIHandler::isCGI(conv))
-	{
-		CGIHandler::handleCGI(conv);
-		return;
-	}
+	// if (CGIHandler::isCGI(conv))
+	// {
+	// 	CGIHandler::handleCGI(conv);
+	// 	return;
+	// }
 	if (!conv.location->uploadEnabled)
 	{
 		Executor::setResponse(conv, FORBIDDEN);
@@ -70,18 +70,18 @@ void PostExecutor::resumePostWriteBodyToFile(Conversation& conv)
 	}
 	else
 	{
-		//il reste des donnees: on reste sur les memes states
+		//il reste des donnees a ecrire: on reste sur les memes states
 		conv.state = WRITE_EXEC;
 		conv.eState = WRITE_EXEC_POST_BODY;
 	}
 }
 
-void PostExecutor::resumeReadPostCGI(Conversation&)
-{
+// void PostExecutor::resumeReadPostCGI(Conversation&)
+// {
 
-}
+// }
 
-void PostExecutor::resumePostResponse(Conversation&)
-{
+// void PostExecutor::resumePostResponse(Conversation&)
+// {
 
-}
+// }
