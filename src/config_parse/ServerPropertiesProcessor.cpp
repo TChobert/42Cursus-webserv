@@ -36,7 +36,6 @@ void ServerPropertiesProcessor::ensureRootIsAllowed(const std::string& root) {
 
 		if (root == forbidden || root.size() > forbidden.size()
 			&& root.compare(0, forbidden.size(), forbidden) == 0 && root[forbidden.size()] == '/') {
-				std::cerr << "[DEBUG] Forbidden match: " << forbidden << " in root: " << root << std::endl;
 				throw ForbiddenServerRootException();
 			}
 	}
@@ -235,7 +234,7 @@ const char *ServerPropertiesProcessor::ForbiddenServerRootException::what() cons
 }
 
 const char *ServerPropertiesProcessor::InvalidErrorPageException::what() const throw() {
-	return "Error: webserv: Invalid error_page path property detected. Must be at format: error_page=404 error/404.html. Absolute paths are not tolerated";
+	return "Error: webserv: Invalid error_page path property detected. Must be at format: error_page=404 error/404.html. Absolute paths are not accepted.";
 }
 
 const char *ServerPropertiesProcessor::DoublePropertyException::what() const throw() {
@@ -251,5 +250,5 @@ const char *ServerPropertiesProcessor::DoubleErrorPathException::what() const th
 }
 
 const char *ServerPropertiesProcessor::UnexistantErrorPageException::what() const throw() {
-	return "Error: webserv: non existant error_page path detected in configuration file";
+	return "Error: webserv: non existant error_page path detected in configuration file.";
 }

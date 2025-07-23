@@ -118,7 +118,7 @@ int main() {
 
 	// Round 5.1 - Invalid root (forbidden file)
 	{
-		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=/etc/"};
+		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=/etc"};
 		runInvalidTestCase("Round 5: Invalid root (forbidden)", invalidRoot, 4);
 	}
 
@@ -169,9 +169,9 @@ int main() {
 
 	std::string duplicateRoot[] = {
 		"host=localhost",
-		"root=/home/tchobert/GitHub_perso/42Cursus-webserv/test/config_parse/serverSectionParser/test_root_valid", // twice
+		"root=/srv", // twice
 		"port=8080",
-		"root=/home/tchobert/GitHub_perso/42Cursus-webserv/test/config_parse/serverSectionParser/test_root_valid"
+		"root=/srv"
 	};
 	runInvalidTestCase("Round X: Duplicate root property", duplicateRoot, 4);
 
