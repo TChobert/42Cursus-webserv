@@ -3,6 +3,8 @@
 #include <exception>
 #include <iostream>
 #include <string>
+#include <unistd.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sstream>
@@ -21,8 +23,10 @@ class ServerPropertiesProcessor {
 	static const int validErrorCodes[];
 
 	keyType getKeyType(const std::string& directiveKey);
+	void ensureRootIsAllowed(const std::string& root);
+	void ensureRootIsValid(const std::string& root);
 	int getErrorCodeValue(const std::string& errorCode);
-	void EnsureErrorPathIsValid(const std::string& pagePath);
+	void ensureErrorPathIsValid(const std::string& pagePath);
 	void addErrorPageToErrorMap(parserContext *context, int codeValue, std::string pagePath);
 	bool isValueInMap(const std::map<int, std::string>& map, const std::string& value);
 

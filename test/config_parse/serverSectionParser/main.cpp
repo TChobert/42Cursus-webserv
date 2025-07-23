@@ -90,30 +90,48 @@ int main() {
 		"port=8080",
 		"host=127.0.0.1",
 		"name=my_server",
-		"root=/var/www"
+		"root=/srv"
 	};
-	serverInfo expected1 = {8080, "127.0.0.1", "my_server", "/var/www", true};
+	serverInfo expected1 = {8080, "127.0.0.1", "my_server", "/srv", true};
 	runValidTestCase("Round 1: Valid config", validProps, 4, expected1);
 
 	// Round 2 — Invalid ports
-	std::string invalidPort1[] = {"port=abc", "host=localhost", "name=server1", "root=/var/www"};
+	std::string invalidPort1[] = {"port=abc", "host=localhost", "name=server1", "root=/srv"};
 	runInvalidTestCase("Round 2.1: Invalid port (non-integer)", invalidPort1, 4);
 
-	std::string invalidPort2[] = {"port=99999", "host=localhost", "name=server1", "root=/var/www"};
+	std::string invalidPort2[] = {"port=99999", "host=localhost", "name=server1", "root=/srv"};
 	runInvalidTestCase("Round 2.2: Invalid port (out of range)", invalidPort2, 4);
 
 	// Round 3 — Invalid host
-	std::string invalidHost[] = {"port=8080", "host=", "name=server1", "root=/var/www"};
+	std::string invalidHost[] = {"port=8080", "host=", "name=server1", "root=/srv"};
 	runInvalidTestCase("Round 3: Invalid host (empty)", invalidHost, 4);
 
 	// Round 4 — Invalid name (space)
-	std::string invalidName[] = {"port=8080", "host=localhost", "name=invalid name", "root=/var/www"};
+	std::string invalidName[] = {"port=8080", "host=localhost", "name=invalid name", "root=/srv"};
 	runInvalidTestCase("Round 4: Invalid name (space)", invalidName, 4);
 
 	// Round 5 — Invalid root (relative)
-	std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=relative/path"};
-	runInvalidTestCase("Round 5: Invalid root (not absolute)", invalidRoot, 4);
+	{
+		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=relative/path"};
+		runInvalidTestCase("Round 5: Invalid root (not absolute path)", invalidRoot, 4);
+	}
 
+	// Round 5.1 - Invalid root (forbidden file)
+	{
+		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=/etc/"};
+		runInvalidTestCase("Round 5: Invalid root (forbidden)", invalidRoot, 4);
+	}
+
+	// Round 5.2 - Invalid root (forbidden file)
+	{
+		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=/etc/test/haha"};
+		runInvalidTestCase("Round 5: Invalid root (forbidden)", invalidRoot, 4);
+	}
+	// Round 5.3 - Invalid root (no rights)
+	{
+		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=/test_root"};
+		runInvalidTestCase("Round 5: Invalid root (no rights)", invalidRoot, 4);
+	}
 	// Round 6 — Edge cases (port 0 and 65535)
 	std::string minPort[] = {"port=0", "host=localhost", "name=min", "root=/srv"};
 	serverInfo expectedMin = {0, "localhost", "min", "/srv", true};
@@ -147,15 +165,15 @@ int main() {
 		"port=8080",
 		"name=double"
 	};
-	runInvalidTestCase("Round X: Duplicate name property", duplicateHost, 4);
+	runInvalidTestCase("Round X: Duplicate host property", duplicateHost, 4);
 
 	std::string duplicateRoot[] = {
 		"host=localhost",
-		"root=/salut", // twice
+		"root=/home/tchobert/GitHub_perso/42Cursus-webserv/test/config_parse/serverSectionParser/test_root_valid", // twice
 		"port=8080",
-		"root=/ah"
+		"root=/home/tchobert/GitHub_perso/42Cursus-webserv/test/config_parse/serverSectionParser/test_root_valid"
 	};
-	runInvalidTestCase("Round X: Duplicate name property", duplicateRoot, 4);
+	runInvalidTestCase("Round X: Duplicate root property", duplicateRoot, 4);
 
 	// ROUND 8 error pages paths
 
@@ -220,7 +238,7 @@ int main() {
 	std::string missingPortBeforeHeader[] = {
 		"host=127.0.0.1",
 		"name=my_server",
-		"root=/var/www",
+		"root=/srv",
 		"[HEADER]"
 	};
 	runInvalidTestCase("Round 10.1: Missing port before HEADER", missingPortBeforeHeader, 4);
@@ -228,14 +246,14 @@ int main() {
 	std::string missingHostBeforeHeader[] = {
 		"port=8080",
 		"name=my_server",
-		"root=/var/www",
+		"root=/srv",
 		"[HEADER]"
 	};
 	runInvalidTestCase("Round 10.2: Missing host before HEADER", missingHostBeforeHeader, 4);
 
 	std::string missingBothBeforeHeader[] = {
 		"name=my_server",
-		"root=/var/www",
+		"root=/srv",
 		"[HEADER]"
 	};
 	runInvalidTestCase("Round 10.3: Missing port and host before HEADER", missingBothBeforeHeader, 3);
@@ -245,14 +263,14 @@ int main() {
 		"port=8080",
 		"host=127.0.0.1",
 		"name=my_server",
-		"root=/var/www",
+		"root=/srv",
 		"[HEADER]"
 	};
 	serverInfo expected11;
 	expected11.port = 8080;
 	expected11.host = "127.0.0.1";
 	expected11.serverName = "my_server";
-	expected11.root = "/var/www";
+	expected11.root = "/srv";
 	expected11.hasRoot = true;
 
 	runValidTestCase("Round 11: Valid server config before HEADER", validBeforeHeader, 5, expected11);

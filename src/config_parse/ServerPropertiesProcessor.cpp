@@ -8,7 +8,7 @@ ServerPropertiesProcessor::~ServerPropertiesProcessor(void) {}
 const int ServerPropertiesProcessor::validErrorCodes[] = {401, 404, 500};
 
 const char *ServerPropertiesProcessor::forbiddenPaths[] = {
-	"/etc", "/bin", "/usr/bin", "/sbin", "/root", "/home", "/proc", "/dev", "/sys"
+	"/etc", "/root", "/bin", "/sbin", "/dev", "/proc", "/sys", "/usr/bin"
 };
 
 ServerPropertiesProcessor::keyType ServerPropertiesProcessor::getKeyType(const std::string& propertyKey) {
@@ -26,6 +26,31 @@ ServerPropertiesProcessor::keyType ServerPropertiesProcessor::getKeyType(const s
 	}
 	else
 		return (UNKNOWN);
+}
+
+void ServerPropertiesProcessor::ensureRootIsAllowed(const std::string& root) {
+
+	for (size_t i = 0; i < sizeof(forbiddenPaths) / sizeof(forbiddenPaths[0]); ++i) {
+
+		const std::string forbidden(forbiddenPaths[i]);
+
+		if (root == forbidden || root.size() > forbidden.size()
+			&& root.compare(0, forbidden.size(), forbidden) == 0 && root[forbidden.size()] == '/') {
+				std::cerr << "[DEBUG] Forbidden match: " << forbidden << " in root: " << root << std::endl;
+				throw ForbiddenServerRootException();
+			}
+	}
+}
+
+void ServerPropertiesProcessor::ensureRootIsValid(const std::string& root) {
+
+	struct stat pathStat;
+
+	if (access(root.c_str(), F_OK | R_OK | X_OK) != 0) {
+		throw InvalidServerRootException();
+	}
+	if (stat(root.c_str(), &pathStat) != 0 || !S_ISDIR(pathStat.st_mode))
+		throw InvalidServerRootException();
 }
 
 int ServerPropertiesProcessor::getErrorCodeValue(const std::string& errorCode) {
@@ -47,7 +72,7 @@ int ServerPropertiesProcessor::getErrorCodeValue(const std::string& errorCode) {
 	return (0);
 }
 
-void ServerPropertiesProcessor::EnsureErrorPathIsValid(const std::string& pagePath) {
+void ServerPropertiesProcessor::ensureErrorPathIsValid(const std::string& pagePath) {
 
 	if (pagePath.find("..") != std::string::npos || pagePath.empty()) {
 		throw InvalidErrorPageException();
@@ -139,6 +164,7 @@ void ServerPropertiesProcessor::processRootProperty(const std::string& propertyV
 		throw InvalidServerRootException();
 	}
 	ensureRootIsAllowed(propertyValue);
+	ensureRootIsValid(propertyValue);
 	context->currentConfig.identity.root = propertyValue;
 	context->currentConfig.identity.hasRoot = true;
 	context->seenServerProperties.rootSeen = true;
@@ -155,7 +181,7 @@ void ServerPropertiesProcessor::processErrorPageProperty(const std::string& prop
 		throw InvalidErrorPageException();
 	}
 	int codeValue = getErrorCodeValue(code);
-	EnsureErrorPathIsValid(pagePath);
+	ensureErrorPathIsValid(pagePath);
 	addErrorPageToErrorMap(context, codeValue, pagePath);
 }
 
@@ -201,7 +227,7 @@ const char *ServerPropertiesProcessor::InvalidNamePropertyException::what() cons
 }
 
 const char *ServerPropertiesProcessor::InvalidServerRootException::what() const throw() {
-	return "Error: webserv: Invalid server root detected in configuration file. Can't be empty and must be an absolut path.";
+	return "Error: webserv: Invalid server root detected in configuration file.";
 }
 
 const char *ServerPropertiesProcessor::ForbiddenServerRootException::what() const throw() {
