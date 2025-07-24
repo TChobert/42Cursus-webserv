@@ -1,4 +1,5 @@
 #include "ResourceChecker.hpp"
+#include <dirent.h>
 
 //stat renvoie 0 si le fichier existe, -1 si ca n'existe pas (ou pas accessible)
 
@@ -94,5 +95,26 @@ bool ResourceChecker::canDelete(const std::string& path)
 	if (access(parentDir.c_str(), W_OK) != 0)
 		return false;
 
+	return true;
+}
+
+bool ResourceChecker::isDirEmpty(const std::string& path)
+{
+	DIR* dir = opendir(path.c_str());
+	if (!dir)
+		return false;
+
+	//lister et stocker les fichiers/dossiers dans un tableau entries[]
+	struct dirent* entry;
+	while ((entry = readdir(dir)) != NULL) //readdir lit chaque entree dans le dossier ouvert
+	{
+		std::string name(entry->d_name);
+		if (name != "." && name != "..") //la on a trouve autre chose que le dossier lui-meme ou dossier parent
+		{
+			closedir(dir);
+			return false;
+		}
+	}
+	closedir(dir);
 	return true;
 }

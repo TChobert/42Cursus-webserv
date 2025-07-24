@@ -14,6 +14,7 @@ class ResourceChecker
 		static bool exists(const std::string& path);
 		static bool isFile(const std::string& path);
 		static bool isDir(const std::string& path);
+		static bool isDirEmpty(const std::string& path);
 		static bool isReadable(const std::string& path);
 		static bool isExecutable(const std::string& path);
 		static statusCode checkAccess(const std::string& path);

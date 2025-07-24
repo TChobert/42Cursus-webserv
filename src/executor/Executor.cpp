@@ -10,6 +10,7 @@
 
 void	Executor::updateResponseData(Conversation& conv)
 {
+	//CAS erreurs 400++ et 500++
 	if (conv.resp.status >= 400)
 	{
 		std::map<int, std::string>& errorPages = conv.config.errorPagesCodes;
@@ -37,6 +38,7 @@ void	Executor::updateResponseData(Conversation& conv)
 		}
 	}
 
+	//CAS de 201, 301, 302
 	if ((conv.resp.status == CREATED || (conv.resp.status >= 300 && conv.resp.status < 400))
 		&& conv.resp.location.empty())
 	{
@@ -44,6 +46,15 @@ void	Executor::updateResponseData(Conversation& conv)
 		//TODO vis a vis de POST
 	}
 
+	//CAS de 204
+	if (conv.resp.status == NO_CONTENT)
+	{
+		conv.resp.body.clear();
+		conv.resp.contentType.clear();
+		return;
+	}
+
+	//CAS de 200 et autres
 	if (conv.resp.contentType.empty())
 	{
 		if (conv.resp.body.find("<html>") != std::string::npos)
@@ -93,10 +104,6 @@ void	Executor::execute(Conversation& conv)
 // 			break;
 // 		case WRITE_EXEC_POST_RESPONSE:
 // 			PostExecutor::resumePostResponse(conv);
-// 			break;
-// //cas pour DELETE
-// 		case WRITE_EXEC_DELETE:
-// 			DeleteExecutor::resumeDelete(conv);
 // 			break;
 		default:
 			setResponse(conv, INTERNAL_SERVER_ERROR);
