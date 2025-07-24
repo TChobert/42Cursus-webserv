@@ -24,7 +24,7 @@ void	ConfigParser::extractConfigs(const std::vector<std::string> formattedConten
 			_serverParser.extractCurrentProperty(*it, &context);
 			break;
 		case LOCATION_SECTION:
-			_locationParser.extractCurrentDirective(*it, &context);
+			_locationParser.extractCurrentProperty(*it, &context);
 			break;
 		}
 	}

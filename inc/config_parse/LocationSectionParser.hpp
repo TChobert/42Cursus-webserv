@@ -20,5 +20,5 @@ class LocationSectionParser {
 	LocationSectionParser(void);
 	~LocationSectionParser(void);
 
-	void extractCurrentDirective(const std::string& directive, parserContext *context);
+	void extractCurrentProperty(const std::string& directive, parserContext *context);
 };
