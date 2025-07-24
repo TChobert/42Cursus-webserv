@@ -5,7 +5,7 @@ ServerPropertiesProcessor::ServerPropertiesProcessor(void) {}
 
 ServerPropertiesProcessor::~ServerPropertiesProcessor(void) {}
 
-const int ServerPropertiesProcessor::validErrorCodes[] = {401, 404, 500};
+const int ServerPropertiesProcessor::validErrorCodes[] = {400, 401, 403, 404, 405, 408, 413, 500, 501, 504};
 
 const char *ServerPropertiesProcessor::forbiddenPaths[] = {
 	"/etc", "/root", "/bin", "/sbin", "/dev", "/proc", "/sys", "/usr/bin"
@@ -34,8 +34,8 @@ void ServerPropertiesProcessor::ensureRootIsAllowed(const std::string& root) {
 
 		const std::string forbidden(forbiddenPaths[i]);
 
-		if (root == forbidden || root.size() > forbidden.size()
-			&& root.compare(0, forbidden.size(), forbidden) == 0 && root[forbidden.size()] == '/') {
+		if (root == forbidden || (root.size() > forbidden.size()
+			&& root.compare(0, forbidden.size(), forbidden) == 0 && root[forbidden.size()] == '/')) {
 				throw ForbiddenServerRootException();
 			}
 	}
