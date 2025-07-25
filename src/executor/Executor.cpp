@@ -57,17 +57,15 @@ void	Executor::updateResponseData(Conversation& conv)
 	//CAS de 200 et autres
 	if (conv.resp.contentType.empty())
 	{
-		if (conv.resp.body.find("<html>") != std::string::npos)
+		std::string type = getMimeType(conv.req.pathOnDisk);
+		if (type == "application/octet-stream")
 		{
-			conv.resp.contentType = "text/html";
-		}
-		else
-		{
-			std::string type = getMimeType(conv.req.pathOnDisk);
-			if (type == "application/octet-stream")
+			if (conv.resp.body.find("<html>") != std::string::npos)
+				type = "text/html";
+			else
 				type = "text/plain";
-			conv.resp.contentType = type;
 		}
+		conv.resp.contentType = type;
 	}
 }
 

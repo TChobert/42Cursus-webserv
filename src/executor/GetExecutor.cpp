@@ -6,14 +6,6 @@
 
 void	GetExecutor::handleGet(Conversation& conv)
 {
-	if (conv.location->hasRedir)
-	{
-		conv.resp.status = conv.location->redirCode;
-		conv.resp.location = conv.location->redirURL;
-		Executor::updateResponseData(conv);
-		return;
-	}
-
 	const std::string& path = conv.req.pathOnDisk;
 	statusCode code = ResourceChecker::checkAccess(path);
 	if (code != NOT_A_STATUS_CODE)

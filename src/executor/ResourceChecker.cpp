@@ -6,62 +6,29 @@
 bool ResourceChecker::exists(const std::string& path)
 {
 	struct stat buffer;
-
-	int result = stat(path.c_str(), &buffer);
-
-	if (result == 0)
-		return true;
-	else
-		return false;
+	return stat(path.c_str(), &buffer) == 0;
 }
 
 bool ResourceChecker::isFile(const std::string& path)
 {
 	struct stat buffer;
-
-	int result = stat(path.c_str(), &buffer);
-
-	if (result != 0)
-		return false;
-
-	if (S_ISREG(buffer.st_mode)) //macro pour designer regular file
-		return true;
-	else
-		return false;
+	return stat(path.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode);
 }
 
 bool ResourceChecker::isDir(const std::string& path)
 {
 	struct stat buffer;
-	int result = stat(path.c_str(), &buffer);
-
-	if (result != 0)
-		return false;
-
-	if (S_ISDIR(buffer.st_mode))
-		return true;
-	else
-		return false;
+	return stat(path.c_str(), &buffer) == 0 && S_ISDIR(buffer.st_mode);
 }
 
 bool ResourceChecker::isReadable(const std::string& path)
 {
-	int result = access(path.c_str(), R_OK);
-
-	if (result == 0)
-		return true;
-	else
-		return false;
+	return access(path.c_str(), R_OK) == 0;
 }
 
 bool ResourceChecker::isExecutable(const std::string& path)
 {
-	int result = access(path.c_str(), X_OK);
-
-	if (result == 0)
-		return true;
-	else
-		return false;
+	return access(path.c_str(), X_OK) == 0;
 }
 
 statusCode ResourceChecker::checkAccess(const std::string& path)
