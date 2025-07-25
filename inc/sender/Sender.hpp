@@ -5,15 +5,16 @@
 # include <cstring>
 # include "webserv_enum.hpp"
 # include "Conversation.hpp"
+# include "IModule.hpp"
 
-class Sender
+class Sender : public IModule
 {
 	private:
 		static ssize_t	trySend(Conversation &conv);
 		static void		updateStateAfterSend(Conversation &conv, ssize_t bytes);
 
 	public:
-		static void		execute(Conversation& conv);
+		void			execute(Conversation& conv);
 };
 
 #endif

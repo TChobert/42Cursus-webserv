@@ -6,6 +6,8 @@
 #include <vector>
 
 typedef std::string locationName;
+typedef std::string cgiExtension;
+typedef std::string cgiHandler;
 
 // Information for each location
 struct locationConfig {
@@ -16,9 +18,13 @@ struct locationConfig {
 	std::vector<std::string>	allowedMethods;
 	std::string					index;
 	bool						autoIndex;
+	size_t						clientMaxBodySize;
 	bool						hasRedir;
 	statusCode					redirCode;
 	std::string					redirURL;
+	bool						uploadEnabled;
+	std::string					uploadStore;
+	std::map<cgiExtension, cgiHandler> cgiHandlers;
 };
 
 // Error pages paths. Optionnal for some of them. We can add more later or remove some of them if necessary

@@ -3,7 +3,7 @@
 
 # include <string>
 # include <map>
-# include "Response.hpp"
+# include "webserv.hpp"
 
 class Response;
 
@@ -16,7 +16,7 @@ class StatusLineBuilder
 		static std::map<int, std::string> createStatusTexts();
 
 	public:
-		static std::string build(const Response& resp);
+		static std::string build(const response& resp);
 		static std::string getStatusText(int code);
 };
 

@@ -10,7 +10,7 @@ bool HeaderBuilder::isBodyForbidden(int statusCode)
 		|| statusCode == NO_CONTENT || statusCode == 304);
 }
 
-std::string HeaderBuilder::buildGenericHeaders(const Response& resp)
+std::string HeaderBuilder::buildGenericHeaders(const response& resp)
 {
 	std::ostringstream headers;
 
@@ -23,13 +23,13 @@ std::string HeaderBuilder::buildGenericHeaders(const Response& resp)
 	return headers.str();
 }
 
-std::string HeaderBuilder::buildCustomHeaders(const Response& resp)
+std::string HeaderBuilder::buildCustomHeaders(const Conversation& conv)
 {
 	std::ostringstream headers;
 
-	headers << buildLocationHeader(resp);
-	headers << buildSetCookieHeaders(resp); //attention il doit y avoir 1 ligne pour chaque cookie
-	headers << buildAllowHeader(resp);
+	headers << buildLocationHeader(conv.resp);
+	headers << buildSetCookieHeaders(conv.resp); //attention il doit y avoir 1 ligne pour chaque cookie
+	headers << buildAllowHeader(conv);
 
 	return headers.str();
 }
@@ -39,9 +39,9 @@ std::string HeaderBuilder::buildDateHeader()
 	return "Date: " + getCurrentHttpDate() + "\r\n";
 }
 
-std::string HeaderBuilder::buildContentLengthHeader(const Response& resp)
+std::string HeaderBuilder::buildContentLengthHeader(const response& resp)
 {
-	if (isBodyForbidden(resp.statusCode))
+	if (isBodyForbidden(resp.status))
 		return "";
 	// Si body vide, mais code qui accepte body
 	if (resp.body.empty())
@@ -51,14 +51,14 @@ std::string HeaderBuilder::buildContentLengthHeader(const Response& resp)
 	return "Content-Length: " + intToString(resp.body.size()) + "\r\n";
 }
 
-std::string HeaderBuilder::buildContentTypeHeader(const Response& resp)
+std::string HeaderBuilder::buildContentTypeHeader(const response& resp)
 {
-	if (isBodyForbidden(resp.statusCode) || resp.body.empty())
+	if (isBodyForbidden(resp.status) || resp.body.empty())
 		return "";
 	return "Content-Type: " + resp.contentType + "\r\n";
 }
 
-std::string HeaderBuilder::buildConnectionHeader(const Response& resp)
+std::string HeaderBuilder::buildConnectionHeader(const response& resp)
 {
 	return resp.shouldClose ? "Connection: close\r\n" : "Connection: keep-alive\r\n";
 }
@@ -68,12 +68,12 @@ std::string HeaderBuilder::buildServerHeader()
 	return "Server: webserv/1.0\r\n";
 }
 
-std::string HeaderBuilder::buildLocationHeader(const Response& resp)
+std::string HeaderBuilder::buildLocationHeader(const response& resp)
 {
 	if (resp.location.empty())
 		return "";
 
-	int code = resp.statusCode;
+	int code = resp.status;
 
 	if (code == CREATED || (code >= 300 && code < 400))
 		return "Location: " + resp.location + "\r\n";
@@ -81,7 +81,7 @@ std::string HeaderBuilder::buildLocationHeader(const Response& resp)
 	return "";
 }
 
-std::string HeaderBuilder::buildSetCookieHeaders(const Response& resp)
+std::string HeaderBuilder::buildSetCookieHeaders(const response& resp)
 {
 	std::ostringstream headers;
 
@@ -93,19 +93,21 @@ std::string HeaderBuilder::buildSetCookieHeaders(const Response& resp)
 	return headers.str();
 }
 
-std::string HeaderBuilder::buildAllowHeader(const Response& resp) //changer avec conversation > stocke dans _config.locationConfig.allowedMethods
+std::string HeaderBuilder::buildAllowHeader(const Conversation& conv)
 {
-	if ((resp.statusCode != METHOD_NOT_ALLOWED && resp.statusCode != NOT_IMPLEMENTED)
-		|| resp.allowedMethods.empty())
+	if ((conv.resp.status != METHOD_NOT_ALLOWED && conv.resp.status != NOT_IMPLEMENTED)
+		|| !conv.location || conv.location->allowedMethods.empty())
 		return "";
 
 	std::ostringstream line;
 	line << "Allow: ";
 
-	for (size_t i = 0; i < resp.allowedMethods.size(); ++i)
+	const std::vector<std::string>& methods = conv.location->allowedMethods;
+
+	for (size_t i = 0; i < methods.size(); ++i)
 	{
-		line << resp.allowedMethods[i];
-		if (i != resp.allowedMethods.size() - 1)
+		line << methods[i];
+		if (i != methods.size() - 1)
 			line << ", ";
 	}
 
@@ -115,12 +117,12 @@ std::string HeaderBuilder::buildAllowHeader(const Response& resp) //changer avec
 
 /* ---------------- PUBLIC METHODS ------------------ */
 
-std::string HeaderBuilder::build(const Response& resp)
+std::string HeaderBuilder::build(const Conversation& conv)
 {
 	std::ostringstream headers;
 
-	headers << HeaderBuilder::buildGenericHeaders(resp);
-	headers << HeaderBuilder::buildCustomHeaders(resp);
+	headers << HeaderBuilder::buildGenericHeaders(conv.resp);
+	headers << HeaderBuilder::buildCustomHeaders(conv);
 
 	return headers.str();
 }
