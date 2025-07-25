@@ -9,17 +9,18 @@ Dispatcher::~Dispatcher(void) {}
 
 bool	Dispatcher::isInExecutorFdsMap(const int& fd) const {
 
-	std::map<int, Conversation>::const_iterator it;
-	for (it = _executorFds.begin(); it != _executorFds.end(); ++it) {
-		return (it->first == fd);
-	}
-	return (false);
+	return _executorFds.find(fd) != _executorFds.end();
 }
 
 void	Dispatcher::setExecutorInterest(Conversation& conv, e_interest_mode mode) {
 
 	struct epoll_event ev;
 	ev.data.fd = conv.tempFd;
+
+	if (conv.tempFd < 0) {
+		std::cerr << "Invalid tempFd passed to setExecutorInterest" << std::endl;
+		return ;
+	}
 
 	switch (mode) {
 		case READ_EXEC_FD:
@@ -29,20 +30,16 @@ void	Dispatcher::setExecutorInterest(Conversation& conv, e_interest_mode mode) {
 			ev.events = EPOLLOUT;
 			break;
 	}
-
 	if (!isInExecutorFdsMap(conv.tempFd)) {
 		if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, conv.tempFd, &ev) < 0) {
 			close(conv.tempFd);
-			std::ostringstream oss;
-			oss << "Failed to add fd requested by executor (" << conv.tempFd << ") to interest list. Closing it.";
-			throw std::runtime_error(oss.str());
+			std::cerr << "Failed to add fd requested by executor (" << conv.tempFd << ") to interest list. Closing it." << std::endl;
 		}
 		_executorFds[conv.tempFd]= conv;
 	}
 	else {
 		if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, conv.tempFd, &ev) < 0) {
-			std::cerr << "epoll_ctl MOD failed on fd " << conv.tempFd << ": " << strerror(errno) << std::endl;
-			throw std::runtime_error("Failed to modify fd in epoll");
+			std::cerr << "epoll_ctl MOD failed on fd " << conv.tempFd << ": " << strerror(errno) << ". Closing it." << std::endl;
 		}
 	}
 }

@@ -51,9 +51,10 @@ EventsManager::~EventsManager(void) {
 
 void EventsManager::handleClientEvent(int fd) {
 
-	std::map<int, Conversation>::iterator it = _clients.find(fd);
-	if (it != _clients.end()) {
-		_dispatcher.dispatch(it->second);
+	if (_executorFds.count(fd)) {
+		_dispatcher.dispatch(_executorFds[fd]);
+	} else if (_clients.count(fd)) {
+		_dispatcher.dispatch(_clients[fd]);
 	}
 }
 
