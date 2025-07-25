@@ -26,6 +26,7 @@ class EventsManager {
 	Dispatcher&					_dispatcher;
 	std::set<int>				_listenSockets;
 	std::map<int,Conversation>	_clients;
+	std::map<int, Conversation> _executorFds;
 	int							_epollFd;
 	struct epoll_event			_events[MAX_EVENTS];
 
