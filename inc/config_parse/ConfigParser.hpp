@@ -10,6 +10,31 @@
 #include "serverConfig.hpp"
 #include "ConfigFileReader.hpp"
 #include "Formatter.hpp"
+#include "ServerSectionParser.hpp"
+#include "LocationSectionParser.hpp"
+#include "HeaderSectionParser.hpp"
+#include "ServerSectionParser.hpp"
+#include "serverPropertiesFlags.hpp"
+
+enum currentState {
+	START,
+	HEADER_SECTION,
+	SERVER_SECTION,
+	LOCATION_SECTION,
+	END,
+};
+
+struct parserContext {
+
+	currentState state;
+	serverPropertiesFlags seenServerProperties;
+	bool isInServerScope;
+	std::string currentLocationName;
+	serverConfig currentConfig;
+	std::vector<serverConfig> finishedConfigs;
+
+	parserContext() : state(START), isInServerScope(false), currentLocationName("") {}
+};
 
 class ConfigParser {
 
@@ -20,11 +45,19 @@ class ConfigParser {
 	const ConfigFileReader _configReader;
 	CommentsRemover _commentsRemover;
 	Formatter _formatter;
-	
+	HeaderSectionParser _headerParser;
+	ServerSectionParser _serverParser;
+	LocationSectionParser _locationParser;
+	std::vector<serverConfig> _configs;
+
+	void extractConfigs(const std::vector<std::string> formattedContent);
+
 	public:
 
-	ConfigParser(const std::string& configPath, const ConfigFileReader& configReader);
+	ConfigParser(const std::string& configPath, const ConfigFileReader& configReader, const HeaderSectionParser& headerParser, const ServerSectionParser& serverParser,
+		const LocationSectionParser& locationParser);
 	~ConfigParser(void);
 
-	std::vector<serverConfig>	parse(void);
+	std::vector<serverConfig>	getConfigs(void) const;
+	void parse(void);
 };

@@ -1,0 +1,319 @@
+#include <iostream>
+#include <cassert>
+#include <cstdlib>
+#include "ServerSectionParser.hpp"
+#include "ConfigParser.hpp"
+#include <unistd.h>
+#include <limits.h>
+
+// ✅ Test valide
+void runValidTestCase(const std::string& testName, const std::string props[], size_t size, const serverInfo& expected) {
+	std::cout << "▶️ " << testName << std::endl;
+
+	ServerSectionParser serverParser;
+	parserContext context;
+
+	try {
+		for (size_t i = 0; i < size; ++i) {
+			std::cout << "  - Processing: " << props[i] << std::endl;
+			serverParser.extractCurrentProperty(props[i], &context);
+		}
+		assert(context.currentConfig.identity.port == expected.port);
+		assert(context.currentConfig.identity.host == expected.host);
+		assert(context.currentConfig.identity.serverName == expected.serverName);
+		assert(context.currentConfig.identity.root == expected.root);
+		assert(context.currentConfig.identity.hasRoot == expected.hasRoot);
+
+		std::cout << "✅ Test passed!\n" << std::endl;
+	} catch (const std::exception& e) {
+		std::cerr << "❌ Test failed with exception: " << e.what() << "\n" << std::endl;
+	}
+}
+
+// ❌ Test invalide (doit échouer)
+void runInvalidTestCase(const std::string& testName, const std::string props[], size_t size) {
+	std::cout << "▶️ " << testName << std::endl;
+
+	ServerSectionParser serverParser;
+	parserContext context;
+
+	try {
+		for (size_t i = 0; i < size; ++i) {
+			std::cout << "  - Processing: " << props[i] << std::endl;
+			serverParser.extractCurrentProperty(props[i], &context);
+		}
+		std::cerr << "❌ Expected failure, but test passed.\n" << std::endl;
+	} catch (const std::exception& e) {
+		std::cout << "✅ Correctly failed with exception: " << e.what() << "\n" << std::endl;
+	}
+}
+
+void runValidErrorPageTest(const std::string& testName, const std::string props[], size_t size,
+				const std::map<int, std::string>& expectedMap) {
+	std::cout << "▶️ " << testName << std::endl;
+
+	ServerSectionParser serverParser;
+	parserContext context;
+
+	try {
+		for (size_t i = 0; i < size; ++i) {
+			std::cout << "  - Processing: " << props[i] << std::endl;
+			serverParser.extractCurrentProperty(props[i], &context);
+		}
+		// Vérifier la map d'erreurs
+		assert(context.currentConfig.errorPagesCodes.size() == expectedMap.size());
+
+		for (std::map<int, std::string>::const_iterator it = expectedMap.begin(); it != expectedMap.end(); ++it) {
+			std::map<int, std::string>::const_iterator found = context.currentConfig.errorPagesCodes.find(it->first);
+			assert(found != context.currentConfig.errorPagesCodes.end());
+			assert(found->second == it->second);
+		}
+
+		std::cout << "✅ Error page test passed!\n" << std::endl;
+	} catch (const std::exception& e) {
+		std::cerr << "❌ Error page test failed with exception: " << e.what() << "\n" << std::endl;
+	}
+}
+
+int main() {
+
+	char cwd[PATH_MAX];
+	if (getcwd(cwd, sizeof(cwd)) != NULL) {
+		std::cout << "[DEBUG] Current working dir: " << cwd << std::endl;
+	} else {
+		perror("getcwd() error");
+	}
+	std::cout << "=========== ServerPropertiesProcessor Test Suite ===========" << std::endl;
+
+	// Round 1 — Valid input
+	std::string validProps[] = {
+		"port=8080",
+		"host=127.0.0.1",
+		"name=my_server",
+		"root=/srv"
+	};
+	serverInfo expected1 = {8080, "127.0.0.1", "my_server", "/srv", true};
+	runValidTestCase("Round 1: Valid config", validProps, 4, expected1);
+
+	// Round 2 — Invalid ports
+	std::string invalidPort1[] = {"port=abc", "host=localhost", "name=server1", "root=/srv"};
+	runInvalidTestCase("Round 2.1: Invalid port (non-integer)", invalidPort1, 4);
+
+	std::string invalidPort2[] = {"port=99999", "host=localhost", "name=server1", "root=/srv"};
+	runInvalidTestCase("Round 2.2: Invalid port (out of range)", invalidPort2, 4);
+
+	// Round 3 — Invalid host
+	std::string invalidHost[] = {"port=8080", "host=", "name=server1", "root=/srv"};
+	runInvalidTestCase("Round 3: Invalid host (empty)", invalidHost, 4);
+
+	// Round 4 — Invalid name (space)
+	std::string invalidName[] = {"port=8080", "host=localhost", "name=invalid name", "root=/srv"};
+	runInvalidTestCase("Round 4: Invalid name (space)", invalidName, 4);
+
+	// Round 5 — Invalid root (relative)
+	{
+		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=relative/path"};
+		runInvalidTestCase("Round 5: Invalid root (not absolute path)", invalidRoot, 4);
+	}
+
+	// Round 5.1 - Invalid root (forbidden file)
+	{
+		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=/etc"};
+		runInvalidTestCase("Round 5: Invalid root (forbidden)", invalidRoot, 4);
+	}
+
+	// Round 5.2 - Invalid root (forbidden file)
+	{
+		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=/etc/test/haha"};
+		runInvalidTestCase("Round 5: Invalid root (forbidden)", invalidRoot, 4);
+	}
+	// Round 5.3 - Invalid root (no rights)
+	{
+		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=/test_root"};
+		runInvalidTestCase("Round 5: Invalid root (no rights)", invalidRoot, 4);
+	}
+
+	// Round 5.4 - Invalid root (no rights, relative path)
+	{
+		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=no_www"};
+		runInvalidTestCase("Round 5: Invalid root (no rights, relative_path: no_www)", invalidRoot, 4);
+	}
+
+	// Round 5.5 - Invalid root (no rights, relative path, bis)
+	{
+		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=no_www"};
+		runInvalidTestCase("Round 5: Invalid root (no rights, relative_path: ./no_www)", invalidRoot, 4);
+	}
+
+	// Round 5.6 - Invalid root (escape)
+	{
+		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=./www/../"};
+		runInvalidTestCase("Round 5: Invalid root (no rights, escape: ./www/../)", invalidRoot, 4);
+	}
+
+	// Round 5.7 - Invalid root (escape bis)
+	{
+		std::string invalidRoot[] = {"port=8080", "host=localhost", "name=server1", "root=../../../"};
+		runInvalidTestCase("Round 5: Invalid root (no rights, escape: ../../../)", invalidRoot, 4);
+	}
+
+	// Round 5.8 - Valid root (relative path)
+	{
+		std::string validRoot[] = {"port=8080", "host=localhost", "name=server1", "root=./www"};
+		serverInfo expected = {8080, "localhost", "server1", "./www", true};
+		runValidTestCase("Round 5: Valid root (relative: ./www)", validRoot, 4, expected);
+	}
+
+	// Round 5.9 - Valid root (relative path bis)
+	{
+		std::string validRoot[] = {"port=8080", "host=localhost", "name=server1", "root=www"};
+		serverInfo expected = {8080, "localhost", "server1", "www", true};
+		runValidTestCase("Round 5: Valid root (relative: www)", validRoot, 4, expected);
+	}
+
+	// Round 6 — Edge cases (port 0 and 65535)
+	std::string minPort[] = {"port=0", "host=localhost", "name=min", "root=/srv"};
+	serverInfo expectedMin = {0, "localhost", "min", "/srv", true};
+	runValidTestCase("Round 6.1: Port = 0", minPort, 4, expectedMin);
+
+	std::string maxPort[] = {"port=65535", "host=localhost", "name=max", "root=/srv"};
+	serverInfo expectedMax = {65535, "localhost", "max", "/srv", true};
+	runValidTestCase("Round 6.2: Port = 65535", maxPort, 4, expectedMax);
+
+	//Round7 - Duplicate values
+
+	std::string duplicatePort[] = {
+		"port=8080",
+		"port=9090", // present twice
+		"host=localhost",
+		"name=server"
+	};
+	runInvalidTestCase("Round 7: Duplicate port property", duplicatePort, 4);
+
+	std::string duplicateName[] = {
+		"port=8080",
+		"name=double", // present twice
+		"host=localhost",
+		"name=server",
+	};
+	runInvalidTestCase("Round 7.1: Duplicate name property", duplicateName, 4);
+
+	std::string duplicateHost[] = {
+		"host=localhost",
+		"host=salut", // twice
+		"port=8080",
+		"name=double"
+	};
+	runInvalidTestCase("Round 7.2: Duplicate host property", duplicateHost, 4);
+
+	std::string duplicateRoot[] = {
+		"host=localhost",
+		"root=/srv", // twice
+		"port=8080",
+		"root=/srv"
+	};
+	runInvalidTestCase("Round 7.3: Duplicate root property", duplicateRoot, 4);
+
+	// ROUND 8 error pages paths
+
+	std::string errorPageProps[] = {
+		"error_page=404 error/404.html",
+		"error_page=500 error/500.html"
+	};
+
+	std::map<int, std::string> expectedErrors;
+	expectedErrors[404] = "error/404.html";
+	expectedErrors[500] = "error/500.html";
+
+	runValidErrorPageTest("Round 8: Valid error_page entries", errorPageProps, 2, expectedErrors);
+
+	// ROUND 9 — Invalid error_page formats
+
+	// Cas 1 : Code invalide (non numérique)
+	std::string errorPageNonNumeric[] = {
+		"error_page=ERR error/404.html"
+	};
+	runInvalidTestCase("Round 9.1: Invalid error code (non-numeric)", errorPageNonNumeric, 1);
+
+	// Cas 2 : Code non listé (ex: 999)
+	std::string errorPageUnknownCode[] = {
+		"error_page=999 error/404.html"
+	};
+	runInvalidTestCase("Round 9.2: Unknown error code", errorPageUnknownCode, 1);
+
+	// Cas 3 : Chemin absolu (interdit)
+	std::string errorPageAbsolutePath[] = {
+		"error_page=404 /error/404.html"
+	};
+	runInvalidTestCase("Round 9.3: Absolute error page path", errorPageAbsolutePath, 1);
+
+	// Cas 4 : Chemin vide
+	std::string errorPageEmptyPath[] = {
+		"error_page=404 "
+	};
+	runInvalidTestCase("Round 9.4: Empty path", errorPageEmptyPath, 1);
+
+	// Cas 5 : Double définition du même code
+	std::string errorPageDuplicateCode[] = {
+		"error_page=404 error/404.html",
+		"error_page=404 error/404_v2.html"
+	};
+	runInvalidTestCase("Round 9.5: Duplicate error code definition", errorPageDuplicateCode, 2);
+
+	// Cas 6 : Chemin inexistant
+	std::string errorPageNonexistentFile[] = {
+		"error_page=404 not_found.html"
+	};
+	runInvalidTestCase("Round 9.6: Error file does not exist", errorPageNonexistentFile, 1);
+
+	// Cas 7 : Présence de `..` dans le chemin (interdit)
+	std::string errorPageDotDot[] = {
+		"error_page=404 ../error/404.html"
+	};
+	runInvalidTestCase("Round 9.7: Path contains '..'", errorPageDotDot, 1);
+
+	// Round 10 — Incomplete server config before new header
+
+	std::string missingPortBeforeHeader[] = {
+		"host=127.0.0.1",
+		"name=my_server",
+		"root=/srv",
+		"[HEADER]"
+	};
+	runInvalidTestCase("Round 10.1: Missing port before HEADER", missingPortBeforeHeader, 4);
+
+	std::string missingHostBeforeHeader[] = {
+		"port=8080",
+		"name=my_server",
+		"root=/srv",
+		"[HEADER]"
+	};
+	runInvalidTestCase("Round 10.2: Missing host before HEADER", missingHostBeforeHeader, 4);
+
+	std::string missingBothBeforeHeader[] = {
+		"name=my_server",
+		"root=/srv",
+		"[HEADER]"
+	};
+	runInvalidTestCase("Round 10.3: Missing port and host before HEADER", missingBothBeforeHeader, 3);
+
+	// Round 11 — Valid config before header
+	std::string validBeforeHeader[] = {
+		"port=8080",
+		"host=127.0.0.1",
+		"name=my_server",
+		"root=/srv",
+		"[HEADER]"
+	};
+	serverInfo expected11;
+	expected11.port = 8080;
+	expected11.host = "127.0.0.1";
+	expected11.serverName = "my_server";
+	expected11.root = "/srv";
+	expected11.hasRoot = true;
+
+	runValidTestCase("Round 11: Valid server config before HEADER", validBeforeHeader, 5, expected11);
+
+	std::cout << "=========== All test rounds completed ===========" << std::endl;
+	return EXIT_SUCCESS;
+}
