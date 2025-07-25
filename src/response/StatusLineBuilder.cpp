@@ -38,9 +38,9 @@ const std::map<int, std::string> StatusLineBuilder::_statusTexts = StatusLineBui
 
 //fonction de creation de la premiere ligne de reponse
 // ex: "HTTP/1.1 200 OK\r\n"
-std::string StatusLineBuilder::build(const Response& resp)
+std::string StatusLineBuilder::build(const response& resp)
 {
-	int	code = resp.statusCode;
+	int	code = resp.status;
 
 	std::string message = "Unknown"; //init pour legere protection
 	std::map<int, std::string>::const_iterator it = _statusTexts.find(code);

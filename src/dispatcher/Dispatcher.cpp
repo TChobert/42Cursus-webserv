@@ -40,12 +40,17 @@ void	Dispatcher::dispatch(Conversation& conv) {
 		conv.state = TO_SEND;
 	else if (conv.state == READ_CLIENT)
 		conv.state = TO_READ;
+	else if (conv.state == READ_EXEC)
+		conv.state = EXEC;
 	//exec
 
 	while (true) {
 
 		if (conv.state == TO_SEND) {
 			_sender->execute(conv);
+		}
+		else if (conv.state == EXEC) {
+			_executor->execute(conv);
 		}
 		else if (conv.state == TO_READ) {
 			_reader->execute(conv);
@@ -61,6 +66,10 @@ void	Dispatcher::dispatch(Conversation& conv) {
 		}
 		else if (conv.state == VALIDATE) {
 			_validator->execute(conv);
+		}
+		else if (conv.state == READ_EXEC) {
+			setEpollInterest(conv.tempFd, READ_TEMP_FD);
+			break ;
 		}
 		else if (conv.state == READ_CLIENT) {
 			setEpollInterest(conv.fd, READ);

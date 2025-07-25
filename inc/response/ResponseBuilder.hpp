@@ -1,20 +1,19 @@
-#ifndef RESPONSEBUILDER_HPP
-# define RESPONSEBUILDER_HPP
+#pragma once
 
 # include <string>
 # include "StatusLineBuilder.hpp"
 # include "HeaderBuilder.hpp"
 # include "ResponseAssembler.hpp"
+# include "webserv.hpp"
+# include "IModule.hpp"
 
 class Conversation;
 
-class ResponseBuilder
+class ResponseBuilder : public IModule
 {
 	private:
 		static void	build(Conversation& conv);
 
 	public:
-		static void	execute(Conversation& conv);
+		void		execute(Conversation& conv);
 };
-
-#endif

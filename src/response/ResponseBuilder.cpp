@@ -1,5 +1,4 @@
 #include "ResponseBuilder.hpp"
-#include "Conversation.hpp"
 
 /* ---------------- PRIVATE ------------------ */
 

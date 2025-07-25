@@ -9,11 +9,14 @@
 #include "read/Reader.hpp"
 #include "validate/validate.hpp"
 #include "serverConfig.hpp"
+#include "execState.hpp"
 
 class request {
 public:
 	std::string method;
 	std::string uri;
+	std::string pathOnDisk;
+	std::string uploadFileName;
 	bool hasQuery;
 	std::string query;
 	std::pair<int,int> version;
@@ -25,6 +28,9 @@ public:
 struct response {
 	statusCode status;
 	bool shouldClose;
+	std::string location;
+	std::string contentType;
+	std::vector<std::string> setCookies;
 	mapStr header;
 	std::string body;
 };
@@ -32,6 +38,7 @@ struct response {
 class Conversation {
 public:
 	int fd;
+	int tempFd;
 	serverConfig config;
 	locationConfig* location;
 	request req;
@@ -39,5 +46,7 @@ public:
 	convState state;
 	std::string buf;
 	parseState pState;
-	Conversation() : fd(-1), state(PARSE), pState(START) {};
+	execState eState;
+	std::string finalResponse;
+	Conversation() : fd(-1), state(PARSE), pState(START), eState(EXEC_START) {};
 };
