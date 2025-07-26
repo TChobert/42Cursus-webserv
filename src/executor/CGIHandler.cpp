@@ -10,7 +10,75 @@
 #include <vector>
 #include <sstream>
 
+//ATTENTION: ce qui peut etre encore a faire, a checker..
+//- Si CGI ecrit par un tiers, attention aux headers dangereux (ex : Transfer-Encoding, Content-Length, etc.)
+//- Redirections (status 3xx et Location): si CGI donne Location, peut-etre devoir le gerer dans updateResponseData?
+
+
 /* ---------------- PRIVATE METHODS ------------------ */
+
+//Exemple:
+// line = "Content-Type: text/html"
+
+// colon = 12
+
+// key = line.substr(0, 12) = "Content-Type"
+// value = line.substr(13) = " text/html"
+// value.erase(0, value.find_first_not_of(" \t")) => "text/html"
+
+void	CGIHandler::parseCgiOutput(Conversation& conv)
+{
+	const std::string& raw = conv.cgiOutput;
+
+	size_t headerEnd = raw.find("\r\n\r\n");
+	if (headerEnd == std::string::npos) //respecte pas format
+		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+
+
+	std::string headersPart = raw.substr(0, headerEnd);
+	std::string bodyPart = raw.substr(headerEnd + 4); // skip \r\n\r\n
+
+	std::istringstream stream(headersPart);
+	std::string line;
+	while (std::getline(stream, line))
+	{
+		if (line.empty())
+			continue;
+		if (line.back() == '\r')
+			line.pop_back(); // nettoie ligne en enlevant le "\r" s'il y en a un
+
+		size_t colon = line.find(':');
+		if (colon == std::string::npos)
+			continue; // ligne malformee, on continue
+
+		//separation "key: valeur"
+		std::string key = trim(line.substr(0, colon));
+		std::string value = trim(line.substr(colon + 1));
+
+		//repartition des headers dans leurs variables respectives
+		std::string keyLower = key;
+		toLower(keyLower);
+		if (keyLower == "content-type")
+			conv.resp.contentType = value;
+		else if (keyLower == "status")
+		{
+			int status = atoi(value.c_str());
+			if (status <= 0 || status > 599)
+				status = INTERNAL_SERVER_ERROR;
+			conv.resp.status = static_cast<statusCode>(status);
+		}
+		else if (keyLower == "set-cookie")
+			conv.resp.setCookies.push_back(value);
+		else
+			conv.resp.header[key] = value;
+	}
+
+	conv.resp.body = bodyPart;
+
+	if (conv.resp.status == 0)
+		conv.resp.status = OK;
+}
+
 
 char**	CGIHandler::prepareEnv(Conversation& conv)
 {
@@ -31,7 +99,7 @@ char**	CGIHandler::prepareEnv(Conversation& conv)
 	envStrings.push_back("QUERY_STRING=" + conv.req.query);
 	envStrings.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	envStrings.push_back("SERVER_NAME=" + conv.config.identity.server_name);
-	envStrings.push_back("SERVER_PORT=" + std::to_string(conv.config.identity.port));
+	envStrings.push_back("SERVER_PORT=" + intToString(conv.config.identity.port));
 
 	char** envp = (char**)malloc(sizeof(char*) * (envStrings.size() + 1));
 	if (!envp)
@@ -77,7 +145,7 @@ void	CGIHandler::handleGetCGI(Conversation& conv)
 		return;
 	}
 
-	//but process enfant: rediriger sortie stdout vers pipe
+	//process enfant: rediriger sortie stdout vers pipe
 	if (pid == 0)
 	{
 		close(pipe_out[0]);
@@ -96,10 +164,12 @@ void	CGIHandler::handleGetCGI(Conversation& conv)
 		exit(EXIT_FAILURE);
 	}
 
+	//process parent: lire dans le pipe ce qui a ete stocke par execve
+	//read > passage par epoll obligatoire
 	if (pid > 0)
 	{
 		close(pipe_out[1]);
-		conv.tempFd = pipe_out[0];
+		conv.tempFd = pipe_out[0]; //on veut lire ce qui a ete stocke dans le pipe
 		conv.eState = READ_EXEC_GET_CGI;
 		conv.state = READ_EXEC;
 	}

@@ -1,8 +1,11 @@
 #include "GetExecutor.hpp"
 #include "Executor.hpp"
+#include "CGIHandler.hpp"
 #include <unistd.h>
 #include <dirent.h>
 #include <sstream>
+
+/* ---------------- PUBLIC METHODS ------------------ */
 
 void	GetExecutor::handleGet(Conversation& conv)
 {
@@ -161,12 +164,40 @@ void GetExecutor::resumeStatic(Conversation& conv)
 	}
 }
 
-// void GetExecutor::resumeReadCGI(Conversation&)
-// {
+//EXEMPLE de lecture de resultat de script CGI sans parsing:
+// Content-Type: text/html
+// Set-Cookie: sessionid=123abc
 
-// }
+// <html>
+// <head><title>OK</title></head>
+// <body>Hello from CGI</body>
+// </html>
 
-// void GetExecutor::resumeWriteCGI(Conversation&)
-// {
+//donc il faut parser toute cette lecture et remettre dans les bonnes parties
+//pour construire la reponse HTTP
+// >> extraire headers et mettre dans les variables appropriees
+// >> extraire body
 
-// }
+void GetExecutor::resumeReadCGI(Conversation& conv)
+{
+	char buffer[1024];
+	ssize_t bytesRead = read(conv.tempFd, buffer, sizeof(buffer));
+if (bytesRead > 0)
+	conv.cgiOutput.append(buffer, bytesRead);
+	else if (bytesRead == 0)
+	{
+		close(conv.tempFd);
+		conv.tempFd = -1;
+		CGIHandler::parseCgiOutput(conv);
+		Executor::updateResponseData(conv);
+		conv.eState = EXEC_START;
+		conv.state = RESPONSE;
+	}
+	else
+	{
+		close(conv.tempFd);
+		conv.tempFd = -1;
+		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+	}
+}
+

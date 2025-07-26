@@ -48,5 +48,6 @@ public:
 	parseState pState;
 	execState eState;
 	std::string finalResponse;
+	std::string cgiOutput;
 	Conversation() : fd(-1), state(PARSE), pState(START), eState(EXEC_START) {};
 };

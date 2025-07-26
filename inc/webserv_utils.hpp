@@ -19,3 +19,4 @@ std::string	intToString(int n);
 std::string	getFileExtension(const std::string& path);
 std::string	getMimeType(const std::string& path);
 void		freeEnv(char **envp);
+std::string trim(const std::string& str);

@@ -35,8 +35,8 @@ void PostExecutor::handlePost(Conversation& conv)
 	}
 
 	conv.tempFd = fd;
-	conv.state = WRITE_EXEC;
 	conv.eState = WRITE_EXEC_POST_BODY;
+	conv.state = WRITE_EXEC;
 }
 
 void PostExecutor::resumePostWriteBodyToFile(Conversation& conv)
@@ -64,8 +64,8 @@ void PostExecutor::resumePostWriteBodyToFile(Conversation& conv)
 	else
 	{
 		//il reste des donnees a ecrire: on reste sur les memes states
-		conv.state = WRITE_EXEC;
 		conv.eState = WRITE_EXEC_POST_BODY;
+		conv.state = WRITE_EXEC;
 	}
 }
 

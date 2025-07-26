@@ -14,4 +14,5 @@ class CGIHandler
 	public:
 		static bool		isCGI(const Conversation& conv);
 		static void		handleCGI(Conversation& conv);
+		static void		parseCgiOutput(Conversation& conv);
 };
