@@ -23,9 +23,9 @@ void	GetExecutor::handleGet(Conversation& conv)
 
 void	GetExecutor::handleFile(Conversation& conv)
 {
-	// if (CGIHandler::isCGI(conv))
-	// 	CGIHandler::handleCGI(conv);
-	// else
+	if (CGIHandler::isCGI(conv))
+		CGIHandler::handleCGI(conv);
+	else
 		StaticFileHandler::handleStaticFile(conv);
 }
 

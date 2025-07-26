@@ -106,3 +106,12 @@ std::string getMimeType(const std::string& path)
 
 	return "application/octet-stream";
 }
+
+void	freeEnv(char **envp)
+{
+	if (!envp)
+		return;
+	for (int i = 0; envp[i] != NULL; ++i)
+		free(envp[i]);
+	free(envp);
+}
