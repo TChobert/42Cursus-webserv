@@ -8,9 +8,9 @@
 #include <string>
 #include <vector>
 
-// Inclure tes headers
 #include "GetExecutor.hpp"
-#include "webserv.hpp"  // Contient locationConfig, Conversation, response, etc.
+#include "webserv.hpp"
+#include "Executor.hpp"
 
 // Crée une locationConfig de test basique
 locationConfig createDummyLocation()
@@ -70,6 +70,41 @@ void setupDirWithFile(const std::string& dirName, const std::string& fileName)
     file.close();
 }
 
+void testCgiFakeRead() {
+    Conversation conv;
+
+    // Simule un CGI qui aurait été lu en entier
+    conv.cgiOutput =
+        "Status: 200\r\n"
+        "Content-Type: text/html\r\n"
+        "Set-Cookie: id=xyz\r\n"
+        "\r\n"
+        "<html><body><p>Hello CGI</p></body></html>";
+
+    // Appelle le parser CGI
+    CGIHandler::parseCgiOutput(conv);
+
+    // Met à jour la réponse
+    Executor::updateResponseData(conv);
+
+    std::cout << "[Test CGI Fake Read] ";
+    if (conv.resp.status == OK &&
+        conv.resp.contentType == "text/html" &&
+        conv.resp.body.find("Hello CGI") != std::string::npos &&
+        !conv.resp.setCookies.empty())
+    {
+        std::cout << "PASS" << std::endl;
+    }
+    else
+    {
+        std::cout << "FAIL: "
+                  << "status=" << conv.resp.status
+                  << ", contentType=" << conv.resp.contentType
+                  << ", body=" << conv.resp.body
+                  << std::endl;
+    }
+}
+
 int main()
 {
     Conversation conv;
@@ -121,6 +156,9 @@ int main()
     GetExecutor::handleGet(conv);
     std::cout << "[Test 4] fichier interdit: "
               << ((conv.resp.status == FORBIDDEN) ? "PASS" : ("FAIL (" + intToString(conv.resp.status) + ")")) << std::endl;
+
+	// Test CGI
+	testCgiFakeRead();
 
     return 0;
 }

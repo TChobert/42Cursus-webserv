@@ -2,6 +2,7 @@
 #include <string>
 #include <sstream>
 #include <ctime>
+#include <cstdlib>
 
 #include "../inc/webserv.hpp"
 

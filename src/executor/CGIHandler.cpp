@@ -44,8 +44,8 @@ void	CGIHandler::parseCgiOutput(Conversation& conv)
 	{
 		if (line.empty())
 			continue;
-		if (line.back() == '\r')
-			line.pop_back(); // nettoie ligne en enlevant le "\r" s'il y en a un
+		if (!line.empty() && line[line.size() - 1] == '\r')
+			line.erase(line.size() - 1); // nettoie ligne en enlevant le "\r" s'il y en a un
 
 		size_t colon = line.find(':');
 		if (colon == std::string::npos)
@@ -175,10 +175,10 @@ void	CGIHandler::handleGetCGI(Conversation& conv)
 	}
 }
 
-void	CGIHandler::handlePostCGI(Conversation& conv)
-{
+// void	CGIHandler::handlePostCGI(Conversation& conv)
+// {
 
-}
+// }
 
 /* ---------------- PUBLIC METHODS ------------------ */
 
@@ -212,8 +212,8 @@ void CGIHandler::handleCGI(Conversation& conv)
 
 	if (method == "GET")
 		handleGetCGI(conv);
-	else if (method == "POST")
-		handlePostCGI(conv);
+	// else if (method == "POST")
+	// 	handlePostCGI(conv);
 	else
 		Executor::setResponse(conv, NOT_IMPLEMENTED);
 }
