@@ -25,7 +25,7 @@ class Dispatcher {
 	private:
 
 	int&		_epollFd;
-	std::map<int, Conversation>& _executorFds;
+	std::map<int, Conversation*>& _executorFds;
 	IModule*	_reader;
 	IModule*	_parser;
 	IModule*	_validator;
@@ -42,7 +42,7 @@ class Dispatcher {
 
 	public:
 
-	Dispatcher(int& EpollFd, std::map<int, Conversation>& executorFds, IModule* reader, IModule* parser, IModule* validator, IModule* executor,
+	Dispatcher(int& EpollFd, std::map<int, Conversation*>& executorFds, IModule* reader, IModule* parser, IModule* validator, IModule* executor,
 		IModule* responseBuilder, IModule* sender, IModule* postSender);
 	~Dispatcher(void);
 

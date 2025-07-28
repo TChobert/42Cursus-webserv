@@ -52,7 +52,7 @@ EventsManager::~EventsManager(void) {
 void EventsManager::handleClientEvent(int fd) {
 
 	if (_executorFds.count(fd)) {
-		_dispatcher.dispatch(_executorFds[fd]);
+		_dispatcher.dispatch(*_executorFds[fd]);
 	} else if (_clients.count(fd)) {
 		_dispatcher.dispatch(_clients[fd]);
 	}

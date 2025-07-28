@@ -1,6 +1,6 @@
 #include "Dispatcher.hpp"
 
-Dispatcher::Dispatcher(int& EpollFd, std::map<int, Conversation>& executorFds, IModule* reader, IModule* parser, IModule* validator, IModule* executor,
+Dispatcher::Dispatcher(int& EpollFd, std::map<int, Conversation*>& executorFds, IModule* reader, IModule* parser, IModule* validator, IModule* executor,
 		IModule* responseBuilder, IModule* sender, IModule* postSender) :
 		_epollFd(EpollFd), _reader(reader), _parser(parser), _validator(validator), _executor(executor),
 		_responseBuilder(responseBuilder), _sender(sender), _postSender(postSender), _executorFds(executorFds) {}
@@ -14,13 +14,12 @@ bool	Dispatcher::isInExecutorFdsMap(const int& fd) const {
 
 void	Dispatcher::setExecutorInterest(Conversation& conv, e_interest_mode mode) {
 
-	struct epoll_event ev;
-	ev.data.fd = conv.tempFd;
-
 	if (conv.tempFd < 0) {
 		std::cerr << "Invalid tempFd passed to setExecutorInterest" << std::endl;
 		return ;
 	}
+	struct epoll_event ev;
+	ev.data.fd = conv.tempFd;
 
 	switch (mode) {
 		case READ_EXEC_FD:
@@ -34,12 +33,16 @@ void	Dispatcher::setExecutorInterest(Conversation& conv, e_interest_mode mode) {
 		if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, conv.tempFd, &ev) < 0) {
 			close(conv.tempFd);
 			std::cerr << "Failed to add fd requested by executor (" << conv.tempFd << ") to interest list. Closing it." << std::endl;
+			return ;
 		}
-		_executorFds[conv.tempFd]= conv;
+		_executorFds[conv.tempFd]= &conv;
 	}
 	else {
 		if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, conv.tempFd, &ev) < 0) {
 			std::cerr << "epoll_ctl MOD failed on fd " << conv.tempFd << ": " << strerror(errno) << ". Closing it." << std::endl;
+			close(conv.tempFd);
+			_executorFds.erase(conv.tempFd);
+			return ;
 		}
 	}
 }
@@ -63,8 +66,6 @@ void	Dispatcher::setClientInterest(Conversation& conv, e_interest_mode mode) {
 }
 
 void	Dispatcher::setEpollInterest(Conversation& conv, e_interest_mode mode) {
-
-	struct epoll_event	ev;
 
 	switch (mode) {
 		case READ:
