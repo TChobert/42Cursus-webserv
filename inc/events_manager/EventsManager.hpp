@@ -39,7 +39,7 @@ class EventsManager {
 	void	setSocketNonBlocking(int fd);
 	void	handleClientEvent(int fd);
 	void	closeFinishedClients(void);
-	void	deleteClient(int fd);
+	void	deleteClient(Conversation& conv);
 	void	deleteAllClients(void);
 	void	deleteAllServers(void);
 	void	deleteAllNetwork(void);

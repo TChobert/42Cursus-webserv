@@ -11,19 +11,32 @@ EventsManager::EventsManager(ConfigStore& configs,
 	}
 }
 
-void	EventsManager::deleteClient(int fd) {
-	close(fd);
-	_clients.erase(fd);
+EventsManager::~EventsManager(void) {
+	deleteAllNetwork();
+}
+
+void	EventsManager::deleteClient(Conversation& client) {
+
+	if (client.tempFd != -1) {
+		close(client.tempFd);
+		_executorFds.erase(client.tempFd);
+		client.tempFd = -1;
+	}
+	if (client.fdToClose != -1) {
+		close(client.fdToClose);
+		_executorFds.erase(client.fdToClose);
+		client.fdToClose = -1;
+	}
+	close(client.fd);
+	_clients.erase(client.fd);
 }
 
 void EventsManager::deleteAllClients(void) {
 
-	std::vector<int> toDelete;
-	for (std::map<int, Conversation>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
-		toDelete.push_back(it->first);
-	}
-	for (size_t i = 0; i < toDelete.size(); ++i) {
-		deleteClient(toDelete[i]);
+	std::map<int, Conversation> toDelete;
+	toDelete.swap(_clients);
+	for (std::map<int, Conversation>::iterator it = toDelete.begin(); it != toDelete.end(); ++it) {
+		deleteClient(it->second);
 	}
 }
 
@@ -43,10 +56,6 @@ void	EventsManager::deleteAllNetwork(void) {
 	deleteAllServers();
 	if (_epollFd >= 0)
 		close (_epollFd);
-}
-
-EventsManager::~EventsManager(void) {
-	deleteAllNetwork();
 }
 
 void EventsManager::handleClientEvent(int fd) {
@@ -135,24 +144,19 @@ void	EventsManager::handleNewClient(int serverFd) {
 	}
 }
 
-void	EventsManager::closeFinishedClients(void) {
+void EventsManager::closeFinishedClients(void) {
 
-	std::vector<int>	toRemove;
-	std::map<int, Conversation>::iterator it;
+	std::vector<int> toRemove;
 
-	for (it = _clients.begin(); it != _clients.end(); ++it) {
-		Conversation&	currentClient = it->second;
-
-		if (currentClient.state == FINISH) {
+	for (std::map<int, Conversation>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+		if (it->second.state == FINISH) {
 			toRemove.push_back(it->first);
 		}
 	}
-
 	for (size_t i = 0; i < toRemove.size(); ++i) {
-		deleteClient(toRemove[i]);
+		deleteClient(_clients[toRemove[i]]);
 	}
 }
-
 void	EventsManager::handleNotifiedEvents(int fdsNumber) {
 
 	for (int i = 0; i < fdsNumber; ++i) {
