@@ -39,6 +39,7 @@ class Dispatcher {
 	void	setClientInterest(Conversation& conv, e_interest_mode mode);
 	void	setEpollInterest(Conversation& conv, e_interest_mode mode);
 	void	removeClientFromEpoll(Conversation& conv);
+	void	removeExecutorFdFromEpoll(Conversation	& conv);
 
 	public:
 

@@ -31,8 +31,8 @@ void	Dispatcher::setExecutorInterest(Conversation& conv, e_interest_mode mode) {
 	}
 	if (!isInExecutorFdsMap(conv.tempFd)) {
 		if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, conv.tempFd, &ev) < 0) {
-			close(conv.tempFd);
 			std::cerr << "Failed to add fd requested by executor (" << conv.tempFd << ") to interest list. Closing it." << std::endl;
+			close(conv.tempFd);
 			return ;
 		}
 		_executorFds[conv.tempFd]= &conv;
@@ -69,7 +69,7 @@ void	Dispatcher::setEpollInterest(Conversation& conv, e_interest_mode mode) {
 
 	switch (mode) {
 		case READ:
-		case WRITE :
+		case WRITE:
 			setClientInterest(conv, mode);
 			break;
 		case READ_EXEC_FD:
@@ -86,6 +86,18 @@ void	Dispatcher::removeClientFromEpoll(Conversation& conv) {
 	if (epoll_ctl(_epollFd, EPOLL_CTL_DEL, clientFd, NULL) < 0) {
 		std::cerr << "Failed to remove fd " << conv.config.identity.host << " from epoll\n";
 	}
+}
+
+void	Dispatcher::removeExecutorFdFromEpoll(Conversation& conv) {
+
+	int executorFd = conv.fdToClose;
+
+	if (epoll_ctl(_epollFd, EPOLL_CTL_DEL, executorFd, NULL) < 0) {
+		std::cerr << "Failed to remove executor fd " << conv.config.identity.host << " from epoll\n";
+	}
+	close(executorFd);
+	_executorFds.erase(conv.fdToClose);
+	conv.fdToClose = -1;
 }
 
 void	Dispatcher::dispatch(Conversation& conv) {
@@ -116,7 +128,7 @@ void	Dispatcher::dispatch(Conversation& conv) {
 		else if (conv.state == IS_SENT) {
 			_postSender->execute(conv);
 		}
-		else if (conv.state == PARSE || PARSE_BODY || EOF_CLIENT) {
+		else if (conv.state == PARSE || conv.state == PARSE_BODY || conv.state == EOF_CLIENT) {
 			_parser->execute(conv);
 		}
 		else if (conv.state == VALIDATE) {
@@ -142,5 +154,9 @@ void	Dispatcher::dispatch(Conversation& conv) {
 			removeClientFromEpoll(conv);
 			break ;
 		}
+	}
+
+	if (conv.fdToClose != -1) {
+		removeExecutorFdFromEpoll(conv);
 	}
 }
