@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <ctime>
+#include <sys/types.h>
 #include "webserv_enum.hpp"
 #include "webserv_utils.hpp"
 #include "parse/parse.hpp"

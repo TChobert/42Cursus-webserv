@@ -164,11 +164,6 @@ void GetExecutor::resumeStatic(Conversation& conv)
 	}
 }
 
-bool	checkCgiProcessTermination(pid_t cgiPid)
-{
-
-}
-
 //EXEMPLE de lecture de resultat de script CGI sans parsing:
 // Content-Type: text/html
 // Set-Cookie: sessionid=123abc

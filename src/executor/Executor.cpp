@@ -45,7 +45,7 @@ void	Executor::updateResponseData(Conversation& conv)
 		if (!conv.req.uploadFileName.empty() && !conv.location->uploadStore.empty())
 		{
 			std::string baseUri = conv.req.uri;
-			if (!baseUri.empty() && baseUri.back() != '/')
+			if (!baseUri.empty() && baseUri[baseUri.size() - 1] != '/')
 				baseUri += '/';
 			conv.resp.location = baseUri + conv.req.uploadFileName;
 		}

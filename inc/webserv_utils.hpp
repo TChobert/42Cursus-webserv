@@ -1,6 +1,8 @@
 #pragma once
 #include <stdint.h>
 #include <string>
+#include <sys/types.h>
+#include <ctime>
 #include "webserv_enum.hpp"
 
 class Conversation;
