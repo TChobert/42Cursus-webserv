@@ -39,6 +39,7 @@ class Conversation {
 public:
 	int fd;
 	int tempFd;
+	int bodyFd;
 	serverConfig config;
 	locationConfig* location;
 	request req;

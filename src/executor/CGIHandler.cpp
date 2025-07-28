@@ -101,6 +101,14 @@ char**	CGIHandler::prepareEnv(Conversation& conv)
 	envStrings.push_back("SERVER_NAME=" + conv.config.identity.server_name);
 	envStrings.push_back("SERVER_PORT=" + intToString(conv.config.identity.port));
 
+	if (conv.req.method == "POST")
+	{
+		envStrings.push_back("CONTENT_LENGTH=" + intToString(conv.req.body.size()));
+		std::map<std::string, std::string>::const_iterator it = conv.req.header.find("Content-Type");
+		if (it != conv.req.header.end())
+			envStrings.push_back("CONTENT_TYPE=" + it->second);
+	}
+
 	char** envp = (char**)malloc(sizeof(char*) * (envStrings.size() + 1));
 	if (!envp)
 		return NULL;
@@ -175,10 +183,52 @@ void	CGIHandler::handleGetCGI(Conversation& conv)
 	}
 }
 
-// void	CGIHandler::handlePostCGI(Conversation& conv)
-// {
+void	CGIHandler::handlePostCGI(Conversation& conv)
+{
+	const std::string& scriptPath = conv.req.pathOnDisk;
+	std::string extension = getFileExtension(scriptPath);
 
-// }
+	std::map<cgiExtension, cgiHandler>::const_iterator it = conv.location->cgiHandlers.find(extension);
+	if (it == conv.location->cgiHandlers.end())
+		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+	const std::string& interpreter = it->second;
+
+	int pipe_in[2], pipe_out[2];
+	if (pipe(pipe_in) == -1 || pipe(pipe_out) == -1)
+		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+
+	pid_t pid = fork();
+	if (pid < 0)
+	{
+		close(pipe_in[0]); close(pipe_in[1]);
+		close(pipe_out[0]); close(pipe_out[1]);
+		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+	}
+	if (pid == 0)
+	{
+		dup2(pipe_in[0], STDIN_FILENO);
+		dup2(pipe_out[1], STDOUT_FILENO);
+		close(pipe_in[1]); close(pipe_out[0]);
+		close(pipe_in[0]); close(pipe_out[1]);
+
+		char** envp = prepareEnv(conv);
+		if (!envp)
+			exit(EXIT_FAILURE);
+		char* argv[] = {const_cast<char*>(interpreter.c_str()), const_cast<char*>(scriptPath.c_str()), NULL};
+		execve(interpreter.c_str(), argv, envp);
+		freeEnv(envp);
+		exit(EXIT_FAILURE);
+	}
+	if (pid > 0)
+	{
+		close(pipe_in[0]);
+		close(pipe_out[1]);
+		conv.tempFd = pipe_in[1];
+		conv.bodyFd = pipe_out[0];
+		conv.eState = WRITE_EXEC_POST_CGI;
+		conv.state = WRITE_EXEC;
+	}
+}
 
 /* ---------------- PUBLIC METHODS ------------------ */
 
@@ -212,8 +262,8 @@ void CGIHandler::handleCGI(Conversation& conv)
 
 	if (method == "GET")
 		handleGetCGI(conv);
-	// else if (method == "POST")
-	// 	handlePostCGI(conv);
+	else if (method == "POST")
+		handlePostCGI(conv);
 	else
 		Executor::setResponse(conv, NOT_IMPLEMENTED);
 }

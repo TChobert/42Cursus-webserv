@@ -94,12 +94,12 @@ void	Executor::execute(Conversation& conv)
 		case WRITE_EXEC_POST_BODY:
 			PostExecutor::resumePostWriteBodyToFile(conv);
 			break;
-// 		case READ_EXEC_POST_CGI:
-// 			PostExecutor::resumeReadPostCGI(conv);
-// 			break;
-// 		case WRITE_EXEC_POST_RESPONSE:
-// 			PostExecutor::resumePostResponse(conv);
-// 			break;
+		case WRITE_EXEC_POST_CGI:
+			PostExecutor::resumePostWriteBodyToCGI(conv);
+			break;
+		case READ_EXEC_POST_CGI:
+			PostExecutor::resumePostReadCGI(conv);
+			break;
 		default:
 			setResponse(conv, INTERNAL_SERVER_ERROR);
 			break;

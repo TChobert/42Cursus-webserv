@@ -12,6 +12,6 @@ class PostExecutor
 	public:
 		static void handlePost(Conversation&);
 		static void resumePostWriteBodyToFile(Conversation&);
-		static void resumeReadPostCGI(Conversation&);
-		static void resumePostResponse(Conversation&);
+		static void resumePostWriteBodyToCGI(Conversation&);
+		static void resumePostReadCGI(Conversation&);
 };

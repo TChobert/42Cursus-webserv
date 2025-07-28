@@ -14,11 +14,11 @@ static std::string	generateUploadFileName()
 
 void PostExecutor::handlePost(Conversation& conv)
 {
-	// if (CGIHandler::isCGI(conv))
-	// {
-	// 	CGIHandler::handleCGI(conv);
-	// 	return;
-	// }
+	if (CGIHandler::isCGI(conv))
+	{
+		CGIHandler::handleCGI(conv);
+		return;
+	}
 	if (!conv.location->uploadEnabled)
 		return Executor::setResponse(conv, FORBIDDEN);
 	if (conv.location->uploadStore.empty())
@@ -69,12 +69,49 @@ void PostExecutor::resumePostWriteBodyToFile(Conversation& conv)
 	}
 }
 
-// void PostExecutor::resumeReadPostCGI(Conversation&)
-// {
+void PostExecutor::resumePostWriteBodyToCGI(Conversation& conv)
+{
+	ssize_t written = write(conv.tempFd, conv.req.body.c_str(), conv.req.body.size());
 
-// }
+	if (written < 0)
+	{
+		close(conv.tempFd);
+		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+		return;
+	}
 
-// void PostExecutor::resumePostResponse(Conversation&)
-// {
+	conv.req.body.erase(0, written);
 
-// }
+	if (conv.req.body.empty())
+	{
+		close(conv.tempFd);
+		conv.tempFd = conv.bodyFd;
+		conv.bodyFd = -1;
+		conv.eState = READ_EXEC_POST_CGI;
+		conv.state = READ_EXEC;
+	}
+}
+
+void PostExecutor::resumePostReadCGI(Conversation& conv)
+{
+	char buffer[1024];
+	ssize_t bytesRead = read(conv.tempFd, buffer, sizeof(buffer));
+
+	if (bytesRead > 0)
+		conv.cgiOutput.append(buffer, bytesRead);
+	else if (bytesRead == 0)
+	{
+		close(conv.tempFd);
+		conv.tempFd = -1;
+
+		CGIHandler::parseCgiOutput(conv);
+		Executor::updateResponseData(conv);
+		conv.eState = EXEC_START;
+		conv.state = RESPONSE;
+	}
+	else
+	{
+		close(conv.tempFd);
+		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+	}
+}
