@@ -45,7 +45,7 @@ void PostExecutor::resumePostWriteBodyToFile(Conversation& conv)
 
 	if (written < 0)
 	{
-		close(conv.tempFd);
+		conv.fdToClose = conv.tempFd;
 		conv.tempFd = -1;
 		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 		return;
@@ -56,7 +56,7 @@ void PostExecutor::resumePostWriteBodyToFile(Conversation& conv)
 
 	if (conv.req.body.empty())
 	{
-		close(conv.tempFd);
+		conv.fdToClose = conv.tempFd;
 		conv.tempFd = -1;
 		conv.resp.body = "<html><body><h1>Upload successful</h1></body></html>";
 		Executor::setResponse(conv, CREATED);
@@ -75,7 +75,8 @@ void PostExecutor::resumePostWriteBodyToCGI(Conversation& conv)
 
 	if (written < 0)
 	{
-		close(conv.tempFd);
+		conv.fdToClose = conv.tempFd;
+		conv.tempFd = -1;
 		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 		return;
 	}
@@ -84,7 +85,7 @@ void PostExecutor::resumePostWriteBodyToCGI(Conversation& conv)
 
 	if (conv.req.body.empty())
 	{
-		close(conv.tempFd);
+		conv.fdToClose = conv.tempFd;
 		conv.tempFd = conv.bodyFd; //je switch et je stocke bodyFd dans tempFd (comme ca, il reste le seul a etre surveille par epoll)
 		conv.bodyFd = -1;
 		conv.eState = READ_EXEC_POST_CGI;
@@ -101,7 +102,7 @@ void PostExecutor::resumePostReadCGI(Conversation& conv)
 		conv.cgiOutput.append(buffer, bytesRead);
 	else if (bytesRead == 0)
 	{
-		close(conv.tempFd);
+		conv.fdToClose = conv.tempFd;
 		conv.tempFd = -1;
 
 		CGIHandler::parseCgiOutput(conv);
@@ -111,7 +112,8 @@ void PostExecutor::resumePostReadCGI(Conversation& conv)
 	}
 	else
 	{
-		close(conv.tempFd);
+		conv.fdToClose = conv.tempFd;
+		conv.tempFd = -1;
 		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 	}
 }

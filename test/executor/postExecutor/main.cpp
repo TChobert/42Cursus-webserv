@@ -105,11 +105,23 @@ void test_post_cgi_exec() {
     // phase d'écriture dans le pipe
     while (conv.state == WRITE_EXEC && conv.eState == WRITE_EXEC_POST_CGI) {
         PostExecutor::resumePostWriteBodyToCGI(conv);
+
+        // Simuler la gestion du fd par EventsManager
+        if (conv.fdToClose != -1) {
+            close(conv.fdToClose);
+            conv.fdToClose = -1;
+        }
     }
 
     // phase de lecture du résultat
     while (conv.state == READ_EXEC && conv.eState == READ_EXEC_POST_CGI) {
         PostExecutor::resumePostReadCGI(conv);
+
+        // Simuler la gestion du fd par EventsManager
+        if (conv.fdToClose != -1) {
+            close(conv.fdToClose);
+            conv.fdToClose = -1;
+        }
     }
 
     Executor::updateResponseData(conv);
