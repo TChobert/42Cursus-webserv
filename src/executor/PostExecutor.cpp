@@ -85,7 +85,7 @@ void PostExecutor::resumePostWriteBodyToCGI(Conversation& conv)
 	if (conv.req.body.empty())
 	{
 		close(conv.tempFd);
-		conv.tempFd = conv.bodyFd;
+		conv.tempFd = conv.bodyFd; //je switch et je stocke bodyFd dans tempFd (comme ca, il reste le seul a etre surveille par epoll)
 		conv.bodyFd = -1;
 		conv.eState = READ_EXEC_POST_CGI;
 		conv.state = READ_EXEC;
