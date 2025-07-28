@@ -42,6 +42,8 @@ public:
 	int tempFd;
 	int bodyFd;
 	int fdToClose;
+	pid_t cgiPid;
+	time_t cgiStartTime;
 	serverConfig config;
 	locationConfig* location;
 	request req;
@@ -52,5 +54,5 @@ public:
 	execState eState;
 	std::string finalResponse;
 	std::string cgiOutput;
-	Conversation() : fd(-1), tempFd(-1), bodyFd(-1), fdToClose(-1), state(PARSE), pState(START), eState(EXEC_START) {};
+	Conversation() : fd(-1), tempFd(-1), bodyFd(-1), fdToClose(-1), cgiPid(-1), cgiStartTime(0), state(PARSE), pState(START), eState(EXEC_START) {};
 };

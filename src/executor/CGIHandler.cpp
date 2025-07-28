@@ -13,6 +13,7 @@
 //ATTENTION: ce qui peut etre encore a faire, a checker..
 //- Si CGI ecrit par un tiers, attention aux headers dangereux (ex : Transfer-Encoding, Content-Length, etc.)
 //- Redirections (status 3xx et Location): si CGI donne Location, peut-etre devoir le gerer dans updateResponseData?
+//- gestion timeouts
 
 
 /* ---------------- PRIVATE METHODS ------------------ */
@@ -161,6 +162,10 @@ void	CGIHandler::handleGetCGI(Conversation& conv)
 			exit(EXIT_FAILURE); //kill processus enfant > waitpid parent avec erreur 500
 		close(pipe_out[1]);
 
+		//ICI - boucle de fermeture de fds herites du parent ?
+		// for (int fd = 3; fd < 1024; ++fd)
+		// 	close(fd);
+
 		char** envp = prepareEnv(conv);
 		if (!envp)
 			exit(EXIT_FAILURE);
@@ -177,6 +182,8 @@ void	CGIHandler::handleGetCGI(Conversation& conv)
 	if (pid > 0)
 	{
 		close(pipe_out[1]);
+		conv.cgiPid = pid;
+		conv.cgiStartTime = time(NULL);
 		conv.tempFd = pipe_out[0]; //on veut lire ce qui a ete stocke dans le pipe
 		conv.eState = READ_EXEC_GET_CGI;
 		conv.state = READ_EXEC;
@@ -211,6 +218,10 @@ void	CGIHandler::handlePostCGI(Conversation& conv)
 		close(pipe_in[1]); close(pipe_out[0]);
 		close(pipe_in[0]); close(pipe_out[1]);
 
+		//ICI - boucle de fermeture de fds herites du parent ?
+		// for (int fd = 3; fd < 1024; ++fd)
+		// 	close(fd);
+
 		char** envp = prepareEnv(conv);
 		if (!envp)
 			exit(EXIT_FAILURE);
@@ -223,6 +234,8 @@ void	CGIHandler::handlePostCGI(Conversation& conv)
 	{
 		close(pipe_in[0]);
 		close(pipe_out[1]);
+		conv.cgiPid = pid;
+		conv.cgiStartTime = time(NULL);
 		conv.tempFd = pipe_in[1];
 		conv.bodyFd = pipe_out[0];
 		conv.eState = WRITE_EXEC_POST_CGI;

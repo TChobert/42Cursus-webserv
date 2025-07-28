@@ -91,6 +91,11 @@ void PostExecutor::resumePostWriteBodyToCGI(Conversation& conv)
 		conv.eState = READ_EXEC_POST_CGI;
 		conv.state = READ_EXEC;
 	}
+	else
+	{
+		conv.eState = WRITE_EXEC_POST_CGI;
+		conv.state = WRITE_EXEC;
+	}
 }
 
 void PostExecutor::resumePostReadCGI(Conversation& conv)
@@ -104,7 +109,11 @@ void PostExecutor::resumePostReadCGI(Conversation& conv)
 	{
 		conv.fdToClose = conv.tempFd;
 		conv.tempFd = -1;
-
+		if (!hasCgiProcessExitedCleanly(conv.cgiPid))
+		{
+			Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+			return;
+		}
 		CGIHandler::parseCgiOutput(conv);
 		Executor::updateResponseData(conv);
 		conv.eState = EXEC_START;

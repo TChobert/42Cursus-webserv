@@ -38,12 +38,17 @@ void	Executor::updateResponseData(Conversation& conv)
 		}
 	}
 
-	//CAS de 201, 301, 302
+	//CAS de 201, 301, 302 >> build Location au cas ou c'est vide et necessaire
 	if ((conv.resp.status == CREATED || (conv.resp.status >= 300 && conv.resp.status < 400))
 		&& conv.resp.location.empty())
 	{
-		//MAJ avec la location nouvellement creee
-		//TODO vis a vis de POST
+		if (!conv.req.uploadFileName.empty() && !conv.location->uploadStore.empty())
+		{
+			std::string baseUri = conv.req.uri;
+			if (!baseUri.empty() && baseUri.back() != '/')
+				baseUri += '/';
+			conv.resp.location = baseUri + conv.req.uploadFileName;
+		}
 	}
 
 	//CAS de 204

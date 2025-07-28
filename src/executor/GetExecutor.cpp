@@ -164,6 +164,11 @@ void GetExecutor::resumeStatic(Conversation& conv)
 	}
 }
 
+bool	checkCgiProcessTermination(pid_t cgiPid)
+{
+
+}
+
 //EXEMPLE de lecture de resultat de script CGI sans parsing:
 // Content-Type: text/html
 // Set-Cookie: sessionid=123abc
@@ -182,12 +187,17 @@ void GetExecutor::resumeReadCGI(Conversation& conv)
 {
 	char buffer[1024];
 	ssize_t bytesRead = read(conv.tempFd, buffer, sizeof(buffer));
-if (bytesRead > 0)
-	conv.cgiOutput.append(buffer, bytesRead);
+	if (bytesRead > 0)
+		conv.cgiOutput.append(buffer, bytesRead);
 	else if (bytesRead == 0)
 	{
 		conv.fdToClose = conv.tempFd;
 		conv.tempFd = -1;
+		if (!hasCgiProcessExitedCleanly(conv.cgiPid))
+		{
+			Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+			return;
+		}
 		CGIHandler::parseCgiOutput(conv);
 		Executor::updateResponseData(conv);
 		conv.eState = EXEC_START;
