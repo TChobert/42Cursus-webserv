@@ -12,6 +12,7 @@
 #include "ConfigStore.hpp"
 #include "ServerInitializer.hpp"
 #include "Dispatcher.hpp"
+#include "moduleRegistry.hpp"
 
 #include "webserv_enum.hpp"
 
@@ -55,10 +56,7 @@ class EventsManager {
 	public:
 
 	EventsManager(int epollFd, ConfigStore& configs,
-					ServerInitializer& initializer,
-					IModule* reader, IModule* parser, IModule* validator,
-					IModule* executor, IModule* responseBuilder,
-					IModule* sender, IModule* postSender);
+					ServerInitializer& initializer, const moduleRegistry& modules);
 	~EventsManager(void);
 
 	void	run(void);

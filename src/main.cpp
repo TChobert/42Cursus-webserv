@@ -12,6 +12,20 @@
 #include "ResponseBuilder.hpp"
 #include "Sender.hpp"
 #include "PostSender.hpp"
+#include "moduleRegistry.hpp"
+
+void buildModuleRegistery(moduleRegistry& registry,
+							IModule *reader, IModule *parser, IModule *validator,
+							IModule *executor, IModule *responseBuilder,
+							IModule *sender, IModule *postSender) {
+	registry.reader = reader;
+	registry.parser = parser;
+	registry.validator = validator;
+	registry.executor = executor;
+	registry.responseBuilder = responseBuilder;
+	registry.sender = sender;
+	registry.postSender = postSender;
+}
 
 int main(int ac, char** av) {
 
@@ -38,6 +52,7 @@ int main(int ac, char** av) {
 		std::cerr << "Epoll create failure" << std::endl;
 		return (EXIT_FAILURE);
 	}
+
 	ConfigStore configStore(serversConfigs);
 	ServerInitializer initializer(configStore);
 	Reader reader;
@@ -48,8 +63,10 @@ int main(int ac, char** av) {
 	Sender sender;
 	PostSender postSender;
 
-	EventsManager manager(epollFd, configStore, initializer, &reader, &parser, &validator,
-		&executor, &responseBuilder, &sender, &postSender);
+	moduleRegistry modules ;
+	buildModuleRegistery(modules, &reader, &parser, &validator, &executor, &responseBuilder, &sender, &postSender);
+
+	EventsManager manager(epollFd, configStore, initializer, modules);
 
 	try {
 		manager.run();

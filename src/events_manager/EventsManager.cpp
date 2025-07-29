@@ -2,23 +2,24 @@
 
 EventsManager::EventsManager(int epollFd, ConfigStore& configs,
 								ServerInitializer& initializer,
-								IModule* reader, IModule* parser, IModule* validator,
-								IModule* executor, IModule* responseBuilder,
-								IModule* sender, IModule* postSender) :
-	_epollFd(epollFd),
+								const moduleRegistry& modules)
+	: _epollFd(epollFd),
 	_configs(configs),
 	_initializer(initializer),
 	_listenSockets(),
 	_clients(),
 	_executorFds(),
-	_dispatcher(epollFd, _executorFds, reader, parser, validator, executor, responseBuilder, sender, postSender),
-	_reader(reader),
-	_parser(parser),
-	_validator(validator),
-	_executor(executor),
-	_responseBuilder(responseBuilder),
-	_sender(sender),
-	_postSender(postSender) {}
+	_dispatcher(epollFd, _executorFds,
+		modules.reader, modules.parser, modules.validator,
+		modules.executor, modules.responseBuilder,
+		modules.sender, modules.postSender),
+	_reader(modules.reader),
+	_parser(modules.parser),
+	_validator(modules.validator),
+	_executor(modules.executor),
+	_responseBuilder(modules.responseBuilder),
+	_sender(modules.sender),
+	_postSender(modules.postSender) {}
 
 EventsManager::~EventsManager(void) {
 	deleteAllNetwork();
