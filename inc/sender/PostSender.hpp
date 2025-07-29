@@ -1,9 +1,9 @@
 #ifndef POSTSENDER_HPP
 # define POSTSENDER_HPP
 
+# include "webserv.hpp"
 # include "webserv_utils.hpp"
 # include "webserv_enum.hpp"
-# include "Conversation.hpp"
 # include "IModule.hpp"
 
 class Conversation;

@@ -6,6 +6,12 @@
 #include "ServerInitializer.hpp"
 #include "Dispatcher.hpp"
 #include "Reader.hpp"
+#include "Parser.hpp"
+#include "Validator.hpp"
+#include "Executor.hpp"
+#include "ResponseBuilder.hpp"
+#include "Sender.hpp"
+#include "PostSender.hpp"
 
 int main(int ac, char** av) {
 
@@ -32,10 +38,25 @@ int main(int ac, char** av) {
 		std::cerr << "Epoll create failure" << std::endl;
 		return (EXIT_FAILURE);
 	}
-	ConfigStore configsStore(serversConfigs);
-	ServerInitializer initalizer(configsStore);
+	ConfigStore configStore(serversConfigs);
+	ServerInitializer initializer(configStore);
+	Reader reader;
+	Parser parser;
+	Validator validator;
+	Executor executor;
+	ResponseBuilder responseBuilder;
+	Sender sender;
+	PostSender postSender;
 
-	EventsManager manager()
+	EventsManager manager(epollFd, configStore, initializer, &reader, &parser, &validator,
+		&executor, &responseBuilder, &sender, &postSender);
 
+	try {
+		manager.run();
+	}
+	catch (const std::exception& e) {
+		std::cerr << e.what() << std::endl;
+		return (EXIT_FAILURE);
+	}
 	return (EXIT_SUCCESS);
 }
