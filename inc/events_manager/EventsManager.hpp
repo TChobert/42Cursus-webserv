@@ -15,7 +15,7 @@
 
 #include "webserv_enum.hpp"
 
-#define MAX_EVENTS 64 // arbitraire, a changer ou non
+#define MAX_EVENTS 64
 
 class EventsManager {
 
@@ -23,12 +23,20 @@ class EventsManager {
 
 	ConfigStore&				_configs;
 	ServerInitializer&			_initializer;
-	Dispatcher&					_dispatcher;
+	Dispatcher					_dispatcher;
 	std::set<int>				_listenSockets;
 	std::map<int,Conversation>	_clients;
 	std::map<int, Conversation*> _executorFds;
 	int							_epollFd;
 	struct epoll_event			_events[MAX_EVENTS];
+
+	IModule* _reader;
+	IModule* _parser;
+	IModule* _validator;
+	IModule* _executor;
+	IModule* _responseBuilder;
+	IModule* _sender;
+	IModule* _postSender;
 
 	void	listenEvents(void);
 	void	handleNotifiedEvents(int fdsNumber);
@@ -46,7 +54,11 @@ class EventsManager {
 
 	public:
 
-	EventsManager(ConfigStore& configs, ServerInitializer& initializer, Dispatcher& dispatcher);
+	EventsManager(int epollFd, ConfigStore& configs,
+					ServerInitializer& initializer,
+					IModule* reader, IModule* parser, IModule* validator,
+					IModule* executor, IModule* responseBuilder,
+					IModule* sender, IModule* postSender);
 	~EventsManager(void);
 
 	void	run(void);
