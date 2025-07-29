@@ -1,15 +1,25 @@
 #include "EventsManager.hpp"
 
-EventsManager::EventsManager(ConfigStore& configs,
-	ServerInitializer& initializer, Dispatcher& dispatcher) :
-	_configs(configs), _initializer(initializer), _dispatcher(dispatcher),
-	_listenSockets(), _clients(), _epollFd(-1)
-{
-	_epollFd = epoll_create1(0);
-	if (_epollFd < 0) {
-		throw std::runtime_error("Epoll create failure");
-	}
-}
+EventsManager::EventsManager(int epollFd, ConfigStore& configs,
+								ServerInitializer& initializer,
+								const moduleRegistry& modules)
+	: _epollFd(epollFd),
+	_configs(configs),
+	_initializer(initializer),
+	_listenSockets(),
+	_clients(),
+	_executorFds(),
+	_dispatcher(epollFd, _executorFds,
+		modules.reader, modules.parser, modules.validator,
+		modules.executor, modules.responseBuilder,
+		modules.sender, modules.postSender),
+	_reader(modules.reader),
+	_parser(modules.parser),
+	_validator(modules.validator),
+	_executor(modules.executor),
+	_responseBuilder(modules.responseBuilder),
+	_sender(modules.sender),
+	_postSender(modules.postSender) {}
 
 EventsManager::~EventsManager(void) {
 	deleteAllNetwork();
@@ -193,6 +203,6 @@ void	EventsManager::listenEvents(void) {
 
 void	EventsManager::run(void) {
 
-	_listenSockets = _initializer.initServers();
+	_listenSockets = _initializer.initServers(_epollFd);
 	listenEvents();
 }

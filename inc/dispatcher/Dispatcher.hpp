@@ -43,7 +43,7 @@ class Dispatcher {
 
 	public:
 
-	Dispatcher(int& EpollFd, std::map<int, Conversation*>& executorFds, IModule* reader, IModule* parser, IModule* validator, IModule* executor,
+	Dispatcher(int EpollFd, std::map<int, Conversation*>& executorFds, IModule* reader, IModule* parser, IModule* validator, IModule* executor,
 		IModule* responseBuilder, IModule* sender, IModule* postSender);
 	~Dispatcher(void);
 
