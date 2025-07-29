@@ -19,19 +19,18 @@ class ServerInitializer {
 	private:
 
 	ConfigStore&	_configs;
-	int				_epollFd;
 
-	void			socketInitProcess(int socket, const serverConfig& config);
+	void			socketInitProcess(int epollFd, int socket, const serverConfig& config);
 	void			setSocketImmediatReuse(int socket);
 	void			bindSocket(int socket, const serverConfig& config);
 	void			setSocketListeningMode(int socket);
 	void			setSocketNonBlocking(int socket);
-	void			addSocketToEpoll(int socket);
+	void			addSocketToEpoll(int epollFd, int socket);
 
 	public:
 
-	ServerInitializer(ConfigStore& configs, int& epollFd);
+	ServerInitializer(ConfigStore& configs);
 	~ServerInitializer(void);
 
-	std::set<int>	initServers(void);
+	std::set<int>	initServers(int epollFd);
 };
