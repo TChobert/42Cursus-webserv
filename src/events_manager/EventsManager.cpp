@@ -129,7 +129,7 @@ int	EventsManager::acceptClient(int serverFd) {
 
 	int	clientFd = accept (serverFd, (sockaddr *)&clientAddress, &clientLen);
 	if (clientFd < 0) {
-		if (errno == EAGAIN || errno ==EWOULDBLOCK) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK) {
 			return (-1);
 		}
 		std::ostringstream	oss;

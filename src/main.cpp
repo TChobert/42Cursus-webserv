@@ -35,7 +35,7 @@ int main(int ac, char** av) {
 	}
 
 	std::vector<serverConfig> serversConfigs;
-	const std::string& configuration = av[1];
+	const std::string configuration = av[1];
 
 	try {
 		ConfigFileReader reader;
@@ -66,9 +66,8 @@ int main(int ac, char** av) {
 	moduleRegistry modules ;
 	buildModuleRegistery(modules, &reader, &parser, &validator, &executor, &responseBuilder, &sender, &postSender);
 
-	EventsManager manager(epollFd, configStore, initializer, modules);
-
 	try {
+		EventsManager manager(epollFd, configStore, initializer, modules);
 		manager.run();
 	}
 	catch (const std::exception& e) {
