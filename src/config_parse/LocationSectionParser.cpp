@@ -13,5 +13,8 @@ void LocationSectionParser::extractCurrentProperty(const std::string& property, 
 	}
 	else {
 		keyValue propertyKeyValue = PropertyProcessor::extractKeyValueFromProperty(property);
+
+		LocationPropertiesProcessor::LocationProcessPtr processFunction = _propertiesProcessor.getLocationPropertyProcess(propertyKeyValue.key);
+		(_propertiesProcessor.*processFunction)(propertyKeyValue.value, context);
 	}
 }

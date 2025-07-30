@@ -1,7 +1,7 @@
 #include "ServerSectionParser.hpp"
 #include "ConfigParser.hpp"
 
-ServerSectionParser::ServerSectionParser(void) {}
+ServerSectionParser::ServerSectionParser(void) : _propertiesProcessor() {}
 
 ServerSectionParser::~ServerSectionParser(void) {}
 
@@ -21,7 +21,7 @@ void ServerSectionParser::extractCurrentProperty(const std::string& property, pa
 	else {
 		keyValue propertyKeyValue = PropertyProcessor::extractKeyValueFromProperty(property);
 
-		ServerPropertiesProcessor::ProcessPtr processFunction = _propertiesProcessor.getPropertyProcess(propertyKeyValue.key);
+		ServerPropertiesProcessor::ServerProcessPtr processFunction = _propertiesProcessor.getPropertyProcess(propertyKeyValue.key);
 		(_propertiesProcessor.*processFunction)(propertyKeyValue.value, context);
 	}
 }

@@ -184,7 +184,7 @@ void ServerPropertiesProcessor::processErrorPageProperty(const std::string& prop
 	addErrorPageToErrorMap(context, codeValue, pagePath);
 }
 
-ServerPropertiesProcessor::ProcessPtr ServerPropertiesProcessor::getPropertyProcess(const std::string& directiveKey) {
+ServerPropertiesProcessor::ServerProcessPtr ServerPropertiesProcessor::getPropertyProcess(const std::string& directiveKey) {
 
 	keyType type = getKeyType(directiveKey);
 
