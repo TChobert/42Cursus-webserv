@@ -3,10 +3,10 @@
 #include <iostream>
 #include <set>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <netdb.h>
 #include <unistd.h>
-#include <netinet/in.h>
 #include <cstring>
-#include <arpa/inet.h>
 #include <stdexcept>
 #include <sys/epoll.h>
 #include <sstream>
