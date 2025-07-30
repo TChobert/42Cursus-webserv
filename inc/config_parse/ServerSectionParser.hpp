@@ -13,7 +13,6 @@ class ServerSectionParser {
 
 	private:
 
-	static const char HEADER_START = '[';
 	ServerPropertiesProcessor _propertiesProcessor;
 
 	bool IsSectionHeader(const std::string& property);

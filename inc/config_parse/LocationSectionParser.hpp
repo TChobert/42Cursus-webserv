@@ -13,9 +13,7 @@ class LocationSectionParser {
 
 	private:
 
-	static const char HEADER_START = '[';
 	//enum keyType{PORT, HOST, NAME, ROOT};
-	bool IsSectionHeader(const std::string& property);
 	//keyType getKeyType(const std::string& key);
 
 	public:

@@ -5,11 +5,6 @@ ServerSectionParser::ServerSectionParser(void) {}
 
 ServerSectionParser::~ServerSectionParser(void) {}
 
-bool ServerSectionParser::IsSectionHeader(const std::string& property) {
-
-	return (property[0] == HEADER_START);
-}
-
 void ServerSectionParser::ensureServerConfigIsFull(parserContext *context) {
 
 	if (context->seenServerProperties.hostSeen == false || context->seenServerProperties.portSeen == false) {
@@ -19,7 +14,7 @@ void ServerSectionParser::ensureServerConfigIsFull(parserContext *context) {
 
 void ServerSectionParser::extractCurrentProperty(const std::string& property, parserContext *context) {
 
-	if (IsSectionHeader(property) == true) {
+	if (PropertyProcessor::IsSectionHeader(property) == true) {
 		ensureServerConfigIsFull(context);
 		context->state = HEADER_SECTION;
 	}
