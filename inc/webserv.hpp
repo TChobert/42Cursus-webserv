@@ -11,6 +11,7 @@
 #include "validate/validate.hpp"
 #include "serverConfig.hpp"
 #include "execState.hpp"
+#include "keyValue.hpp"
 
 class request {
 public:
