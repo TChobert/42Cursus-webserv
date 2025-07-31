@@ -20,8 +20,8 @@ class LocationPropertiesProcessor {
 
 	enum keyType {
 		ROOT,
-		ALLOWED,
-		UPLOAD_ENABLED,
+		ALLOWED_METHODS,
+		UPLOAD_AUT,
 		UPLOAD_STORE,
 		AUTOINDEX,
 		INDEX,
@@ -40,5 +40,5 @@ class LocationPropertiesProcessor {
 	LocationPropertiesProcessor(void);
 	~LocationPropertiesProcessor(void);
 
-	LocationProcessPtr getLocationPropertyProcess(const std::string& propertyKey);
+	LocationProcessPtr getLocationPropertyProcess(const std::string& key);
 };
