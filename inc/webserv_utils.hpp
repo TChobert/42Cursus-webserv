@@ -18,3 +18,4 @@ std::string getCurrentHttpDate();
 std::string intToString(int n);
 std::string getFileExtension(const std::string& path);
 std::string getMimeType(const std::string& path);
+std::vector<std::string> split(const std::string& str, const char delimiter);

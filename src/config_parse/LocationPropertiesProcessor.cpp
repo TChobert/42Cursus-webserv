@@ -1,4 +1,5 @@
 #include "LocationPropertiesProcessor.hpp"
+#include "ConfigParser.hpp"
 
 LocationPropertiesProcessor::LocationPropertiesProcessor(void) {}
 
@@ -11,9 +12,9 @@ LocationPropertiesProcessor::keyType LocationPropertiesProcessor::getKeyType(con
 	else if (key == "allowed_methods")
 		return (ALLOWED_METHODS);
 	else if (key == "upload_enabled")
-		return (UPLOAD_AUT);
+		return (UPLOAD_AUTH);
 	else if (key == "upload_directory")
-		return (UPLOAD_STORE);
+		return (UPLOAD_DIR);
 	else if (key == "autoindex")
 		return (AUTOINDEX);
 	else if (key == "cgi")
@@ -28,17 +29,47 @@ LocationPropertiesProcessor::keyType LocationPropertiesProcessor::getKeyType(con
 		return (UNKNOWN);
 }
 
+bool LocationPropertiesProcessor::isValidMethod(const std::string& method) const {
+
+	return (method == "GET" || method == "POST" || method == "DELETE");
+}
+
+void LocationPropertiesProcessor::processMethodsProperty(const std::string& property, parserContext *context) {
+
+	std::vector<std::string> methods;
+
+	if (property.empty())
+		throw InvalidMethodException();
+	methods = split(property, SPACE);
+	for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it) {
+		if (isValidMethod(*it)) {
+			context->currentConfig.locations[context->currentLocationName].allowedMethods.push_back(*it);
+		}
+		else
+			throw InvalidMethodException();
+	}
+}
+
 LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::getLocationPropertyProcess(const std::string& key) {
 
 	keyType type = getKeyType(key);
 
 	if (type == UNKNOWN) {
-	//	throw InvalidLocationPropertyException();
+		throw InvalidLocationPropertyException();
 	}
 	switch (type) {
-		case ROOT :
-			//return &LocationPropertiesProcessor::fetchLocationRootProperty;
+	// 	case ROOT :
+	// 		//return &LocationPropertiesProcessor::processLocationRootProperty;
 		case ALLOWED_METHODS :
-			//return &LocationPropertiesProcessor::fetchMethodsProperty;
-	}
+	 		return &LocationPropertiesProcessor::processMethodsProperty;
+	// 	case UPLOAD_AUTH :
+	// 		//return &LocationPropertiesProcessor::fetchUploadAuthorisation;
+	// 	case UPLOAD_DIR :
+	// 		//return &LocationPropertiesProcessor::fetchUploadDirProperty;
+	// 	case AUTOINDEX :
+	// 		//return &LocationPropertiesProcessor::fetchAutoIndex;
+	// 	case INDEX :
+	// 		//return &LocationPropertiesProcessor::processIndexProperty;
+	// }
+	return NULL;
 }

@@ -9,6 +9,9 @@
 #include <arpa/inet.h>
 #include <sstream>
 #include <map>
+#include <vector>
+
+#include "webserv_utils.hpp"
 
 class LocationSectionParser;
 class ConfigParser;
@@ -16,13 +19,14 @@ struct parserContext;
 
 class LocationPropertiesProcessor {
 
-	private:
+	protected:
 
+	static const char SPACE = ' ';
 	enum keyType {
 		ROOT,
 		ALLOWED_METHODS,
-		UPLOAD_AUT,
-		UPLOAD_STORE,
+		UPLOAD_AUTH,
+		UPLOAD_DIR,
 		AUTOINDEX,
 		INDEX,
 		CGI,
@@ -32,13 +36,16 @@ class LocationPropertiesProcessor {
 		UNKNOWN
 	};
 
-	keyType getKeyType(const std::string& directiveKey);
-
 	public:
 
 	typedef void (LocationPropertiesProcessor::*LocationProcessPtr)(const std::string&, parserContext*);
+
 	LocationPropertiesProcessor(void);
 	~LocationPropertiesProcessor(void);
+
+	keyType getKeyType(const std::string& directiveKey); // PUBLIC JUST FOR TESTING !!
+	void processMethodsProperty(const std::string& property, parserContext *context);
+	bool isValidMethod(const std::string& method) const;
 
 	LocationProcessPtr getLocationPropertyProcess(const std::string& key);
 };
