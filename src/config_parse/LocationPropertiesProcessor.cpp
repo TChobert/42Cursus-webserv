@@ -40,6 +40,9 @@ void LocationPropertiesProcessor::processMethodsProperty(const std::string& prop
 
 	if (property.empty())
 		throw InvalidMethodException();
+	if (context->seenLocationProperties.allowedMethodsSeen == true)
+		throw 
+
 	methods = split(property, SPACE);
 	for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it) {
 		if (isValidMethod(*it)) {
@@ -48,6 +51,20 @@ void LocationPropertiesProcessor::processMethodsProperty(const std::string& prop
 		else
 			throw InvalidMethodException();
 	}
+	context->seenLocationProperties.allowedMethodsSeen = true;
+}
+
+void LocationPropertiesProcessor::fetchUploadAuthorisation(const std::string& property, parserContext* context) {
+
+	if (context->seenLocationProperties
+	if (property == "true")
+		context->currentConfig.locations[context->currentLocationName].uploadEnabled = true;
+	else if (property == "false")
+		context->currentConfig.locations[context->currentLocationName].uploadEnabled = false;
+	else
+		throw InvalidUploadAuthException();
+	
+	context->seenLocationProperties.uploadEnabledSeen = true;
 }
 
 LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::getLocationPropertyProcess(const std::string& key) {

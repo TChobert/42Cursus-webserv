@@ -45,6 +45,8 @@ class LocationPropertiesProcessor {
 
 	keyType getKeyType(const std::string& directiveKey); // PUBLIC JUST FOR TESTING !!
 	void processMethodsProperty(const std::string& property, parserContext *context);
+	void fetchUploadAuthorisation(const std::string& property, parserContext*context);
+
 	bool isValidMethod(const std::string& method) const;
 
 	LocationProcessPtr getLocationPropertyProcess(const std::string& key);
