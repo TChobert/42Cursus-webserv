@@ -38,10 +38,10 @@ void LocationPropertiesProcessor::processMethodsProperty(const std::string& prop
 
 	std::vector<std::string> methods;
 
+	if (context->seenLocationProperties.allowedMethodsSeen == true)
+		throw DoubleLocationPropertyException();
 	if (property.empty())
 		throw InvalidMethodException();
-	if (context->seenLocationProperties.allowedMethodsSeen == true)
-		throw 
 
 	methods = split(property, SPACE);
 	for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it) {
@@ -56,15 +56,17 @@ void LocationPropertiesProcessor::processMethodsProperty(const std::string& prop
 
 void LocationPropertiesProcessor::fetchUploadAuthorisation(const std::string& property, parserContext* context) {
 
-	if (context->seenLocationProperties
+	if (context->seenLocationProperties.UploadAuthSeen == true)
+		throw DoubleLocationPropertyException();
+
 	if (property == "true")
 		context->currentConfig.locations[context->currentLocationName].uploadEnabled = true;
 	else if (property == "false")
 		context->currentConfig.locations[context->currentLocationName].uploadEnabled = false;
 	else
 		throw InvalidUploadAuthException();
-	
-	context->seenLocationProperties.uploadEnabledSeen = true;
+
+	context->seenLocationProperties.UploadAuthSeen = true;
 }
 
 LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::getLocationPropertyProcess(const std::string& key) {
@@ -79,8 +81,8 @@ LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::get
 	// 		//return &LocationPropertiesProcessor::processLocationRootProperty;
 		case ALLOWED_METHODS :
 	 		return &LocationPropertiesProcessor::processMethodsProperty;
-	// 	case UPLOAD_AUTH :
-	// 		//return &LocationPropertiesProcessor::fetchUploadAuthorisation;
+	 	case UPLOAD_AUTH :
+	 		return &LocationPropertiesProcessor::fetchUploadAuthorisation;
 	// 	case UPLOAD_DIR :
 	// 		//return &LocationPropertiesProcessor::fetchUploadDirProperty;
 	// 	case AUTOINDEX :
@@ -89,4 +91,23 @@ LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::get
 	// 		//return &LocationPropertiesProcessor::processIndexProperty;
 	// }
 	return NULL;
+	}
+}
+
+// EXCEPTIONS
+
+const char *LocationPropertiesProcessor::InvalidLocationPropertyException::what() const throw() {
+	 return ("Error: webserv: Invalid location property detected in configuration file");
+}
+
+const char *LocationPropertiesProcessor::InvalidUploadAuthException::what() const throw() {
+	 return ("Error: webserv: Invalid upload authorisation property detected in configuration file. Must be at format: upload_enabled=true | false");
+}
+
+const char *LocationPropertiesProcessor::DoubleLocationPropertyException::what() const throw() {
+	 return ("Error: webserv: Double property detected in a location section of configuration file.");
+}
+
+const char *LocationPropertiesProcessor::InvalidMethodException::what() const throw() {
+	 return ("Error: webserv: invalid methods authorisation list in a location section of configuration file. Accepeted: GET POST DELETE.");
 }

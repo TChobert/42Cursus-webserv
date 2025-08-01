@@ -7,4 +7,5 @@ locationPropertiesFlags::~locationPropertiesFlags(void) {}
 void locationPropertiesFlags::resetFlags(void) {
 
 	allowedMethodsSeen = false;
+	UploadAuthSeen = false;
 }
