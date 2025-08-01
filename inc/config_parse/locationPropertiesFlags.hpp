@@ -8,6 +8,7 @@ struct locationPropertiesFlags {
 	bool autoIndexSeen;
 	bool indexSeen;
 	bool cgiSeen;
+	bool returnSeen;
 
 	locationPropertiesFlags(void);
 	~locationPropertiesFlags(void);

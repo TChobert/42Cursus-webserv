@@ -12,4 +12,5 @@ void locationPropertiesFlags::resetFlags(void) {
 	autoIndexSeen = false;
 	indexSeen = false;
 	cgiSeen = false;
+	returnSeen = false;
 }

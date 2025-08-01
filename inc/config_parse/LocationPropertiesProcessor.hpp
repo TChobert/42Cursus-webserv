@@ -23,6 +23,8 @@ class LocationPropertiesProcessor {
 
 	static const char SPACE = ' ';
 	static const char * cgiExtensions[];
+	static const std::string httpPrefix;
+	static const std::string httpsPrefix;
 
 	enum keyType {
 		ROOT,
@@ -52,11 +54,14 @@ class LocationPropertiesProcessor {
 	void fetchAutoIndex(const std::string& property, parserContext *context);
 	void processIndexProperty(const std::string& property, parserContext *context);
 	void processCgiProperty(const std::string& property, parserContext *context);
+	void fetchLocationReturnInfo(const std::string& property, parserContext *context);
+
 	void getCgiExtensionAndHandler(std::map<std::string, std::string>& cgiRules, const std::string& cgiRule);
 	bool isValidCgiExtension(const std::string& extension) const;
 	bool isValidCgiHandler(const std::string& extension) const;
-
 	bool isValidMethod(const std::string& method) const;
+	statusCode getReturnCode(const std::string& codeStr) const;
+	bool isValidUrl(const std::string& url) const;
 
 	LocationProcessPtr getLocationPropertyProcess(const std::string& key);
 

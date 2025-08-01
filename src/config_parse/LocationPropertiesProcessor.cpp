@@ -6,6 +6,9 @@ const char * LocationPropertiesProcessor::cgiExtensions[] = {
 	".py", ".sh", ".pl"
 };
 
+const std::string LocationPropertiesProcessor::httpPrefix = "http://";
+const std::string LocationPropertiesProcessor::httpsPrefix = "https://";
+
 LocationPropertiesProcessor::LocationPropertiesProcessor(void) {}
 
 LocationPropertiesProcessor::~LocationPropertiesProcessor(void) {}
@@ -174,6 +177,50 @@ void LocationPropertiesProcessor::processCgiProperty(const std::string& property
 	context->seenLocationProperties.cgiSeen = true;
 }
 
+statusCode LocationPropertiesProcessor::getReturnCode(const std::string& codeStr) const {
+
+	char * endPtr;
+	long code = std::strtol(codeStr.c_str(), &endPtr, 10);
+	if (*endPtr != '\0')
+		throw InvalidLocationReturnException();
+
+	switch (code) {
+		case 301 :
+			return MOVED_PERMANENTLY;
+		case 302 :
+			return FOUND;
+		default :
+			throw InvalidLocationReturnException();
+	}
+}
+
+bool LocationPropertiesProcessor::isValidUrl(const std::string& url) const {
+
+	if (url.compare(0, httpPrefix.size(), httpPrefix) == 0 || url.compare(0, httpsPrefix.size(), httpsPrefix) == 0)
+		return (true);
+	return (false);
+}
+
+void LocationPropertiesProcessor::fetchLocationReturnInfo(const std::string& property, parserContext *context) {
+
+	if (property.empty())
+		throw EmptyLocationPropertyException();
+	if (context->seenLocationProperties.returnSeen == true)
+		throw DoubleLocationPropertyException();
+
+	std::vector<std::string>codeAndURL = split(property, SPACE);
+	if (codeAndURL.size() == 2 && isValidUrl(codeAndURL.at(1))) {
+
+		statusCode code = getReturnCode(codeAndURL.at(0));
+
+		context->currentConfig.locations[context->currentLocationName].hasRedir = true;
+		context->currentConfig.locations[context->currentLocationName].redirCode = code;
+		context->currentConfig.locations[context->currentLocationName].redirURL = codeAndURL.at(1);
+		context->seenLocationProperties.returnSeen = true;
+	} else
+		throw InvalidLocationReturnException();
+}
+
 LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::getLocationPropertyProcess(const std::string& key) {
 
 	keyType type = getKeyType(key);
@@ -196,6 +243,8 @@ LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::get
 	 		return &LocationPropertiesProcessor::processIndexProperty;
 		case CGI :
 			return &LocationPropertiesProcessor::processCgiProperty;
+		case RETURN :
+			return &LocationPropertiesProcessor::fetchLocationReturnInfo;
 	}
 	return (NULL);
 }
