@@ -41,7 +41,7 @@ void LocationPropertiesProcessor::processMethodsProperty(const std::string& prop
 	if (context->seenLocationProperties.allowedMethodsSeen == true)
 		throw DoubleLocationPropertyException();
 	if (property.empty())
-		throw InvalidMethodException();
+		throw EmptyLocationPropertyException();
 
 	methods = split(property, SPACE);
 	for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it) {
@@ -56,7 +56,7 @@ void LocationPropertiesProcessor::processMethodsProperty(const std::string& prop
 
 void LocationPropertiesProcessor::fetchUploadAuthorisation(const std::string& property, parserContext* context) {
 
-	if (context->seenLocationProperties.UploadAuthSeen == true)
+	if (context->seenLocationProperties.uploadAuthSeen == true)
 		throw DoubleLocationPropertyException();
 
 	if (property == "true")
@@ -66,7 +66,51 @@ void LocationPropertiesProcessor::fetchUploadAuthorisation(const std::string& pr
 	else
 		throw InvalidUploadAuthException();
 
-	context->seenLocationProperties.UploadAuthSeen = true;
+	context->seenLocationProperties.uploadAuthSeen = true;
+}
+
+void LocationPropertiesProcessor::processUploadDirProperty(const std::string& property, parserContext *context) {
+
+	if (context->seenLocationProperties.uploadLocSeen == true)
+		throw DoubleLocationPropertyException();
+	if (property.empty())
+		throw EmptyLocationPropertyException();
+
+		//suite
+}
+
+void LocationPropertiesProcessor::fetchAutoIndex(const std::string& property, parserContext *context) {
+
+	if (context->seenLocationProperties.autoIndexSeen == true)
+		throw DoubleLocationPropertyException();
+
+	if (property == "on")
+		context->currentConfig.locations[context->currentLocationName].autoIndex = true;
+	else if (property == "off")
+		context->currentConfig.locations[context->currentLocationName].autoIndex = false;
+	else
+		throw InvalidAutoIndexException();
+
+	context->seenLocationProperties.autoIndexSeen = true;
+}
+
+void LocationPropertiesProcessor::processIndexProperty(const std::string& property, parserContext* context) {
+
+	if (property.empty())
+		throw EmptyLocationPropertyException();
+
+	std::vector<std::string> indexes = split(property, SPACE);
+	for (std::vector<std::string>::const_iterator it = indexes.begin(); it != indexes.end(); ++it) {
+		if (!it->empty()) {
+			context->currentConfig.locations[context->currentLocationName].indexFiles.push_back(*it);
+		}
+	}
+	context->seenLocationProperties.indexSeen = true;
+}
+
+void LocationPropertiesProcessor::processCgiProperty(const std::string& property, parserContext *context) {
+
+	// creer une map, la swap.
 }
 
 LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::getLocationPropertyProcess(const std::string& key) {
@@ -83,21 +127,26 @@ LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::get
 	 		return &LocationPropertiesProcessor::processMethodsProperty;
 	 	case UPLOAD_AUTH :
 	 		return &LocationPropertiesProcessor::fetchUploadAuthorisation;
-	// 	case UPLOAD_DIR :
-	// 		//return &LocationPropertiesProcessor::fetchUploadDirProperty;
-	// 	case AUTOINDEX :
-	// 		//return &LocationPropertiesProcessor::fetchAutoIndex;
-	// 	case INDEX :
-	// 		//return &LocationPropertiesProcessor::processIndexProperty;
-	// }
-	return NULL;
+	 	case UPLOAD_DIR :
+	 		return &LocationPropertiesProcessor::processUploadDirProperty;
+	 	case AUTOINDEX :
+			return &LocationPropertiesProcessor::fetchAutoIndex;
+		case INDEX :
+	 		return &LocationPropertiesProcessor::processIndexProperty;
+		case CGI :
+			return &LocationPropertiesProcessor::processCgiProperty;
 	}
+	return (NULL);
 }
 
 // EXCEPTIONS
 
 const char *LocationPropertiesProcessor::InvalidLocationPropertyException::what() const throw() {
 	 return ("Error: webserv: Invalid location property detected in configuration file");
+}
+
+const char *LocationPropertiesProcessor::EmptyLocationPropertyException::what() const throw() {
+	 return ("Error: webserv: Empty location property detected in configuration file");
 }
 
 const char *LocationPropertiesProcessor::InvalidUploadAuthException::what() const throw() {
@@ -110,4 +159,8 @@ const char *LocationPropertiesProcessor::DoubleLocationPropertyException::what()
 
 const char *LocationPropertiesProcessor::InvalidMethodException::what() const throw() {
 	 return ("Error: webserv: invalid methods authorisation list in a location section of configuration file. Accepeted: GET POST DELETE.");
+}
+
+const char *LocationPropertiesProcessor::InvalidAutoIndexException::what() const throw() {
+	 return ("Error: webserv: invalid auto index property detected in a location section. Must be on | off only.");
 }

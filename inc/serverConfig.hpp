@@ -16,7 +16,7 @@ struct locationConfig {
 	bool						hasRoot;
 	std::string					root;
 	std::vector<std::string>	allowedMethods;
-	std::string					index;
+	std::vector<std::string>	indexFiles;
 	bool						autoIndex;
 	size_t						clientMaxBodySize;
 	bool						hasRedir;

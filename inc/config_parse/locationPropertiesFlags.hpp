@@ -3,7 +3,10 @@
 struct locationPropertiesFlags {
 
 	bool allowedMethodsSeen;
-	bool UploadAuthSeen;
+	bool uploadAuthSeen;
+	bool uploadLocSeen;
+	bool autoIndexSeen;
+	bool indexSeen;
 
 	locationPropertiesFlags(void);
 	~locationPropertiesFlags(void);

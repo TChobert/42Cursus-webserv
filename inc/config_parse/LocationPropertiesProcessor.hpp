@@ -45,13 +45,20 @@ class LocationPropertiesProcessor {
 
 	keyType getKeyType(const std::string& directiveKey); // PUBLIC JUST FOR TESTING !!
 	void processMethodsProperty(const std::string& property, parserContext *context);
-	void fetchUploadAuthorisation(const std::string& property, parserContext*context);
+	void fetchUploadAuthorisation(const std::string& property, parserContext *context);
+	void processUploadDirProperty(const std::string& property, parserContext *context);
+	void fetchAutoIndex(const std::string& property, parserContext *context);
+	void processIndexProperty(const std::string& property, parserContext *context);
+	void processCgiProperty(const std::string& property, parserContext *context);
 
 	bool isValidMethod(const std::string& method) const;
 
 	LocationProcessPtr getLocationPropertyProcess(const std::string& key);
 
 	class InvalidLocationPropertyException : public std::exception {
+		virtual const char *what() const throw();
+	};
+	class EmptyLocationPropertyException : public std::exception {
 		virtual const char *what() const throw();
 	};
 	class InvalidUploadAuthException : public std::exception {
@@ -61,6 +68,9 @@ class LocationPropertiesProcessor {
 		virtual const char *what() const throw();
 	};
 	class InvalidMethodException : public std::exception {
+		virtual const char *what() const throw();
+	};
+	class InvalidAutoIndexException : public std::exception {
 		virtual const char *what() const throw();
 	};
 };
