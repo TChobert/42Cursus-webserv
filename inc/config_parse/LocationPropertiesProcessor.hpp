@@ -22,6 +22,8 @@ class LocationPropertiesProcessor {
 	protected:
 
 	static const char SPACE = ' ';
+	static const char * cgiExtensions[];
+
 	enum keyType {
 		ROOT,
 		ALLOWED_METHODS,
@@ -50,6 +52,9 @@ class LocationPropertiesProcessor {
 	void fetchAutoIndex(const std::string& property, parserContext *context);
 	void processIndexProperty(const std::string& property, parserContext *context);
 	void processCgiProperty(const std::string& property, parserContext *context);
+	void getCgiExtensionAndHandler(std::map<std::string, std::string>& cgiRules, const std::string& cgiRule);
+	bool isValidCgiExtension(const std::string& extension) const;
+	bool isValidCgiHandler(const std::string& extension) const;
 
 	bool isValidMethod(const std::string& method) const;
 
@@ -71,6 +76,9 @@ class LocationPropertiesProcessor {
 		virtual const char *what() const throw();
 	};
 	class InvalidAutoIndexException : public std::exception {
+		virtual const char *what() const throw();
+	};
+	class InvalidCgiException : public std::exception {
 		virtual const char *what() const throw();
 	};
 };

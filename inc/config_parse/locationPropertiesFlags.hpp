@@ -7,6 +7,7 @@ struct locationPropertiesFlags {
 	bool uploadLocSeen;
 	bool autoIndexSeen;
 	bool indexSeen;
+	bool cgiSeen;
 
 	locationPropertiesFlags(void);
 	~locationPropertiesFlags(void);

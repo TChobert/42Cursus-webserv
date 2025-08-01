@@ -1,6 +1,11 @@
 #include "LocationPropertiesProcessor.hpp"
 #include "ConfigParser.hpp"
 
+const char * LocationPropertiesProcessor::cgiExtensions[] = {
+
+	".py", ".sh", ".pl"
+};
+
 LocationPropertiesProcessor::LocationPropertiesProcessor(void) {}
 
 LocationPropertiesProcessor::~LocationPropertiesProcessor(void) {}
@@ -108,9 +113,65 @@ void LocationPropertiesProcessor::processIndexProperty(const std::string& proper
 	context->seenLocationProperties.indexSeen = true;
 }
 
+bool LocationPropertiesProcessor::isValidCgiHandler(const std::string& handler) const {
+
+	if (handler[0] != '/')
+		return (false);
+	if (handler.find("..") != std::string::npos)
+		return (false);
+
+	struct stat st;
+	if (stat(handler.c_str(), &st) !=0) {
+		return (false);
+	}
+	return S_ISREG(st.st_mode) && (st.st_mode & S_IXUSR);
+}
+
+bool LocationPropertiesProcessor::isValidCgiExtension(const std::string& extension) const {
+
+	const size_t numExtensions = sizeof(cgiExtensions) / sizeof(cgiExtensions[0]);
+
+	for (size_t i = 0; i < numExtensions; ++i) {
+		if (extension == cgiExtensions[i])
+			return (true);
+	}
+	return (false);
+}
+
+void LocationPropertiesProcessor::getCgiExtensionAndHandler(std::map<std::string, std::string>& cgiRules, const std::string& cgiRule) {
+
+	size_t delimiter = cgiRule.find_first_of(":");
+	if (delimiter == std::string::npos || delimiter == 0 || delimiter == cgiRule.size() - 1)
+		throw InvalidCgiException();
+
+	std::string extension = cgiRule.substr(0, delimiter);
+	std::string handler = cgiRule.substr(delimiter + 1);
+
+	if (!isValidCgiExtension(extension) || !isValidCgiHandler(handler)) {
+		throw InvalidCgiException();
+	}
+	if (cgiRules.count(extension) == 0) {
+		cgiRules[extension] = handler;
+	} else
+		throw InvalidCgiException();
+}
+
 void LocationPropertiesProcessor::processCgiProperty(const std::string& property, parserContext *context) {
 
-	// creer une map, la swap.
+	if (property.empty())
+		throw EmptyLocationPropertyException();
+	if (context->seenLocationProperties.cgiSeen == true)
+		throw DoubleLocationPropertyException();
+
+	std::map<std::string, std::string>cgiExtensionHandlers;
+
+	std::vector<std::string> cgiRules = split(property, SPACE);
+	for (std::vector<std::string>::iterator it = cgiRules.begin(); it != cgiRules.end(); ++it) {
+
+		getCgiExtensionAndHandler(cgiExtensionHandlers, *it);
+	}
+	context->currentConfig.locations[context->currentLocationName].cgiHandlers = cgiExtensionHandlers;
+	context->seenLocationProperties.cgiSeen = true;
 }
 
 LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::getLocationPropertyProcess(const std::string& key) {
@@ -163,4 +224,8 @@ const char *LocationPropertiesProcessor::InvalidMethodException::what() const th
 
 const char *LocationPropertiesProcessor::InvalidAutoIndexException::what() const throw() {
 	 return ("Error: webserv: invalid auto index property detected in a location section. Must be on | off only.");
+}
+
+const char *LocationPropertiesProcessor::InvalidCgiException::what() const throw() {
+	 return ("Error: webserv: invalid auto cgi property detected in a location section. Must be be at format: cgi= .py: abs_path/to/py/handler .pl: abs_path/to/.pl/handler.");
 }

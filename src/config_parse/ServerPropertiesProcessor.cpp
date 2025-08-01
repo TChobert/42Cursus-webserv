@@ -7,7 +7,7 @@ ServerPropertiesProcessor::~ServerPropertiesProcessor(void) {}
 
 const int ServerPropertiesProcessor::validErrorCodes[] = {400, 401, 403, 404, 405, 408, 413, 500, 501, 504};
 
-const char *ServerPropertiesProcessor::forbiddenPaths[] = {
+const char * ServerPropertiesProcessor::forbiddenPaths[] = {
 	"/etc", "/root", "/bin", "/sbin", "/dev", "/proc", "/sys", "/usr/bin"
 };
 
