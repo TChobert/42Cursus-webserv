@@ -13,4 +13,5 @@ void locationPropertiesFlags::resetFlags(void) {
 	indexSeen = false;
 	cgiSeen = false;
 	returnSeen = false;
+	maxBodySeen = false;
 }

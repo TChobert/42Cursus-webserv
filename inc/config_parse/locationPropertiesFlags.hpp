@@ -9,6 +9,7 @@ struct locationPropertiesFlags {
 	bool indexSeen;
 	bool cgiSeen;
 	bool returnSeen;
+	bool maxBodySeen;
 
 	locationPropertiesFlags(void);
 	~locationPropertiesFlags(void);

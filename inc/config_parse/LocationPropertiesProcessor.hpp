@@ -55,6 +55,7 @@ class LocationPropertiesProcessor {
 	void processIndexProperty(const std::string& property, parserContext *context);
 	void processCgiProperty(const std::string& property, parserContext *context);
 	void fetchLocationReturnInfo(const std::string& property, parserContext *context);
+	void fetchMaxBodySize(const std::string& property, parserContext *context);
 
 	void getCgiExtensionAndHandler(std::map<std::string, std::string>& cgiRules, const std::string& cgiRule);
 	bool isValidCgiExtension(const std::string& extension) const;
@@ -62,6 +63,7 @@ class LocationPropertiesProcessor {
 	bool isValidMethod(const std::string& method) const;
 	statusCode getReturnCode(const std::string& codeStr) const;
 	bool isValidUrl(const std::string& url) const;
+	size_t getMaxBodyValueByUnit(long value, const std::string& unit);
 
 	LocationProcessPtr getLocationPropertyProcess(const std::string& key);
 

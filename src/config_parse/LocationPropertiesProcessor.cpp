@@ -46,7 +46,7 @@ void LocationPropertiesProcessor::processMethodsProperty(const std::string& prop
 
 	std::vector<std::string> methods;
 
-	if (context->seenLocationProperties.allowedMethodsSeen == true)
+	if (context->seenLocationProperties.allowedMethodsSeen)
 		throw DoubleLocationPropertyException();
 	if (property.empty())
 		throw EmptyLocationPropertyException();
@@ -64,7 +64,7 @@ void LocationPropertiesProcessor::processMethodsProperty(const std::string& prop
 
 void LocationPropertiesProcessor::fetchUploadAuthorisation(const std::string& property, parserContext* context) {
 
-	if (context->seenLocationProperties.uploadAuthSeen == true)
+	if (context->seenLocationProperties.uploadAuthSeen)
 		throw DoubleLocationPropertyException();
 
 	if (property == "true")
@@ -79,7 +79,7 @@ void LocationPropertiesProcessor::fetchUploadAuthorisation(const std::string& pr
 
 void LocationPropertiesProcessor::processUploadDirProperty(const std::string& property, parserContext *context) {
 
-	if (context->seenLocationProperties.uploadLocSeen == true)
+	if (context->seenLocationProperties.uploadLocSeen)
 		throw DoubleLocationPropertyException();
 	if (property.empty())
 		throw EmptyLocationPropertyException();
@@ -89,7 +89,7 @@ void LocationPropertiesProcessor::processUploadDirProperty(const std::string& pr
 
 void LocationPropertiesProcessor::fetchAutoIndex(const std::string& property, parserContext *context) {
 
-	if (context->seenLocationProperties.autoIndexSeen == true)
+	if (context->seenLocationProperties.autoIndexSeen)
 		throw DoubleLocationPropertyException();
 
 	if (property == "on")
@@ -127,7 +127,7 @@ bool LocationPropertiesProcessor::isValidCgiHandler(const std::string& handler) 
 	if (stat(handler.c_str(), &st) !=0) {
 		return (false);
 	}
-	return S_ISREG(st.st_mode) && (st.st_mode & S_IXUSR);
+	return (S_ISREG(st.st_mode) && (st.st_mode & S_IXUSR));
 }
 
 bool LocationPropertiesProcessor::isValidCgiExtension(const std::string& extension) const {
@@ -196,8 +196,10 @@ statusCode LocationPropertiesProcessor::getReturnCode(const std::string& codeStr
 
 bool LocationPropertiesProcessor::isValidUrl(const std::string& url) const {
 
-	if (url.compare(0, httpPrefix.size(), httpPrefix) == 0 || url.compare(0, httpsPrefix.size(), httpsPrefix) == 0)
-		return (true);
+	if (url.compare(0, httpPrefix.size(), httpPrefix) == 0)
+		return (url.size() > httpPrefix.size());
+	if (url.compare(0, httpsPrefix.size(), httpsPrefix) == 0)
+		return (url.size() > httpsPrefix.size());
 	return (false);
 }
 
@@ -219,6 +221,44 @@ void LocationPropertiesProcessor::fetchLocationReturnInfo(const std::string& pro
 		context->seenLocationProperties.returnSeen = true;
 	} else
 		throw InvalidLocationReturnException();
+}
+
+size_t	LocationPropertiesProcessor::getMaxBodyValueByUnit(long value, const std::string& unit) {
+
+	if (unit == "K" || unit == "k")
+		return (static_cast<size_t>(value * 1024));
+	if (unit == "M" || unit == "m")
+		return (static_cast<size_t>(value * 1024 * 1024));
+	if (unit == "G" || unit == "g")
+		return (static_cast<size_t>(value * 1024 * 1024 * 1024));
+	throw InvalidBodySizeException();
+}
+
+void LocationPropertiesProcessor::fetchMaxBodySize(const std::string& property, parserContext *context) {
+
+	if (context->seenLocationProperties.maxBodySeen)
+		throw DoubleLocationPropertyException();
+
+	size_t i = 0;
+	while (i < property.size() && std::isdigit(property[i])) {
+		++i;
+	}
+	if (i == 0)
+		throw InvalidBodySizeException();
+
+	long value = std::strtol(property.substr(0, i).c_str(), NULL, 10);
+	if (value < 0)
+		throw InvalidBodySizeException();
+
+	std::string unit = property.substr(i);
+	size_t maxBodySize;
+	if (unit.empty() ) {
+		maxBodySize = static_cast<size_t>(value);
+	} else {
+		maxBodySize = getMaxBodyValueByUnit(value, unit);
+	}
+	context->currentConfig.locations[context->currentLocationName].clientMaxBodySize = maxBodySize;
+	context->seenLocationProperties.maxBodySeen = true;
 }
 
 LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::getLocationPropertyProcess(const std::string& key) {
@@ -245,6 +285,8 @@ LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::get
 			return &LocationPropertiesProcessor::processCgiProperty;
 		case RETURN :
 			return &LocationPropertiesProcessor::fetchLocationReturnInfo;
+		case BODY_SIZE:
+			return &LocationPropertiesProcessor::fetchMaxBodySize;
 	}
 	return (NULL);
 }
