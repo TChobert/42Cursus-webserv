@@ -304,7 +304,7 @@ void LocationPropertiesProcessor::fetchMaxBodySize(const std::string& property, 
 		throw InvalidBodySizeException();
 
 	long value = std::strtol(property.substr(0, i).c_str(), NULL, 10);
-	if (value < 0)
+	if (value < 0 || value > MAX_BODY_VALUE_ALLOWED)
 		throw InvalidBodySizeException();
 
 	std::string unit = property.substr(i);
@@ -344,8 +344,6 @@ LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::get
 			return &LocationPropertiesProcessor::fetchLocationReturnInfo;
 		case BODY_SIZE :
 			return &LocationPropertiesProcessor::fetchMaxBodySize;
-		case UNKNOWN :
-			throw InvalidLocationPropertyException();
 	}
 }
 
@@ -368,7 +366,7 @@ const char *LocationPropertiesProcessor::DoubleLocationPropertyException::what()
 }
 
 const char *LocationPropertiesProcessor::InvalidMethodException::what() const throw() {
-	 return ("Error: webserv: invalid methods authorisation list in a location section of configuration file. Accepeted: GET POST DELETE.");
+	 return ("Error: webserv: invalid methods authorisation list in a location section of configuration file. Accepted: GET POST DELETE.");
 }
 
 const char *LocationPropertiesProcessor::InvalidAutoIndexException::what() const throw() {
@@ -376,7 +374,7 @@ const char *LocationPropertiesProcessor::InvalidAutoIndexException::what() const
 }
 
 const char *LocationPropertiesProcessor::InvalidCgiException::what() const throw() {
-	 return ("Error: webserv: invalid auto cgi property detected in a location section. Must be be at format: cgi= .py: abs_path/to/py/handler .pl: abs_path/to/.pl/handler.");
+	 return ("Error: webserv: invalid auto cgi property detected in a location section. Must be at format: cgi= .py: abs_path/to/py/handler .pl: abs_path/to/.pl/handler.");
 }
 
 const char *LocationPropertiesProcessor::ForbiddenLocationRootException::what() const throw() {
@@ -392,9 +390,9 @@ const char *LocationPropertiesProcessor::ForbiddenUploadDirException::what() con
 }
 
 const char *LocationPropertiesProcessor::InvalidLocationReturnException::what() const throw() {
-	 return ("Error: webserv: Invalid return detected in a location section form configuration file."); // codes listing ?
+	 return ("Error: webserv: Invalid return detected in a location section from configuration file."); // codes listing ?
 }
 
 const char *LocationPropertiesProcessor::InvalidBodySizeException::what() const throw() {
-	 return ("Error: webserv: Invalid client_max_body_size detected in a location section form configuration file.");
+	 return ("Error: webserv: Invalid client_max_body_size detected in a location section from configuration file.");
 }
