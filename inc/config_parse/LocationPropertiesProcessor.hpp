@@ -66,7 +66,7 @@ class LocationPropertiesProcessor {
 	statusCode getReturnCode(const std::string& codeStr) const;
 	bool isValidUrl(const std::string& url) const;
 	size_t getMaxBodyValueByUnit(long value, const std::string& unit);
-	void ensureUploadDirIsValid(const std::string dir) const;
+	void ensureUploadDirIsValid(const std::string& dir) const;
 	void ensureUploadDirIsAllowed(const std::string& dir) const;
 
 	LocationProcessPtr getLocationPropertyProcess(const std::string& key);
