@@ -163,7 +163,7 @@ void ServerPropertiesProcessor::processRootProperty(const std::string& propertyV
 		throw InvalidServerRootException();
 	}
 	ensureRootIsAllowed(propertyValue);
-	ensureRootIsValid(propertyValue);
+//	ensureRootIsValid(propertyValue);
 	context->currentConfig.identity.root = propertyValue;
 	context->currentConfig.identity.hasRoot = true;
 	context->seenServerProperties.rootSeen = true;

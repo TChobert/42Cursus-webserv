@@ -114,7 +114,8 @@ std::vector<std::string> split(const std::string& str, const char delimiter) {
 	std::istringstream iss(str);
 
 	while (std::getline(iss, token, delimiter)) {
-		result.push_back(token);
+		if (!token.empty())
+			result.push_back(token);
 	}
 
 	return (result);

@@ -23,6 +23,7 @@ class LocationPropertiesProcessor {
 
 	static const char SPACE = ' ';
 	static const char * cgiExtensions[];
+	static const char* forbiddenPaths[];
 	static const std::string httpPrefix;
 	static const std::string httpsPrefix;
 
@@ -36,7 +37,6 @@ class LocationPropertiesProcessor {
 		CGI,
 		RETURN,
 		BODY_SIZE,
-		ERROR_PAGE,
 		UNKNOWN
 	};
 
@@ -48,6 +48,7 @@ class LocationPropertiesProcessor {
 	~LocationPropertiesProcessor(void);
 
 	keyType getKeyType(const std::string& directiveKey); // PUBLIC JUST FOR TESTING !!
+	void processLocationRootProperty(const std::string& property, parserContext *context);
 	void processMethodsProperty(const std::string& property, parserContext *context);
 	void fetchUploadAuthorisation(const std::string& property, parserContext *context);
 	void processUploadDirProperty(const std::string& property, parserContext *context);
@@ -57,6 +58,7 @@ class LocationPropertiesProcessor {
 	void fetchLocationReturnInfo(const std::string& property, parserContext *context);
 	void fetchMaxBodySize(const std::string& property, parserContext *context);
 
+	void ensureRootIsAllowed(const std::string& root) const;
 	void getCgiExtensionAndHandler(std::map<std::string, std::string>& cgiRules, const std::string& cgiRule);
 	bool isValidCgiExtension(const std::string& extension) const;
 	bool isValidCgiHandler(const std::string& extension) const;
@@ -64,6 +66,8 @@ class LocationPropertiesProcessor {
 	statusCode getReturnCode(const std::string& codeStr) const;
 	bool isValidUrl(const std::string& url) const;
 	size_t getMaxBodyValueByUnit(long value, const std::string& unit);
+	void ensureUploadDirIsValid(const std::string dir) const;
+	void ensureUploadDirIsAllowed(const std::string& dir) const;
 
 	LocationProcessPtr getLocationPropertyProcess(const std::string& key);
 

@@ -2,8 +2,11 @@
 #include "ConfigParser.hpp"
 
 const char * LocationPropertiesProcessor::cgiExtensions[] = {
-
 	".py", ".sh", ".pl"
+};
+
+const char * LocationPropertiesProcessor::forbiddenPaths[] = {
+	"/etc", "/root", "/bin", "/sbin", "/dev", "/proc", "/sys", "/usr/bin"
 };
 
 const std::string LocationPropertiesProcessor::httpPrefix = "http://";
@@ -31,10 +34,60 @@ LocationPropertiesProcessor::keyType LocationPropertiesProcessor::getKeyType(con
 		return (RETURN);
 	else if (key == "client_max_body_size")
 		return (BODY_SIZE);
-	else if (key == "error_page")
-		return (ERROR_PAGE);
 	else
 		return (UNKNOWN);
+}
+
+void LocationPropertiesProcessor::ensureRootIsAllowed(const std::string& root) const {
+
+	const size_t forbiddenCount = sizeof(forbiddenPaths) / sizeof(forbiddenPaths[0]);
+	for (size_t i = 0; i < forbiddenCount; ++i) {
+
+		const std::string forbidden(forbiddenPaths[i]);
+
+		if (root == forbidden || (root.size() > forbidden.size()
+			&& root.compare(0, forbidden.size(), forbidden) == 0 && root[forbidden.size()] == '/')) {
+				throw ForbiddenLocationRootException();
+		}
+	}
+}
+
+void LocationPropertiesProcessor::ensureUploadDirIsValid(const std::string& dir) const {
+
+	struct stat pathStat;
+
+	if (access(dir.c_str(), F_OK | R_OK | X_OK) != 0) {
+		throw InvalidUploadDirException();
+	}
+	if (stat(dir.c_str(), &pathStat) != 0 || !S_ISDIR(pathStat.st_mode))
+		throw InvalidUploadDirException();
+}
+
+void LocationPropertiesProcessor::ensureUploadDirIsAllowed(const std::string& dir) const {
+
+	const size_t forbiddenCount = sizeof(forbiddenPaths) / sizeof(forbiddenPaths[0]);
+	for (size_t i = 0; i < forbiddenCount; ++i) {
+
+		const std::string forbidden(forbiddenPaths[i]);
+
+		if (dir == forbidden || (dir.size() > forbidden.size()
+			&& dir.compare(0, forbidden.size(), forbidden) == 0 && dir[forbidden.size()] == '/')) {
+				throw ForbiddenUploadDirException();
+		}
+	}
+}
+
+void LocationPropertiesProcessor::processLocationRootProperty(const std::string& property, parserContext *context) {
+
+	if (context->seenLocationProperties.rootSeen)
+		throw DoubleLocationPropertyException();
+	if (property.empty() || property.find("..") != std::string::npos) {
+		throw InvalidLocationRootException();
+	}
+	ensureRootIsAllowed(property);
+	context->currentConfig.locations[context->currentLocationName].root = property;
+	context->currentConfig.locations[context->currentLocationName].hasRoot = true;
+	context->seenLocationProperties.rootSeen = true;
 }
 
 bool LocationPropertiesProcessor::isValidMethod(const std::string& method) const {
@@ -79,12 +132,17 @@ void LocationPropertiesProcessor::fetchUploadAuthorisation(const std::string& pr
 
 void LocationPropertiesProcessor::processUploadDirProperty(const std::string& property, parserContext *context) {
 
-	if (context->seenLocationProperties.uploadLocSeen)
+	if (context->seenLocationProperties.uploadDirSeen)
 		throw DoubleLocationPropertyException();
-	if (property.empty())
-		throw EmptyLocationPropertyException();
+	if (property.empty() || property.find("..") != std::string::npos || property[0] != '/')
+		throw InvalidUploadDirException();
 
-		//suite
+	ensureUploadDirIsAllowed(property);
+	ensureUploadDirIsValid(property);
+
+	context->currentConfig.locations[context->currentLocationName].uploadDir = property;
+	context->currentConfig.locations[context->currentLocationName].hasUploadDir = true;
+	context->seenLocationProperties.uploadDirSeen = true;
 }
 
 void LocationPropertiesProcessor::fetchAutoIndex(const std::string& property, parserContext *context) {
@@ -269,8 +327,8 @@ LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::get
 		throw InvalidLocationPropertyException();
 	}
 	switch (type) {
-	// 	case ROOT :
-	// 		//return &LocationPropertiesProcessor::processLocationRootProperty;
+	 	case ROOT :
+	 		return &LocationPropertiesProcessor::processLocationRootProperty;
 		case ALLOWED_METHODS :
 	 		return &LocationPropertiesProcessor::processMethodsProperty;
 	 	case UPLOAD_AUTH :
@@ -285,10 +343,11 @@ LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::get
 			return &LocationPropertiesProcessor::processCgiProperty;
 		case RETURN :
 			return &LocationPropertiesProcessor::fetchLocationReturnInfo;
-		case BODY_SIZE:
+		case BODY_SIZE :
 			return &LocationPropertiesProcessor::fetchMaxBodySize;
+		case UNKNOWN :
+			throw InvalidLocationPropertyException();
 	}
-	return (NULL);
 }
 
 // EXCEPTIONS
