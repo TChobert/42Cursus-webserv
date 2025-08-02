@@ -92,4 +92,19 @@ class LocationPropertiesProcessor {
 	class InvalidCgiException : public std::exception {
 		virtual const char *what() const throw();
 	};
+	class ForbiddenLocationRootException : public std::exception {
+		virtual const char *what() const throw();
+	};
+	class InvalidUploadDirException : public std::exception {
+		virtual const char *what() const throw();
+	};
+	class ForbiddenUploadDirException : public std::exception {
+		virtual const char *what() const throw();
+	};
+	class InvalidLocationReturnException : public std::exception {
+		virtual const char *what() const throw();
+	};
+	class InvalidBodySizeException : public std::exception {
+		virtual const char *what() const throw();
+	};
 };

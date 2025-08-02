@@ -230,7 +230,7 @@ const char *ServerPropertiesProcessor::InvalidServerRootException::what() const 
 }
 
 const char *ServerPropertiesProcessor::ForbiddenServerRootException::what() const throw() {
-	return "Error: webserv: Forbidden server root file detected in configuration file.";
+	return "Error: webserv: Forbidden server root directory detected in configuration file.";
 }
 
 const char *ServerPropertiesProcessor::InvalidErrorPageException::what() const throw() {

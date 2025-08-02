@@ -8,7 +8,7 @@ void locationPropertiesFlags::resetFlags(void) {
 
 	allowedMethodsSeen = false;
 	uploadAuthSeen = false;
-	uploadLocSeen = false;
+	uploadDirSeen = false;
 	autoIndexSeen = false;
 	indexSeen = false;
 	cgiSeen = false;

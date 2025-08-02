@@ -82,7 +82,7 @@ void LocationPropertiesProcessor::processLocationRootProperty(const std::string&
 	if (context->seenLocationProperties.rootSeen)
 		throw DoubleLocationPropertyException();
 	if (property.empty() || property.find("..") != std::string::npos) {
-		throw InvalidLocationRootException();
+		throw ForbiddenLocationRootException();
 	}
 	ensureRootIsAllowed(property);
 	context->currentConfig.locations[context->currentLocationName].root = property;
@@ -140,8 +140,7 @@ void LocationPropertiesProcessor::processUploadDirProperty(const std::string& pr
 	ensureUploadDirIsAllowed(property);
 	ensureUploadDirIsValid(property);
 
-	context->currentConfig.locations[context->currentLocationName].uploadDir = property;
-	context->currentConfig.locations[context->currentLocationName].hasUploadDir = true;
+	context->currentConfig.locations[context->currentLocationName].uploadStore = property;
 	context->seenLocationProperties.uploadDirSeen = true;
 }
 
@@ -378,4 +377,24 @@ const char *LocationPropertiesProcessor::InvalidAutoIndexException::what() const
 
 const char *LocationPropertiesProcessor::InvalidCgiException::what() const throw() {
 	 return ("Error: webserv: invalid auto cgi property detected in a location section. Must be be at format: cgi= .py: abs_path/to/py/handler .pl: abs_path/to/.pl/handler.");
+}
+
+const char *LocationPropertiesProcessor::ForbiddenLocationRootException::what() const throw() {
+	 return ("Error: webserv: Forbidden location root directory detected in configuration file.");
+}
+
+const char *LocationPropertiesProcessor::InvalidUploadDirException::what() const throw() {
+	 return ("Error: webserv: Invalid upload directory detected in configuration file.");
+}
+
+const char *LocationPropertiesProcessor::ForbiddenUploadDirException::what() const throw() {
+	 return ("Error: webserv: Forbidden upload directory detected in configuration file.");
+}
+
+const char *LocationPropertiesProcessor::InvalidLocationReturnException::what() const throw() {
+	 return ("Error: webserv: Invalid return detected in a location section form configuration file."); // codes listing ?
+}
+
+const char *LocationPropertiesProcessor::InvalidBodySizeException::what() const throw() {
+	 return ("Error: webserv: Invalid client_max_body_size detected in a location section form configuration file.");
 }

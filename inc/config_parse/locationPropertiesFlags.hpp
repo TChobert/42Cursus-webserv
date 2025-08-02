@@ -5,7 +5,7 @@ struct locationPropertiesFlags {
 	bool rootSeen;
 	bool allowedMethodsSeen;
 	bool uploadAuthSeen;
-	bool uploadLocSeen;
+	bool uploadDirSeen;
 	bool autoIndexSeen;
 	bool indexSeen;
 	bool cgiSeen;
