@@ -15,8 +15,10 @@ class LocationSectionParser {
 	private:
 
 	LocationPropertiesProcessor _propertiesProcessor;
-	//enum keyType{PORT, HOST, NAME, ROOT};
-	//keyType getKeyType(const std::string& key);
+
+	void ensureLocationConfigIsFull(parserContext *context);
+	void setupLocationDefaultMethods(parserContext *context);
+	void setupLocationDefaultRoot(parserContext *context);
 
 	public:
 

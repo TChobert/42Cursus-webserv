@@ -13,6 +13,9 @@
 
 #include "webserv_utils.hpp"
 
+#define MAX_BODY_VALUE_ALLOWED 4294967295L
+#define DEFAULT_BODY_SIZE (1 * 1024 * 1024)
+
 class LocationSectionParser;
 class ConfigParser;
 struct parserContext;
