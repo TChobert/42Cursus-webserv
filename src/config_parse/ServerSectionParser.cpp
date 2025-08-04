@@ -1,7 +1,7 @@
 #include "ServerSectionParser.hpp"
 #include "ConfigParser.hpp"
 
-ServerSectionParser::ServerSectionParser(void) : _propertiesProcessor() {}
+ServerSectionParser::ServerSectionParser(void) : _headerParser(), _propertiesProcessor() {}
 
 ServerSectionParser::~ServerSectionParser(void) {}
 
@@ -16,7 +16,7 @@ void ServerSectionParser::extractCurrentProperty(const std::string& property, pa
 
 	if (PropertyProcessor::IsSectionHeader(property) == true) {
 		ensureServerConfigIsFull(context);
-		context->state = HEADER_SECTION;
+		_headerParser.handleCurrentHeader(property, context);
 	}
 	else {
 		keyValue propertyKeyValue = PropertyProcessor::extractKeyValueFromProperty(property);

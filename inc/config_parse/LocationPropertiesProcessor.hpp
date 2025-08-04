@@ -50,7 +50,7 @@ class LocationPropertiesProcessor {
 	LocationPropertiesProcessor(void);
 	~LocationPropertiesProcessor(void);
 
-	keyType getKeyType(const std::string& directiveKey); // PUBLIC JUST FOR TESTING !!
+	keyType getKeyType(const std::string& directiveKey); // PUBLIC FOR TESTING
 	void processLocationRootProperty(const std::string& property, parserContext *context);
 	void processMethodsProperty(const std::string& property, parserContext *context);
 	void fetchUploadAuthorisation(const std::string& property, parserContext *context);

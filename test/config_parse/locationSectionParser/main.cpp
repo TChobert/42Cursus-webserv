@@ -1,54 +1,42 @@
-// #include <cassert>
-// #include <iostream>
-// #include "LocationPropertiesProcessor.hpp"
-
-// class TestableLocationPropertiesProcessor : public LocationPropertiesProcessor {
-// public:
-//     using LocationPropertiesProcessor::getKeyType;
-//     using LocationPropertiesProcessor::keyType;
-//     using LocationPropertiesProcessor::ROOT;
-//     using LocationPropertiesProcessor::ALLOWED_METHODS;
-//     using LocationPropertiesProcessor::UPLOAD_AUTH;
-//     using LocationPropertiesProcessor::UPLOAD_DIR;
-//     using LocationPropertiesProcessor::AUTOINDEX;
-//     using LocationPropertiesProcessor::CGI;
-//     using LocationPropertiesProcessor::RETURN;
-//     using LocationPropertiesProcessor::BODY_SIZE;
-//     using LocationPropertiesProcessor::UNKNOWN;
-// };
-
-// void runTests() {
-//     TestableLocationPropertiesProcessor processor;
-
-//     assert(processor.getKeyType("root") == TestableLocationPropertiesProcessor::ROOT);
-//     assert(processor.getKeyType("allowed_methods") == TestableLocationPropertiesProcessor::ALLOWED_METHODS);
-//     assert(processor.getKeyType("upload_enabled") == TestableLocationPropertiesProcessor::UPLOAD_AUTH);
-//     assert(processor.getKeyType("upload_directory") == TestableLocationPropertiesProcessor::UPLOAD_DIR);
-//     assert(processor.getKeyType("autoindex") == TestableLocationPropertiesProcessor::AUTOINDEX);
-//     assert(processor.getKeyType("cgi") == TestableLocationPropertiesProcessor::CGI);
-//     assert(processor.getKeyType("return") == TestableLocationPropertiesProcessor::RETURN);
-//     assert(processor.getKeyType("client_max_body_size") == TestableLocationPropertiesProcessor::BODY_SIZE);
-
-//     assert(processor.getKeyType("unknown_directive") == TestableLocationPropertiesProcessor::UNKNOWN);
-//     assert(processor.getKeyType("") == TestableLocationPropertiesProcessor::UNKNOWN);
-// 	assert(processor.getKeyType("        ") == TestableLocationPropertiesProcessor::UNKNOWN);
-// 	assert(processor.getKeyType("cclient_max_body_size") == TestableLocationPropertiesProcessor::UNKNOWN);
-// 	assert(processor.getKeyType("allowed") == TestableLocationPropertiesProcessor::UNKNOWN);
-	
-
-//     std::cout << "✅ Tous les tests sont passés !" << std::endl;
-// }
-
-// int main() {
-// 	runTests();
-// 	return (EXIT_SUCCESS);
-// }
-
 #include <cassert>
 #include <iostream>
 #include "LocationPropertiesProcessor.hpp"
 #include "LocationSectionParser.hpp"
 #include "ConfigParser.hpp"
+
+class TestableLocationPropertiesProcessor : public LocationPropertiesProcessor {
+	public:
+    	using LocationPropertiesProcessor::getKeyType;
+    	using LocationPropertiesProcessor::keyType;
+   		using LocationPropertiesProcessor::ROOT;
+    	using LocationPropertiesProcessor::ALLOWED_METHODS;
+    	using LocationPropertiesProcessor::UPLOAD_AUTH;
+    	using LocationPropertiesProcessor::UPLOAD_DIR;
+ 		using LocationPropertiesProcessor::AUTOINDEX;
+    	using LocationPropertiesProcessor::CGI;
+    	using LocationPropertiesProcessor::RETURN;
+    	using LocationPropertiesProcessor::BODY_SIZE;
+    	using LocationPropertiesProcessor::UNKNOWN;
+};
+
+void testGetKeyType() {
+    TestableLocationPropertiesProcessor processor;
+
+   assert(processor.getKeyType("root") == TestableLocationPropertiesProcessor::ROOT);
+   assert(processor.getKeyType("allowed_methods") == TestableLocationPropertiesProcessor::ALLOWED_METHODS);
+   assert(processor.getKeyType("upload_enabled") == TestableLocationPropertiesProcessor::UPLOAD_AUTH);
+	assert(processor.getKeyType("upload_directory") == TestableLocationPropertiesProcessor::UPLOAD_DIR);
+    assert(processor.getKeyType("autoindex") == TestableLocationPropertiesProcessor::AUTOINDEX);
+    assert(processor.getKeyType("cgi") == TestableLocationPropertiesProcessor::CGI);
+    assert(processor.getKeyType("return") == TestableLocationPropertiesProcessor::RETURN);
+    assert(processor.getKeyType("client_max_body_size") == TestableLocationPropertiesProcessor::BODY_SIZE);
+
+    assert(processor.getKeyType("unknown_directive") == TestableLocationPropertiesProcessor::UNKNOWN);
+    assert(processor.getKeyType("") == TestableLocationPropertiesProcessor::UNKNOWN);
+	assert(processor.getKeyType("        ") == TestableLocationPropertiesProcessor::UNKNOWN);
+	assert(processor.getKeyType("cclient_max_body_size") == TestableLocationPropertiesProcessor::UNKNOWN);
+	assert(processor.getKeyType("allowed") == TestableLocationPropertiesProcessor::UNKNOWN);
+}
 
 void testValidBodySizes() {
     LocationPropertiesProcessor processor;
@@ -59,18 +47,27 @@ void testValidBodySizes() {
     assert(context.currentConfig.locations["/"].clientMaxBodySize == 512);
 	context.seenLocationProperties.maxBodySeen = false;
 
+	processor.fetchMaxBodySize("5", &context);
+    assert(context.currentConfig.locations["/"].clientMaxBodySize == 5);
+	context.seenLocationProperties.maxBodySeen = false;
+
+	processor.fetchMaxBodySize("789456123", &context);
+    assert(context.currentConfig.locations["/"].clientMaxBodySize == 789456123);
+	context.seenLocationProperties.maxBodySeen = false;
+
     processor.fetchMaxBodySize("1K", &context);
     assert(context.currentConfig.locations["/"].clientMaxBodySize == 1024);
+	assert(context.seenLocationProperties.maxBodySeen == true);
 	context.seenLocationProperties.maxBodySeen = false;
 
-    context.seenLocationProperties.maxBodySeen = false;
     processor.fetchMaxBodySize("2M", &context);
     assert(context.currentConfig.locations["/"].clientMaxBodySize == 2 * 1024 * 1024);
+	assert(context.seenLocationProperties.maxBodySeen == true);
 	context.seenLocationProperties.maxBodySeen = false;
 
-    context.seenLocationProperties.maxBodySeen = false;
     processor.fetchMaxBodySize("1G", &context);
     assert(context.currentConfig.locations["/"].clientMaxBodySize == 1024 * 1024 * 1024);
+	assert(context.seenLocationProperties.maxBodySeen == true);
 	context.seenLocationProperties.maxBodySeen = false;
 }
 
@@ -102,6 +99,7 @@ void testAutoIndexValues() {
 
     processor.fetchAutoIndex("on", &context);
     assert(context.currentConfig.locations["/"].autoIndex == true);
+	assert(context.seenLocationProperties.autoIndexSeen == true);
 
     context.seenLocationProperties.autoIndexSeen = false;
     processor.fetchAutoIndex("off", &context);
@@ -121,6 +119,7 @@ void testReturnDirective() {
 
     processor.fetchLocationReturnInfo("301 http://example.com", &context);
     assert(context.currentConfig.locations["/"].hasRedir == true);
+	assert(context.seenLocationProperties.returnSeen == true);
     assert(context.currentConfig.locations["/"].redirCode == MOVED_PERMANENTLY);
     assert(context.currentConfig.locations["/"].redirURL == "http://example.com");
 
@@ -154,12 +153,13 @@ void testCgiDirective() {
 }
 
 void runAllTests() {
+	testGetKeyType();
     testValidBodySizes();
     testInvalidBodySizes();
     testAutoIndexValues();
     testReturnDirective();
     testCgiDirective();
-    std::cout << "✅ Tous les tests supplémentaires sont passés !" << std::endl;
+    std::cout << "✅ Tous les tests sont passés !" << std::endl;
 }
 
 int main() {

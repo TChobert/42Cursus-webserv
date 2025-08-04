@@ -26,8 +26,10 @@ LocationPropertiesProcessor::keyType LocationPropertiesProcessor::getKeyType(con
 		return (UPLOAD_AUTH);
 	else if (key == "upload_directory")
 		return (UPLOAD_DIR);
-	else if (key == "autoindex")
+	else if (key == "auto_index")
 		return (AUTOINDEX);
+	else if (key == "index")
+		return (INDEX);
 	else if (key == "cgi")
 		return (CGI);
 	else if (key == "return")

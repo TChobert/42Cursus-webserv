@@ -1,7 +1,7 @@
 #include "LocationSectionParser.hpp"
 #include "ConfigParser.hpp"
 
-LocationSectionParser::LocationSectionParser(void) {}
+LocationSectionParser::LocationSectionParser(void) : _headerParser(), _propertiesProcessor() {}
 
 LocationSectionParser::~LocationSectionParser(void) {}
 
@@ -46,8 +46,7 @@ void LocationSectionParser::extractCurrentProperty(const std::string& property, 
 
 	if (PropertyProcessor::IsSectionHeader(property) == true) {
 		ensureLocationConfigIsFull(context);
-		context->seenLocationProperties.resetFlags();
-		context->state = HEADER_SECTION;
+		_headerParser.handleCurrentHeader(property, context);
 	}
 	else {
 		keyValue propertyKeyValue = PropertyProcessor::extractKeyValueFromProperty(property);

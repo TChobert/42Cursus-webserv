@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <stdint.h>
 
 typedef std::string locationName;
 typedef std::string cgiExtension;

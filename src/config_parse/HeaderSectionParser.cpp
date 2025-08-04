@@ -12,11 +12,16 @@ void HeaderSectionParser::ensureHeaderIsEnclosed(const std::string& header) {
 
 	size_t headerClose = header.find(HEADER_CLOSE);
 
-	if (header[0] != HEADER_OPEN || headerClose == std::string::npos)
+	if (header[0] != HEADER_OPEN || headerClose == std::string::npos) {
+		std::cerr << header << std::endl;
+		std::cerr << "ensureHisEnclosed" << std::endl;
 		throw InvalidHeaderException();
+	}
 
 	for (size_t i = (headerClose + 1); i < header.size(); ++i) {
 		if (!isspace(static_cast<unsigned char>(header[i]))) {
+			std::cerr << header << std::endl;
+			std::cerr << "ensureHisEnclosed" << std::endl;
 			throw InvalidHeaderException();
 		}
 	}
@@ -49,6 +54,7 @@ void HeaderSectionParser::getLocationName(const std::string& header, parserConte
 	locationName = locationName.substr(i);
 	size_t prefixPosition = locationName.find('/');
 	if (prefixPosition == std::string::npos || prefixPosition != 0) {
+		std::cerr << "getLocName" << std::endl;
 		throw InvalidHeaderException();
 	}
 	locationConfig config;
@@ -58,9 +64,12 @@ void HeaderSectionParser::getLocationName(const std::string& header, parserConte
 
 HeaderSectionParser::headerType HeaderSectionParser::getHeaderType(const std::string& header) {
 
-	if (header == SERVER_KEYWORD) 
+	if (header == SERVER_KEYWORD) {
+		std::cerr << header << " = server" << std::endl;
 			return (SERVER);
+	}
 	else if (header.find(LOCATION_KEYWORD) == 0) {
+		std::cerr << header << " = location" << std::endl;
 		return (LOCATION);
 	}
 	else
@@ -87,6 +96,7 @@ void HeaderSectionParser::handleCurrentHeader(const std::string& header, parserC
 			throw ServerlessSectionException();
 		}
 		getLocationName(trimmedHeader, context);
+		context->seenLocationProperties.resetFlags(); 
 		context->state = LOCATION_SECTION;
 	}
 }

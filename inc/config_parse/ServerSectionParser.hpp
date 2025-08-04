@@ -8,11 +8,13 @@
 #include "PropertyProcessor.hpp"
 #include "ServerPropertiesProcessor.hpp"
 #include "keyValue.hpp"
+#include "HeaderSectionParser.hpp"
 
 class ServerSectionParser {
 
 	private:
 
+	HeaderSectionParser _headerParser;
 	ServerPropertiesProcessor _propertiesProcessor;
 
 	bool IsSectionHeader(const std::string& property);

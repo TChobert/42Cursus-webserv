@@ -6,6 +6,7 @@
 #include <exception>
 #include <vector>
 
+#include "webserv_utils.hpp"
 #include "CommentsRemover.hpp"
 #include "serverConfig.hpp"
 #include "ConfigFileReader.hpp"
@@ -22,7 +23,6 @@ enum currentState {
 	HEADER_SECTION,
 	SERVER_SECTION,
 	LOCATION_SECTION,
-	END,
 };
 
 struct parserContext {
