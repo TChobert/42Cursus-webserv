@@ -26,4 +26,8 @@ class LocationSectionParser {
 	~LocationSectionParser(void);
 
 	void extractCurrentProperty(const std::string& property, parserContext *context);
+
+	class RootlessLocationException : public std::exception {
+		virtual const char * what() const throw();
+	};
 };

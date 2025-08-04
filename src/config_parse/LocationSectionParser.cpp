@@ -53,3 +53,9 @@ void LocationSectionParser::extractCurrentProperty(const std::string& property, 
 		(_propertiesProcessor.*processFunction)(propertyKeyValue.value, context);
 	}
 }
+
+// EXCEPTIONS
+
+const char *LocationSectionParser::RootlessLocationException::what() const throw() {
+	return "Error: webserv: location without root or server root detected in configuration file.";
+}
