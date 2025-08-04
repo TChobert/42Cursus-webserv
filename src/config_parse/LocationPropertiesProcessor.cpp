@@ -344,7 +344,10 @@ LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::get
 			return &LocationPropertiesProcessor::fetchLocationReturnInfo;
 		case BODY_SIZE :
 			return &LocationPropertiesProcessor::fetchMaxBodySize;
+		case UNKNOWN :
+			throw InvalidLocationPropertyException();
 	}
+	throw InvalidLocationPropertyException();
 }
 
 // EXCEPTIONS

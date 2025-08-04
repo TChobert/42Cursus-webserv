@@ -7,7 +7,10 @@ LocationSectionParser::~LocationSectionParser(void) {}
 
 void LocationSectionParser::setupLocationDefaultMethods(parserContext *context) {
 
-	std::vector<std::string> defaultMethods = {"GET", "POST", "DELETE"};
+	std::vector<std::string> defaultMethods;
+	defaultMethods.push_back("GET");
+	defaultMethods.push_back("POST");
+	defaultMethods.push_back("DELETE");
 
 	defaultMethods.swap(context->currentConfig.locations[context->currentLocationName].allowedMethods);
 }

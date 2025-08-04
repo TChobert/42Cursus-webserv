@@ -5,7 +5,10 @@ NAME = test_location_parser
 SRCS = main.cpp \
        ../../../src/config_parse/LocationSectionParser.cpp \
        ../../../src/config_parse/LocationPropertiesProcessor.cpp \
-       ../../../src/config_parse/PropertyProcessor.cpp
+       ../../../src/config_parse/PropertyProcessor.cpp \
+	   ../../../src/config_parse/locationPropertiesFlags.cpp \
+	../../../src/config_parse/serverPropertiesFlags.cpp \
+	../../../src/webserv_utils.cpp
 
 # Fichiers objets
 OBJS = $(SRCS:.cpp=.o)
