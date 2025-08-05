@@ -12,10 +12,11 @@
 #include "ConfigStore.hpp"
 #include "ServerInitializer.hpp"
 #include "Dispatcher.hpp"
+#include "moduleRegistry.hpp"
 
 #include "webserv_enum.hpp"
 
-#define MAX_EVENTS 64 // arbitraire, a changer ou non
+#define MAX_EVENTS 64
 
 class EventsManager {
 
@@ -23,11 +24,20 @@ class EventsManager {
 
 	ConfigStore&				_configs;
 	ServerInitializer&			_initializer;
-	Dispatcher&					_dispatcher;
+	Dispatcher					_dispatcher;
 	std::set<int>				_listenSockets;
 	std::map<int,Conversation>	_clients;
+	std::map<int, Conversation*> _executorFds;
 	int							_epollFd;
 	struct epoll_event			_events[MAX_EVENTS];
+
+	IModule* _reader;
+	IModule* _parser;
+	IModule* _validator;
+	IModule* _executor;
+	IModule* _responseBuilder;
+	IModule* _sender;
+	IModule* _postSender;
 
 	void	listenEvents(void);
 	void	handleNotifiedEvents(int fdsNumber);
@@ -38,14 +48,15 @@ class EventsManager {
 	void	setSocketNonBlocking(int fd);
 	void	handleClientEvent(int fd);
 	void	closeFinishedClients(void);
-	void	deleteClient(int fd);
+	void	deleteClient(Conversation& conv);
 	void	deleteAllClients(void);
 	void	deleteAllServers(void);
 	void	deleteAllNetwork(void);
 
 	public:
 
-	EventsManager(ConfigStore& configs, ServerInitializer& initializer, Dispatcher& dispatcher);
+	EventsManager(int epollFd, ConfigStore& configs,
+					ServerInitializer& initializer, const moduleRegistry& modules);
 	~EventsManager(void);
 
 	void	run(void);

@@ -1,6 +1,6 @@
 #include "ServerInitializer.hpp"
 
-ServerInitializer::ServerInitializer(ConfigStore& configs, int& epollFd) : _configs(configs), _epollFd(epollFd) {}
+ServerInitializer::ServerInitializer(ConfigStore& configs) : _configs(configs) {}
 
 ServerInitializer::~ServerInitializer(void) {}
 
@@ -65,31 +65,31 @@ void	ServerInitializer::setSocketListeningMode(int socket) {
 	}
 }
 
-void	ServerInitializer::addSocketToEpoll(int socket) {
+void	ServerInitializer::addSocketToEpoll(int epollFd, int socket) {
 
 	struct epoll_event	ev;
 
 	ev.events = EPOLLIN;
 	ev.data.fd = socket;
-	if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, socket, &ev) < 0) {
+	if (epoll_ctl(epollFd, EPOLL_CTL_ADD, socket, &ev) < 0) {
 		std::ostringstream	oss;
 		oss << "Failed to add socket: " << socket << ". Closing it.";
 		throw std::runtime_error(oss.str());
 	}
 }
 
-void	ServerInitializer::socketInitProcess(int socket, const serverConfig& config) {
+void	ServerInitializer::socketInitProcess(int epollFd, int socket, const serverConfig& config) {
 
 	setSocketImmediatReuse(socket);
 	setSocketNonBlocking(socket);
 	bindSocket(socket, config);
 	setSocketListeningMode(socket);
-	addSocketToEpoll(socket);
+	addSocketToEpoll(epollFd, socket);
 
 	_configs.bindSocketToConfig(socket, config);
 }
 
-std::set<int>	ServerInitializer::initServers(void) {
+std::set<int>	ServerInitializer::initServers(int epollFd) {
 
 	std::set<int>	serversSockets;
 	const std::vector<serverConfig>& configs = _configs.getPreInitConfigs();
@@ -101,7 +101,7 @@ std::set<int>	ServerInitializer::initServers(void) {
 		int	sock = socket(AF_INET, SOCK_STREAM, 0);
 		if (sock >= 0) {
 			try {
-				socketInitProcess(sock, config);
+				socketInitProcess(epollFd, sock, config);
 				serversSockets.insert(sock);
 			}
 			catch (const std::exception& e) {

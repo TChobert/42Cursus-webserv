@@ -1,29 +1,52 @@
 #include "EventsManager.hpp"
 
-EventsManager::EventsManager(ConfigStore& configs,
-	ServerInitializer& initializer, Dispatcher& dispatcher) :
-	_configs(configs), _initializer(initializer), _dispatcher(dispatcher),
-	_listenSockets(), _clients(), _epollFd(-1)
-{
-	_epollFd = epoll_create1(0);
-	if (_epollFd < 0) {
-		throw std::runtime_error("Epoll create failure");
-	}
+EventsManager::EventsManager(int epollFd, ConfigStore& configs,
+								ServerInitializer& initializer,
+								const moduleRegistry& modules)
+	: _epollFd(epollFd),
+	_configs(configs),
+	_initializer(initializer),
+	_listenSockets(),
+	_clients(),
+	_executorFds(),
+	_dispatcher(epollFd, _executorFds,
+		modules.reader, modules.parser, modules.validator,
+		modules.executor, modules.responseBuilder,
+		modules.sender, modules.postSender),
+	_reader(modules.reader),
+	_parser(modules.parser),
+	_validator(modules.validator),
+	_executor(modules.executor),
+	_responseBuilder(modules.responseBuilder),
+	_sender(modules.sender),
+	_postSender(modules.postSender) {}
+
+EventsManager::~EventsManager(void) {
+	deleteAllNetwork();
 }
 
-void	EventsManager::deleteClient(int fd) {
-	close(fd);
-	_clients.erase(fd);
+void	EventsManager::deleteClient(Conversation& client) {
+
+	if (client.tempFd != -1) {
+		close(client.tempFd);
+		_executorFds.erase(client.tempFd);
+		client.tempFd = -1;
+	}
+	if (client.fdToClose != -1) {
+		close(client.fdToClose);
+		_executorFds.erase(client.fdToClose);
+		client.fdToClose = -1;
+	}
+	close(client.fd);
+	_clients.erase(client.fd);
 }
 
 void EventsManager::deleteAllClients(void) {
 
-	std::vector<int> toDelete;
-	for (std::map<int, Conversation>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
-		toDelete.push_back(it->first);
-	}
-	for (size_t i = 0; i < toDelete.size(); ++i) {
-		deleteClient(toDelete[i]);
+	std::map<int, Conversation> toDelete;
+	toDelete.swap(_clients);
+	for (std::map<int, Conversation>::iterator it = toDelete.begin(); it != toDelete.end(); ++it) {
+		deleteClient(it->second);
 	}
 }
 
@@ -45,15 +68,16 @@ void	EventsManager::deleteAllNetwork(void) {
 		close (_epollFd);
 }
 
-EventsManager::~EventsManager(void) {
-	deleteAllNetwork();
-}
-
 void EventsManager::handleClientEvent(int fd) {
 
-	std::map<int, Conversation>::iterator it = _clients.find(fd);
-	if (it != _clients.end()) {
-		_dispatcher.dispatch(it->second);
+	std::map<int, Conversation*>::iterator execIt = _executorFds.find(fd);
+	if (execIt != _executorFds.end()) {
+		_dispatcher.dispatch(*execIt->second);
+	} else {
+		std::map<int, Conversation>::iterator clientIt = _clients.find(fd);
+		if (clientIt != _clients.end()) {
+			_dispatcher.dispatch(clientIt->second);
+		}
 	}
 }
 
@@ -105,7 +129,7 @@ int	EventsManager::acceptClient(int serverFd) {
 
 	int	clientFd = accept (serverFd, (sockaddr *)&clientAddress, &clientLen);
 	if (clientFd < 0) {
-		if (errno == EAGAIN || errno ==EWOULDBLOCK) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK) {
 			return (-1);
 		}
 		std::ostringstream	oss;
@@ -130,24 +154,19 @@ void	EventsManager::handleNewClient(int serverFd) {
 	}
 }
 
-void	EventsManager::closeFinishedClients(void) {
+void EventsManager::closeFinishedClients(void) {
 
-	std::vector<int>	toRemove;
-	std::map<int, Conversation>::iterator it;
+	std::vector<int> toRemove;
 
-	for (it = _clients.begin(); it != _clients.end(); ++it) {
-		Conversation&	currentClient = it->second;
-
-		if (currentClient.state == FINISH) {
+	for (std::map<int, Conversation>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+		if (it->second.state == FINISH) {
 			toRemove.push_back(it->first);
 		}
 	}
-
 	for (size_t i = 0; i < toRemove.size(); ++i) {
-		deleteClient(toRemove[i]);
+		deleteClient(_clients[toRemove[i]]);
 	}
 }
-
 void	EventsManager::handleNotifiedEvents(int fdsNumber) {
 
 	for (int i = 0; i < fdsNumber; ++i) {
@@ -184,6 +203,6 @@ void	EventsManager::listenEvents(void) {
 
 void	EventsManager::run(void) {
 
-	_listenSockets = _initializer.initServers();
+	_listenSockets = _initializer.initServers(_epollFd);
 	listenEvents();
 }

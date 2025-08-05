@@ -1,8 +1,9 @@
 #pragma once
+#include "IModule.hpp"
 #include "../webserv.hpp"
 #include <vector>
 
-class Validator {
+class Validator : public IModule {
 private:
 	//Critical means we close the connexion
 	void validateCritical(Conversation& conv);

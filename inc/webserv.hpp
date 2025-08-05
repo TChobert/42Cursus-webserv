@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <iostream>
 #include <ctime>
 #include <sys/types.h>
 #include "webserv_enum.hpp"
@@ -42,8 +43,8 @@ class Conversation {
 public:
 	int fd;
 	int tempFd;
-	int bodyFd;
 	int fdToClose;
+	int bodyFd;
 	pid_t cgiPid;
 	time_t cgiStartTime;
 	serverConfig config;
