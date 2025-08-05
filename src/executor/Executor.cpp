@@ -38,12 +38,17 @@ void	Executor::updateResponseData(Conversation& conv)
 		}
 	}
 
-	//CAS de 201, 301, 302
+	//CAS de 201, 301, 302 >> build Location au cas ou c'est vide et necessaire
 	if ((conv.resp.status == CREATED || (conv.resp.status >= 300 && conv.resp.status < 400))
 		&& conv.resp.location.empty())
 	{
-		//MAJ avec la location nouvellement creee
-		//TODO vis a vis de POST
+		if (!conv.req.uploadFileName.empty() && !conv.location->uploadStore.empty())
+		{
+			std::string baseUri = conv.req.uri;
+			if (!baseUri.empty() && baseUri[baseUri.size() - 1] != '/')
+				baseUri += '/';
+			conv.resp.location = baseUri + conv.req.uploadFileName;
+		}
 	}
 
 	//CAS de 204
@@ -87,22 +92,19 @@ void	Executor::execute(Conversation& conv)
 		case READ_EXEC_GET_STATIC:
 			GetExecutor::resumeStatic(conv);
 			break;
-// 		case READ_EXEC_GET_CGI:
-// 			GetExecutor::resumeReadCGI(conv);
-// 			break;
-// 		case WRITE_EXEC_GET_CGI:
-// 			GetExecutor::resumeWriteCGI(conv);
-// 			break;
+		case READ_EXEC_GET_CGI:
+			GetExecutor::resumeReadCGI(conv);
+			break;
 //cas pour POST
 		case WRITE_EXEC_POST_BODY:
 			PostExecutor::resumePostWriteBodyToFile(conv);
 			break;
-// 		case READ_EXEC_POST_CGI:
-// 			PostExecutor::resumeReadPostCGI(conv);
-// 			break;
-// 		case WRITE_EXEC_POST_RESPONSE:
-// 			PostExecutor::resumePostResponse(conv);
-// 			break;
+		case WRITE_EXEC_POST_CGI:
+			PostExecutor::resumePostWriteBodyToCGI(conv);
+			break;
+		case READ_EXEC_POST_CGI:
+			PostExecutor::resumePostReadCGI(conv);
+			break;
 		default:
 			setResponse(conv, INTERNAL_SERVER_ERROR);
 			break;

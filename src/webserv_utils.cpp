@@ -2,6 +2,9 @@
 #include <string>
 #include <sstream>
 #include <ctime>
+#include <cstdlib>
+#include <sys/wait.h>
+
 
 #include "../inc/webserv.hpp"
 
@@ -88,7 +91,10 @@ std::string getFileExtension(const std::string& path)
 	size_t dot = path.rfind('.');
 	if (dot == std::string::npos)
 		return "";
-	return path.substr(dot);
+	size_t slashAfterDot = path.find('/', dot);
+	if (slashAfterDot == dot + 1)
+		return "";
+	return path.substr(dot, (slashAfterDot == std::string::npos) ? std::string::npos : slashAfterDot - dot);
 }
 
 std::string getMimeType(const std::string& path)
@@ -105,4 +111,42 @@ std::string getMimeType(const std::string& path)
 	if (ext == ".txt") return "text/plain";
 
 	return "application/octet-stream";
+}
+
+void	freeEnv(char **envp)
+{
+	if (!envp)
+		return;
+	for (int i = 0; envp[i] != NULL; ++i)
+		free(envp[i]);
+	free(envp);
+}
+
+std::string trim(const std::string& str)
+{
+	size_t start = str.find_first_not_of(" \t\r\n");
+	if (start == std::string::npos)
+		return "";
+
+	size_t end = str.find_last_not_of(" \t\r\n");
+	return str.substr(start, end - start + 1);
+}
+
+bool hasCgiProcessExitedCleanly(pid_t cgiPid)
+{
+	int status;
+	//WNOHANG permet de mettre waitpid en non bloquant
+	pid_t ret = waitpid(cgiPid, &status, WNOHANG);
+	if (ret == cgiPid)
+	{
+		if (WIFEXITED(status))
+			return WEXITSTATUS(status) == 0; // si tout s'est bien passe > true
+		else if (WIFSIGNALED(status)) // si process a ete tue par un signal
+			return false;
+		return true;
+	}
+	else if (ret == 0)
+		return false;
+	else
+		return false; //erreur waitpid
 }

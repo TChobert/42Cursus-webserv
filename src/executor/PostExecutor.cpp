@@ -14,11 +14,11 @@ static std::string	generateUploadFileName()
 
 void PostExecutor::handlePost(Conversation& conv)
 {
-	// if (CGIHandler::isCGI(conv))
-	// {
-	// 	CGIHandler::handleCGI(conv);
-	// 	return;
-	// }
+	if (CGIHandler::isCGI(conv))
+	{
+		CGIHandler::handleCGI(conv);
+		return;
+	}
 	if (!conv.location->uploadEnabled)
 		return Executor::setResponse(conv, FORBIDDEN);
 	if (conv.location->uploadStore.empty())
@@ -35,8 +35,8 @@ void PostExecutor::handlePost(Conversation& conv)
 	}
 
 	conv.tempFd = fd;
-	conv.state = WRITE_EXEC;
 	conv.eState = WRITE_EXEC_POST_BODY;
+	conv.state = WRITE_EXEC;
 }
 
 void PostExecutor::resumePostWriteBodyToFile(Conversation& conv)
@@ -45,7 +45,7 @@ void PostExecutor::resumePostWriteBodyToFile(Conversation& conv)
 
 	if (written < 0)
 	{
-		close(conv.tempFd);
+		conv.fdToClose = conv.tempFd;
 		conv.tempFd = -1;
 		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 		return;
@@ -56,7 +56,7 @@ void PostExecutor::resumePostWriteBodyToFile(Conversation& conv)
 
 	if (conv.req.body.empty())
 	{
-		close(conv.tempFd);
+		conv.fdToClose = conv.tempFd;
 		conv.tempFd = -1;
 		conv.resp.body = "<html><body><h1>Upload successful</h1></body></html>";
 		Executor::setResponse(conv, CREATED);
@@ -64,17 +64,65 @@ void PostExecutor::resumePostWriteBodyToFile(Conversation& conv)
 	else
 	{
 		//il reste des donnees a ecrire: on reste sur les memes states
-		conv.state = WRITE_EXEC;
 		conv.eState = WRITE_EXEC_POST_BODY;
+		conv.state = WRITE_EXEC;
 	}
 }
 
-// void PostExecutor::resumeReadPostCGI(Conversation&)
-// {
+void PostExecutor::resumePostWriteBodyToCGI(Conversation& conv)
+{
+	ssize_t written = write(conv.tempFd, conv.req.body.c_str(), conv.req.body.size());
 
-// }
+	if (written < 0)
+	{
+		conv.fdToClose = conv.tempFd;
+		conv.tempFd = -1;
+		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+		return;
+	}
 
-// void PostExecutor::resumePostResponse(Conversation&)
-// {
+	conv.req.body.erase(0, written);
 
-// }
+	if (conv.req.body.empty())
+	{
+		conv.fdToClose = conv.tempFd;
+		conv.tempFd = conv.bodyFd; //je switch et je stocke bodyFd dans tempFd (comme ca, il reste le seul a etre surveille par epoll)
+		conv.bodyFd = -1;
+		conv.eState = READ_EXEC_POST_CGI;
+		conv.state = READ_EXEC;
+	}
+	else
+	{
+		conv.eState = WRITE_EXEC_POST_CGI;
+		conv.state = WRITE_EXEC;
+	}
+}
+
+void PostExecutor::resumePostReadCGI(Conversation& conv)
+{
+	char buffer[1024];
+	ssize_t bytesRead = read(conv.tempFd, buffer, sizeof(buffer));
+
+	if (bytesRead > 0)
+		conv.cgiOutput.append(buffer, bytesRead);
+	else if (bytesRead == 0)
+	{
+		conv.fdToClose = conv.tempFd;
+		conv.tempFd = -1;
+		if (!hasCgiProcessExitedCleanly(conv.cgiPid))
+		{
+			Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+			return;
+		}
+		CGIHandler::parseCgiOutput(conv);
+		Executor::updateResponseData(conv);
+		conv.eState = EXEC_START;
+		conv.state = RESPONSE;
+	}
+	else
+	{
+		conv.fdToClose = conv.tempFd;
+		conv.tempFd = -1;
+		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+	}
+}

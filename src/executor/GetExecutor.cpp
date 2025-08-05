@@ -1,8 +1,11 @@
 #include "GetExecutor.hpp"
 #include "Executor.hpp"
+#include "CGIHandler.hpp"
 #include <unistd.h>
 #include <dirent.h>
 #include <sstream>
+
+/* ---------------- PUBLIC METHODS ------------------ */
 
 void	GetExecutor::handleGet(Conversation& conv)
 {
@@ -23,9 +26,9 @@ void	GetExecutor::handleGet(Conversation& conv)
 
 void	GetExecutor::handleFile(Conversation& conv)
 {
-	// if (CGIHandler::isCGI(conv))
-	// 	CGIHandler::handleCGI(conv);
-	// else
+	if (CGIHandler::isCGI(conv))
+		CGIHandler::handleCGI(conv);
+	else
 		StaticFileHandler::handleStaticFile(conv);
 }
 
@@ -147,26 +150,60 @@ void GetExecutor::resumeStatic(Conversation& conv)
 	}
 	else if (bytesRead == 0)
 	{
-		close(conv.tempFd);
+		conv.fdToClose = conv.tempFd;
 		conv.tempFd = -1;
 		Executor::setResponse(conv, OK);
 		return;
 	}
 	else
 	{
-		close(conv.tempFd);
+		conv.fdToClose = conv.tempFd;
 		conv.tempFd = -1;
 		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 		return;
 	}
 }
 
-// void GetExecutor::resumeReadCGI(Conversation&)
-// {
+//EXEMPLE de lecture de resultat de script CGI sans parsing:
+// Content-Type: text/html
+// Set-Cookie: sessionid=123abc
 
-// }
+// <html>
+// <head><title>OK</title></head>
+// <body>Hello from CGI</body>
+// </html>
 
-// void GetExecutor::resumeWriteCGI(Conversation&)
-// {
+//donc il faut parser toute cette lecture et remettre dans les bonnes parties
+//pour construire la reponse HTTP
+// >> extraire headers et mettre dans les variables appropriees
+// >> extraire body
 
-// }
+void GetExecutor::resumeReadCGI(Conversation& conv)
+{
+	char buffer[1024];
+	ssize_t bytesRead = read(conv.tempFd, buffer, sizeof(buffer));
+	if (bytesRead > 0)
+		conv.cgiOutput.append(buffer, bytesRead);
+	else if (bytesRead == 0)
+	{
+		conv.fdToClose = conv.tempFd;
+		conv.tempFd = -1;
+		if (!hasCgiProcessExitedCleanly(conv.cgiPid))
+		{
+			Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+			return;
+		}
+		CGIHandler::parseCgiOutput(conv);
+		Executor::updateResponseData(conv);
+		conv.eState = EXEC_START;
+		conv.state = RESPONSE;
+	}
+	else
+	{
+		conv.fdToClose = conv.tempFd;
+
+		conv.tempFd = -1;
+		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+	}
+}
+
