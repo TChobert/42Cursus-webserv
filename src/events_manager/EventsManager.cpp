@@ -9,7 +9,7 @@ EventsManager::EventsManager(int epollFd, ConfigStore& configs,
 	_listenSockets(),
 	_clients(),
 	_executorFds(),
-	_dispatcher(epollFd, _executorFds,
+	_dispatcher(epollFd, _clients, _executorFds,
 		modules.reader, modules.parser, modules.validator,
 		modules.executor, modules.responseBuilder,
 		modules.sender, modules.postSender),
@@ -70,12 +70,14 @@ void	EventsManager::deleteAllNetwork(void) {
 
 void EventsManager::handleClientEvent(int fd) {
 
+	std::cout << "HANDLE CLIENT EVENT CALLED" << std::endl;
 	std::map<int, Conversation*>::iterator execIt = _executorFds.find(fd);
 	if (execIt != _executorFds.end()) {
 		_dispatcher.dispatch(*execIt->second);
 	} else {
 		std::map<int, Conversation>::iterator clientIt = _clients.find(fd);
 		if (clientIt != _clients.end()) {
+			std::cout << "Client found !!" << std::endl;
 			_dispatcher.dispatch(clientIt->second);
 		}
 	}
@@ -110,6 +112,7 @@ void	EventsManager::setClientConversation(int serverFd, int clientFd) {
 
 void	EventsManager::addClientToInterestList(int clientFd) {
 
+	std::cout << "ADD CLIENT TO INTEREST LIST" << std::endl;
 	struct	epoll_event	ev;
 	ev.data.fd = clientFd;
 	ev.events = EPOLLIN;
@@ -127,6 +130,7 @@ int	EventsManager::acceptClient(int serverFd) {
 	std::memset(&clientAddress, 0, sizeof(clientAddress));
 	socklen_t	clientLen = sizeof(clientAddress);
 
+	std::cout << "ACCEPT CLIENT" << std::endl;
 	int	clientFd = accept (serverFd, (sockaddr *)&clientAddress, &clientLen);
 	if (clientFd < 0) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -142,6 +146,7 @@ int	EventsManager::acceptClient(int serverFd) {
 
 void	EventsManager::handleNewClient(int serverFd) {
 
+	std::cout << "HANDLE NEW CLIENT CALLED" << std::endl;
 	try {
 		int	clientFd = acceptClient(serverFd);
 		if (clientFd != -1) {
@@ -169,6 +174,7 @@ void EventsManager::closeFinishedClients(void) {
 }
 void	EventsManager::handleNotifiedEvents(int fdsNumber) {
 
+	std::cout << "HANDLE NOTIFIED EVENTS CALLED" << std::endl;
 	for (int i = 0; i < fdsNumber; ++i) {
 
 		int currentFd = _events[i].data.fd;
@@ -184,7 +190,8 @@ void	EventsManager::handleNotifiedEvents(int fdsNumber) {
 
 void	EventsManager::listenEvents(void) {
 
-	while (true) {
+	std::cout << "LISTEN EVENTS CALLED" << std::endl;
+ 	while (true) {
 
 		closeFinishedClients();
 		int	fdsNumber = epoll_wait(_epollFd, _events, MAX_EVENTS, - 1);
@@ -203,6 +210,7 @@ void	EventsManager::listenEvents(void) {
 
 void	EventsManager::run(void) {
 
+	std::cout << "EVENTS MANAGER CALLED" << std::endl;
 	_listenSockets = _initializer.initServers(_epollFd);
 	listenEvents();
 }

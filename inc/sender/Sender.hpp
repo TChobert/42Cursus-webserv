@@ -2,6 +2,7 @@
 # define SENDER_HPP
 
 # include <unistd.h>
+# include <sys/socket.h>
 # include <cstring>
 #include "webserv.hpp"
 # include "webserv_enum.hpp"

@@ -4,18 +4,20 @@
 
 bool PostSender::isKeepAlive(const Conversation& conv)
 {
-	std::map<std::string, std::string>::const_iterator it = conv.request.headers.find("Connection");
+	std::map<std::string, std::string>::const_iterator it = conv.req.header.find("Connection");
 
-	if (it != conv.request.headers.end())
+	if (it != conv.req.header.end())
 	{
-		return toLower(it->second) == "keep-alive";
+		std::string value = it->second;
+		toLower(value);
+		return value == "keep-alive";
 	}
 	return (true); //par defaut, keep-alive
 }
 
 bool PostSender::isContinueStatus(const Conversation& conv)
 {
-	return conv.resp.statusCode == 100;
+	return conv.resp.status == 100;
 }
 
 /* ---------------- PUBLIC METHODS ------------------ */

@@ -11,6 +11,7 @@
 #include <sys/epoll.h>
 #include <sstream>
 #include <fcntl.h>
+#include <cerrno>
 
 #include "ConfigStore.hpp"
 

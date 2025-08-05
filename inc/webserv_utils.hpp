@@ -23,3 +23,4 @@ std::string	getMimeType(const std::string& path);
 void		freeEnv(char **envp);
 std::string trim(const std::string& str);
 bool		hasCgiProcessExitedCleanly(pid_t cgiPid);
+std::vector<std::string> split(const std::string& str, const char delimiter);

@@ -8,7 +8,7 @@ ssize_t	Sender::trySend(Conversation &conv)
 	size_t alreadySent = conv.bytesSent;
 	size_t bytesRemaining = responseData.size() - alreadySent;
 
-	ssize_t bytesSentNow = ::send(conv.client_fd,
+	ssize_t bytesSentNow = send(conv.fd,
 									responseData.data() + alreadySent,
 									bytesRemaining,
 									0);

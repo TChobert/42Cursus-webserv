@@ -4,7 +4,7 @@ CXXFLAGS := -std=c++98 -Wall -Wextra #-Werror
 NAME := webserv
 
 SRC_DIR := src/
-SRC := $(shell find src -name '*.cpp')
+SRC := $(shell find $(SRC_DIR) -name '*.cpp')
 
 INC := inc/
 
@@ -12,16 +12,20 @@ OBJ_DIR := .obj/
 OBJ := $(patsubst $(SRC_DIR)%.cpp, $(OBJ_DIR)%.o, $(SRC))
 DEP := $(patsubst $(SRC_DIR)%.cpp, $(OBJ_DIR)%.d, $(SRC))
 
+# 🔽 Ajout : inclure tous les sous-dossiers de inc/
+INCLUDE_DIRS := $(shell find $(INC) -type d)
+INCLUDES := $(addprefix -I, $(INCLUDE_DIRS))
+
 all: $(NAME)
 
 bonus: all
 
 $(NAME): $(OBJ)
-	$(CXX) $(CXXFLAGS) -I$(INC) $^ -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $^ -o $@
 
 $(OBJ_DIR)%.o: $(SRC_DIR)%.cpp
 	@ mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -I$(INC) -MMD -MP  -c $< -o $@ 
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -MMD -MP -c $< -o $@ 
 
 -include $(DEP)
 

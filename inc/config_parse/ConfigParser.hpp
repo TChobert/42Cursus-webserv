@@ -19,7 +19,7 @@
 #include "locationPropertiesFlags.hpp"
 
 enum currentState {
-	START,
+	STARTING,
 	HEADER_SECTION,
 	SERVER_SECTION,
 	LOCATION_SECTION,
@@ -35,7 +35,7 @@ struct parserContext {
 	serverConfig currentConfig;
 	std::vector<serverConfig> finishedConfigs;
 
-	parserContext() : state(START), isInServerScope(false), currentLocationName("") {}
+	parserContext() : state(STARTING), isInServerScope(false), currentLocationName("") {}
 };
 
 class ConfigParser {

@@ -7,12 +7,13 @@
 #include <iostream>
 #include <unistd.h>
 #include <string.h>
+#include <cerrno>
 
 #include "webserv.hpp"
 #include "webserv_enum.hpp"
 #include "IModule.hpp"
 
-typedef enum e_interest_mode {
+enum e_interest_mode {
 
 	READ,
 	WRITE,
@@ -25,6 +26,7 @@ class Dispatcher {
 	private:
 
 	int&		_epollFd;
+	std::map<int, Conversation>& _clientsFds;
 	std::map<int, Conversation*>& _executorFds;
 	IModule*	_reader;
 	IModule*	_parser;
@@ -43,7 +45,7 @@ class Dispatcher {
 
 	public:
 
-	Dispatcher(int EpollFd, std::map<int, Conversation*>& executorFds, IModule* reader, IModule* parser, IModule* validator, IModule* executor,
+	Dispatcher(int& EpollFd, std::map<int, Conversation>& clientsFds, std::map<int, Conversation*>& executorFds, IModule* reader, IModule* parser, IModule* validator, IModule* executor,
 		IModule* responseBuilder, IModule* sender, IModule* postSender);
 	~Dispatcher(void);
 

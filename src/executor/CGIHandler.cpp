@@ -100,7 +100,7 @@ char**	CGIHandler::prepareEnv(Conversation& conv)
 	envStrings.push_back("SCRIPT_FILENAME=" + conv.req.pathOnDisk);
 	envStrings.push_back("QUERY_STRING=" + conv.req.query);
 	envStrings.push_back("SERVER_PROTOCOL=HTTP/1.1");
-	envStrings.push_back("SERVER_NAME=" + conv.config.identity.server_name);
+	envStrings.push_back("SERVER_NAME=" + conv.config.identity.serverName);
 	envStrings.push_back("SERVER_PORT=" + intToString(conv.config.identity.port));
 
 	if (conv.req.method == "POST")

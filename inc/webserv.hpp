@@ -44,8 +44,9 @@ class Conversation {
 public:
 	int fd;
 	int tempFd;
-	int fdToClose;
 	int bodyFd;
+	int fdToClose;
+	size_t bytesSent;
 	pid_t cgiPid;
 	time_t cgiStartTime;
 	serverConfig config;
@@ -58,5 +59,5 @@ public:
 	execState eState;
 	std::string finalResponse;
 	std::string cgiOutput;
-	Conversation() : fd(-1), tempFd(-1), bodyFd(-1), fdToClose(-1), cgiPid(-1), cgiStartTime(0), state(PARSE), pState(START), eState(EXEC_START) {};
+	Conversation() : fd(-1), tempFd(-1), bodyFd(-1), fdToClose(-1),  bytesSent(0), cgiPid(-1), cgiStartTime(0), state(PARSE), pState(START), eState(EXEC_START) {};
 };

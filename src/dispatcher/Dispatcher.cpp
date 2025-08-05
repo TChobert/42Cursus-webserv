@@ -1,9 +1,25 @@
 #include "Dispatcher.hpp"
 
-Dispatcher::Dispatcher(int EpollFd, std::map<int, Conversation*>& executorFds, IModule* reader, IModule* parser, IModule* validator, IModule* executor,
-		IModule* responseBuilder, IModule* sender, IModule* postSender) :
-		_epollFd(EpollFd), _reader(reader), _parser(parser), _validator(validator), _executor(executor),
-		_responseBuilder(responseBuilder), _sender(sender), _postSender(postSender), _executorFds(executorFds) {}
+Dispatcher::Dispatcher(int& EpollFd,
+						std::map<int, Conversation>& clientsFds,
+						std::map<int, Conversation*>& executorFds,
+						IModule* reader,
+						IModule* parser,
+						IModule* validator,
+						IModule* executor,
+						IModule* responseBuilder,
+						IModule* sender,
+						IModule* postSender) :
+	_epollFd(EpollFd),
+	_clientsFds(clientsFds),
+	_executorFds(executorFds),
+	_reader(reader),
+	_parser(parser),
+	_validator(validator),
+	_executor(executor),
+	_responseBuilder(responseBuilder),
+	_sender(sender),
+	_postSender(postSender) {}
 
 Dispatcher::~Dispatcher(void) {}
 
@@ -47,18 +63,25 @@ void	Dispatcher::setExecutorInterest(Conversation& conv, e_interest_mode mode) {
 	}
 }
 
-void	Dispatcher::setClientInterest(Conversation& conv, e_interest_mode mode) {
+void Dispatcher::setClientInterest(Conversation& conv, e_interest_mode mode) {
 
+	if (_clientsFds.find(conv.fd) == _clientsFds.end()) {
+		std::cerr << "Client fd not found in clients map: " << conv.fd << std::endl;
+		return ;
+	}
 	struct epoll_event ev;
-
 	ev.data.fd = conv.fd;
+
 	switch (mode) {
 		case READ:
 			ev.events = EPOLLIN;
-			break ;
+			break;
 		case WRITE:
 			ev.events = EPOLLOUT;
 			break;
+		default:
+		std::cerr << "Unknown mode in setClientInterest\n";
+		return;
 	}
 	if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, conv.fd, &ev) < 0) {
 		std::cerr << "Failed to change interest mode on fd: " << conv.fd << std::endl;
@@ -102,6 +125,7 @@ void	Dispatcher::removeExecutorFdFromEpoll(Conversation& conv) {
 
 void	Dispatcher::dispatch(Conversation& conv) {
 
+	std::cout << "Dispatcher called" << std::endl;
 	if (conv.state == WRITE_CLIENT)
 		conv.state = TO_SEND;
 	else if (conv.state == READ_CLIENT)
@@ -120,6 +144,7 @@ void	Dispatcher::dispatch(Conversation& conv) {
 			_executor->execute(conv);
 		}
 		else if (conv.state == TO_READ) {
+			std::cout << "READER CALLED" << std::endl;
 			_reader->execute(conv);
 		}
 		else if (conv.state == RESPONSE) {
@@ -129,6 +154,7 @@ void	Dispatcher::dispatch(Conversation& conv) {
 			_postSender->execute(conv);
 		}
 		else if (conv.state == PARSE || conv.state == PARSE_BODY || conv.state == EOF_CLIENT) {
+			std::cout << "PARSER CALLED" << std::endl;
 			_parser->execute(conv);
 		}
 		else if (conv.state == VALIDATE) {

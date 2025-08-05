@@ -9,51 +9,88 @@
 
 void	GetExecutor::handleGet(Conversation& conv)
 {
+	std::cout << "[handleGet] pathOnDisk: " << conv.req.pathOnDisk << std::endl;
 	const std::string& path = conv.req.pathOnDisk;
 	statusCode code = ResourceChecker::checkAccess(path);
 	if (code != NOT_A_STATUS_CODE)
 	{
+		std::cout << "[handleGet] Access check failed with code: " << code << std::endl;
 		Executor::setResponse(conv, code);
 		return;
 	}
-	if (ResourceChecker::isFile(path))
+	if (ResourceChecker::isFile(path)) {
+		std::cout << "[handleGet] Detected file." << std::endl;
 		handleFile(conv);
-	else if (ResourceChecker::isDir(path))
+	}
+	else if (ResourceChecker::isDir(path)) {
+		std::cout << "[handleGet] Detected directory." << std::endl;
 		handleDirectory(conv);
-	else
+	}
+	else {
+		std::cout << "[handleGet] Neither file nor directory -> forbidden." << std::endl;
 		Executor::setResponse(conv, FORBIDDEN);
+	}
 }
 
 void	GetExecutor::handleFile(Conversation& conv)
 {
+	std::cout << "[handleFile] pathOnDisk: " << conv.req.pathOnDisk << std::endl;
 	if (CGIHandler::isCGI(conv))
 		CGIHandler::handleCGI(conv);
 	else
 		StaticFileHandler::handleStaticFile(conv);
 }
 
-void	GetExecutor::handleDirectory(Conversation& conv)
+void GetExecutor::handleDirectory(Conversation& conv)
 {
 	const std::string& dirPath = conv.req.pathOnDisk;
-	const std::string& indexName = conv.location->index;
-	std::string indexPath = dirPath + "/" + indexName;
+	const std::vector<std::string>& indexFiles = conv.location->indexFiles; // maintenant vecteur
 
-	if (!indexName.empty())
+	std::cout << "[handleDirectory] dirPath: " << dirPath << std::endl;
+	for (size_t i = 0; i < indexFiles.size(); ++i)
 	{
+		std::string indexPath = dirPath + "/" + indexFiles[i];
+		std::cout << "[handleDirectory] Checking index file: " << indexPath << std::endl;
+
 		if (ResourceChecker::exists(indexPath) &&
 			ResourceChecker::isFile(indexPath) &&
 			ResourceChecker::isReadable(indexPath))
-		{
-			conv.req.pathOnDisk = indexPath;
-			handleFile(conv);
-			return;
-		}
+			{
+				std::cout << "[handleDirectory] Found index file: " << indexPath << std::endl;
+				conv.req.pathOnDisk = indexPath;
+				handleFile(conv);
+				return ;
+			}
 	}
+	std::cout << "[handleDirectory] No index found. autoIndex: " << conv.location->autoIndex << std::endl;
 	if (conv.location->autoIndex)
 		handleAutoindex(conv);
 	else
 		Executor::setResponse(conv, FORBIDDEN);
 }
+
+// void	GetExecutor::handleDirectory(Conversation& conv)
+// {
+// 	const std::string& dirPath = conv.req.pathOnDisk;
+// 	const std::string& indexName = conv.location->indexFiles;
+// 	std::string indexPath = dirPath + "/" + indexName;
+
+// 	if (!indexName.empty())
+// 	{
+// 		if (ResourceChecker::exists(indexPath) &&
+// 			ResourceChecker::isFile(indexPath) &&
+// 			ResourceChecker::isReadable(indexPath))
+// 		{
+// 			conv.req.pathOnDisk = indexPath;
+// 			handleFile(conv);
+// 			return;
+// 		}
+// 	}
+// 	if (conv.location->autoIndex)
+// 		handleAutoindex(conv);
+// 	else
+// 		Executor::setResponse(conv, FORBIDDEN);
+// }
 
 //IMPORTANCE DISTINCTION URI / PATHONDISK pour AutoIndex
 
