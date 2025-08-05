@@ -31,17 +31,29 @@ void	ServerInitializer::setSocketNonBlocking(int socket) {
 
 void	ServerInitializer::bindSocket(int socket, const serverConfig& config ) {
 
-	sockaddr_in	address;
-	std::memset(&address, 0, sizeof(address));
-	address.sin_family = AF_INET;
-	address.sin_port = htons(config.identity.port);
-	address.sin_addr.s_addr = inet_addr(config.identity.host.c_str());
+	const std::string& ip = config.identity.host;
+	const int port = config.identity.port;
 
-	if (bind(socket, (struct sockaddr *)&address, sizeof(address)) < 0) {
-		std::ostringstream oss;
-		oss << "Failed to bind socket on " << config.identity.host << ":" << config.identity.port << ". Closing it.";
-		throw std::runtime_error(oss.str());
+	struct addrinfo hints;
+	struct addrinfo *res;
+
+	std::memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	std::ostringstream portStr;
+	portStr << port;
+
+	int ret = getaddrinfo((ip == "*" ? NULL : ip.c_str()), portStr.str().c_str(), &hints, &res);
+	if (ret != 0 || !res) {
+		throw std::runtime_error("getaddrinfo() failed for " + ip + ":" + portStr.str() + ": " + gai_strerror(ret));
 	}
+	if (bind(socket, res->ai_addr, res->ai_addrlen) < 0) {
+		freeaddrinfo(res);
+		throw std::runtime_error("bind() failed on " + ip + ":" + portStr.str() + ": " + strerror(errno));
+	}
+	freeaddrinfo(res);
 }
 
 void	ServerInitializer::setSocketListeningMode(int socket) {

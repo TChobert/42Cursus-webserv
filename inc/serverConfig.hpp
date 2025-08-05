@@ -27,33 +27,21 @@ struct locationConfig {
 	std::map<cgiExtension, cgiHandler> cgiHandlers;
 };
 
-// Error pages paths. Optionnal for some of them. We can add more later or remove some of them if necessary
-struct errorPages {
-
-	std::string	error_400;
-	std::string	error_403;
-	std::string	error_404;
-	std::string	error_405;
-	std::string	error_408;
-	std::string	error_413;
-	std::string	error_500;
-	std::string	error_501;
-	std::string	error_504;
-};
-
 struct serverInfo {
 
-	unsigned int	port;
+	uint16_t		port;
 	std::string		host;
-	std::string		server_name;
+	std::string		serverName;
+	std::string		root;
+	bool			hasRoot;
 };
 
 struct serverConfig {
 
 	serverInfo		identity;
-	errorPages		errorPagesPaths;
 	std::map<int, std::string>	errorPagesCodes;
 	std::map<locationName, locationConfig> locations;
+	// CONSTRUCTOR ??
 };
 
 // std::map<int, int> m;

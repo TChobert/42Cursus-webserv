@@ -16,6 +16,7 @@
 //- gestion timeouts
 
 
+
 /* ---------------- PRIVATE METHODS ------------------ */
 
 //Exemple:
@@ -184,6 +185,7 @@ void	CGIHandler::handleGetCGI(Conversation& conv)
 		close(pipe_out[1]);
 		conv.cgiPid = pid;
 		conv.cgiStartTime = time(NULL);
+
 		conv.tempFd = pipe_out[0]; //on veut lire ce qui a ete stocke dans le pipe
 		conv.eState = READ_EXEC_GET_CGI;
 		conv.state = READ_EXEC;

@@ -201,6 +201,7 @@ void GetExecutor::resumeReadCGI(Conversation& conv)
 	else
 	{
 		conv.fdToClose = conv.tempFd;
+
 		conv.tempFd = -1;
 		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 	}
