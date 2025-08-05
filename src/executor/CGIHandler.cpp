@@ -1,4 +1,186 @@
 #include "CGIHandler.hpp"
+#include "Executor.hpp"
+#include "webserv_utils.hpp"
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <cstdlib>
+#include <cstring>
+#include <vector>
+#include <sstream>
+
+//ATTENTION: ce qui peut etre encore a faire, a checker..
+//- Si CGI ecrit par un tiers, attention aux headers dangereux (ex : Transfer-Encoding, Content-Length, etc.)
+//- Redirections (status 3xx et Location): si CGI donne Location, peut-etre devoir le gerer dans updateResponseData?
+
+
+/* ---------------- PRIVATE METHODS ------------------ */
+
+//Exemple:
+// line = "Content-Type: text/html"
+
+// colon = 12
+
+// key = line.substr(0, 12) = "Content-Type"
+// value = line.substr(13) = " text/html"
+// value.erase(0, value.find_first_not_of(" \t")) => "text/html"
+
+void	CGIHandler::parseCgiOutput(Conversation& conv)
+{
+	const std::string& raw = conv.cgiOutput;
+
+	size_t headerEnd = raw.find("\r\n\r\n");
+	if (headerEnd == std::string::npos) //respecte pas format
+		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+
+
+	std::string headersPart = raw.substr(0, headerEnd);
+	std::string bodyPart = raw.substr(headerEnd + 4); // skip \r\n\r\n
+
+	std::istringstream stream(headersPart);
+	std::string line;
+	while (std::getline(stream, line))
+	{
+		if (line.empty())
+			continue;
+		if (!line.empty() && line[line.size() - 1] == '\r')
+			line.erase(line.size() - 1); // nettoie ligne en enlevant le "\r" s'il y en a un
+
+		size_t colon = line.find(':');
+		if (colon == std::string::npos)
+			continue; // ligne malformee, on continue
+
+		//separation "key: valeur"
+		std::string key = trim(line.substr(0, colon));
+		std::string value = trim(line.substr(colon + 1));
+
+		//repartition des headers dans leurs variables respectives
+		std::string keyLower = key;
+		toLower(keyLower);
+		if (keyLower == "content-type")
+			conv.resp.contentType = value;
+		else if (keyLower == "status")
+		{
+			int status = atoi(value.c_str());
+			if (status <= 0 || status > 599)
+				status = INTERNAL_SERVER_ERROR;
+			conv.resp.status = static_cast<statusCode>(status);
+		}
+		else if (keyLower == "set-cookie")
+			conv.resp.setCookies.push_back(value);
+		else
+			conv.resp.header[key] = value;
+	}
+
+	conv.resp.body = bodyPart;
+
+	if (conv.resp.status == 0)
+		conv.resp.status = OK;
+}
+
+
+char**	CGIHandler::prepareEnv(Conversation& conv)
+{
+	std::vector<std::string> envStrings;
+
+	//attention: difference entre SCRIPT_FILENAME et PATH_INFO
+
+	//SCRIPT_FILENAME = chemin absolu complet vers le fichier script donc pathOnDisk
+	//PATH_INFO = partie optionnelle de URL qui suit le script (parfois absent) > donne infos supp au moment de l'exec
+
+	//Exemple:
+	//URL = http://exemple.com/cgi-bin/monscript.py/foo/bar
+	//SCRIPT_FILENAME = /var/www/cgi-bin/monscript.py
+	//PATH_INFO = /foo/bar
+
+	envStrings.push_back("REQUEST_METHOD=" + conv.req.method);
+	envStrings.push_back("SCRIPT_FILENAME=" + conv.req.pathOnDisk);
+	envStrings.push_back("QUERY_STRING=" + conv.req.query);
+	envStrings.push_back("SERVER_PROTOCOL=HTTP/1.1");
+	envStrings.push_back("SERVER_NAME=" + conv.config.identity.server_name);
+	envStrings.push_back("SERVER_PORT=" + intToString(conv.config.identity.port));
+
+	char** envp = (char**)malloc(sizeof(char*) * (envStrings.size() + 1));
+	if (!envp)
+		return NULL;
+	for (size_t i = 0; i < envStrings.size(); ++i)
+	{
+		envp[i] = strdup(envStrings[i].c_str());
+		if (!envp[i])
+		{
+			freeEnv(envp);
+			return NULL;
+		}
+	}
+	envp[envStrings.size()] = NULL;
+	return envp;
+}
+
+void	CGIHandler::handleGetCGI(Conversation& conv)
+{
+	//chemin absolu du script CGI a executer
+	const std::string& scriptPath = conv.req.pathOnDisk;
+
+	//recuperer la bonne extension du script a faire (.py, .php, etc)
+	std::string extension = getFileExtension(scriptPath);
+
+	//recuperer le bon interpreteur par rapport a extension, exemple, .py >> python3
+	std::map<cgiExtension, cgiHandler>::const_iterator it = conv.location->cgiHandlers.find(extension);
+	if (it == conv.location->cgiHandlers.end())
+		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+	const std::string& interpreter = it->second;
+
+	//creation pipe pour que Webserv puisse lire la sortie du script (stockee dans le pipe)
+	int pipe_out[2];
+	if (pipe(pipe_out) == -1)
+		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+
+	pid_t pid = fork();
+	if (pid < 0)
+	{
+		close(pipe_out[0]);
+		close(pipe_out[1]);
+		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+		return;
+	}
+
+	//process enfant: rediriger sortie stdout vers pipe
+	if (pid == 0)
+	{
+		close(pipe_out[0]);
+		if (dup2(pipe_out[1], STDOUT_FILENO) == -1)
+			exit(EXIT_FAILURE); //kill processus enfant > waitpid parent avec erreur 500
+		close(pipe_out[1]);
+
+		char** envp = prepareEnv(conv);
+		if (!envp)
+			exit(EXIT_FAILURE);
+
+		//{interpreter, scriptPath, NULL}
+		char* argv[] = {const_cast<char*>(interpreter.c_str()), const_cast<char*>(scriptPath.c_str()), NULL};
+		execve(interpreter.c_str(), argv, envp);
+		freeEnv(envp);
+		exit(EXIT_FAILURE);
+	}
+
+	//process parent: lire dans le pipe ce qui a ete stocke par execve
+	//read > passage par epoll obligatoire
+	if (pid > 0)
+	{
+		close(pipe_out[1]);
+		conv.tempFd = pipe_out[0]; //on veut lire ce qui a ete stocke dans le pipe
+		conv.eState = READ_EXEC_GET_CGI;
+		conv.state = READ_EXEC;
+	}
+}
+
+// void	CGIHandler::handlePostCGI(Conversation& conv)
+// {
+
+// }
+
+/* ---------------- PUBLIC METHODS ------------------ */
 
 bool CGIHandler::isCGI(const Conversation& conv)
 {
@@ -24,7 +206,14 @@ bool CGIHandler::isCGI(const Conversation& conv)
 		return false;
 }
 
-// void CGIHandler::handleCGI(const Conversation& conv)
-// {
-// 	//check methode si GET ou POST...
-// }
+void CGIHandler::handleCGI(Conversation& conv)
+{
+	const std::string& method = conv.req.method;
+
+	if (method == "GET")
+		handleGetCGI(conv);
+	// else if (method == "POST")
+	// 	handlePostCGI(conv);
+	else
+		Executor::setResponse(conv, NOT_IMPLEMENTED);
+}

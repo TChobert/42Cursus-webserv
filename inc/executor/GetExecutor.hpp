@@ -9,13 +9,15 @@
 
 class GetExecutor
 {
+	private:
+
 	public:
-		static void handleGet(Conversation&);
+		static void handleGet(Conversation& conv);
 		static void handleFile(Conversation& conv);
 		static void handleDirectory(Conversation& conv);
 		static void handleAutoindex(Conversation& conv);
-		static void resumeStatic(Conversation&);
-		static void resumeReadCGI(Conversation&);
-		static void resumeWriteCGI(Conversation&);
+		static void resumeStatic(Conversation& conv);
+		static void resumeReadCGI(Conversation& conv);
+		static void resumeWriteCGI(Conversation& conv);
 };
 

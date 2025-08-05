@@ -2,6 +2,7 @@
 #include <string>
 #include <sstream>
 #include <ctime>
+#include <cstdlib>
 
 #include "../inc/webserv.hpp"
 
@@ -106,3 +107,23 @@ std::string getMimeType(const std::string& path)
 
 	return "application/octet-stream";
 }
+
+void	freeEnv(char **envp)
+{
+	if (!envp)
+		return;
+	for (int i = 0; envp[i] != NULL; ++i)
+		free(envp[i]);
+	free(envp);
+}
+
+std::string trim(const std::string& str)
+{
+	size_t start = str.find_first_not_of(" \t\r\n");
+	if (start == std::string::npos)
+		return "";
+
+	size_t end = str.find_last_not_of(" \t\r\n");
+	return str.substr(start, end - start + 1);
+}
+
