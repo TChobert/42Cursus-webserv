@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <cerrno>
+#include <sys/socket.h>
+#include <sys/types.h>
 
 #include "webserv.hpp"
 #include "webserv_enum.hpp"

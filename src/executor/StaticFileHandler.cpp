@@ -5,22 +5,51 @@
 #include <fstream>
 #include <sstream>
 
-void	StaticFileHandler::handleStaticFile(Conversation& conv)
+void StaticFileHandler::handleStaticFile(Conversation& conv)
 {
-	const std::string& path = conv.req.pathOnDisk;
-
-	int fd = open(path.c_str(), O_RDONLY | O_NONBLOCK);
-	if (fd == -1)
-	{
-		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
-		return;
-	}
-
-	conv.tempFd = fd;
-	conv.eState = READ_EXEC_GET_STATIC;
-	conv.state = READ_EXEC;
-	return;
+    const std::string& path = conv.req.pathOnDisk;
+    int fd = open(path.c_str(), O_RDONLY);  // Pas de O_NONBLOCK
+    if (fd == -1) {
+        Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+        return;
+    }
+    
+    // Lire tout le fichier maintenant
+    std::string content;
+    char buffer[8192];
+    ssize_t bytesRead;
+    while ((bytesRead = read(fd, buffer, sizeof(buffer))) > 0) {
+        content.append(buffer, bytesRead);
+    }
+    close(fd);
+    
+    if (bytesRead == -1) {
+        Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+        return;
+    }
+    
+    // Préparer la réponse
+    conv.resp.body = content;
+    conv.resp.status = OK;
+    conv.state = RESPONSE;  // Passer directement à la réponse
 }
+
+// void	StaticFileHandler::handleStaticFile(Conversation& conv)
+// {
+// 	const std::string& path = conv.req.pathOnDisk;
+
+// 	int fd = open(path.c_str(), O_RDONLY | O_NONBLOCK);
+// 	if (fd == -1)
+// 	{
+// 		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+// 		return;
+// 	}
+
+// 	conv.tempFd = fd;
+// 	conv.eState = READ_EXEC_GET_STATIC;
+// 	conv.state = READ_EXEC;
+// 	return;
+// }
 
 // ------ Version TEST below ------
 

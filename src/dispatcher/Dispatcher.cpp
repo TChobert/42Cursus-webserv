@@ -1,4 +1,5 @@
 #include "Dispatcher.hpp"
+#include <sys/stat.h>
 
 Dispatcher::Dispatcher(int& EpollFd,
 						std::map<int, Conversation>& clientsFds,
@@ -64,29 +65,78 @@ void	Dispatcher::setExecutorInterest(Conversation& conv, e_interest_mode mode) {
 }
 
 void Dispatcher::setClientInterest(Conversation& conv, e_interest_mode mode) {
+    std::cout << "setClientInterest called with fd: " << conv.fd << " mode: " << mode << std::endl;
+    
+    if (_clientsFds.find(conv.fd) == _clientsFds.end()) {
+        std::cerr << "Client fd not found in clients map: " << conv.fd << std::endl;
+        return ;
+    }
+    
+    // VÉRIFIER SI LE SOCKET EST ENCORE VALIDE
+    int error = 0;
+    socklen_t len = sizeof(error);
+    if (getsockopt(conv.fd, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
+        std::cerr << "Socket fd " << conv.fd << " is invalid!" << std::endl;
+        return;
+    }
+    if (error != 0) {
+        std::cerr << "Socket fd " << conv.fd << " has error: " << strerror(error) << std::endl;
+        return;
+    }
+    
+    struct epoll_event ev;
+    ev.data.fd = conv.fd;
+    switch (mode) {
+    case READ:
+        ev.events = EPOLLIN;
+        break;
+    case WRITE:
+        ev.events = EPOLLOUT;
+        break;
+    default:
+        std::cerr << "Unknown mode in setClientInterest\n";
+        return;
+    }
 
-	if (_clientsFds.find(conv.fd) == _clientsFds.end()) {
-		std::cerr << "Client fd not found in clients map: " << conv.fd << std::endl;
-		return ;
+	struct stat st;
+	if (fstat(conv.fd, &st) == 0) {
+		std::cout << "FD " << conv.fd << " is type: " << (st.st_mode & S_IFMT) << std::endl;
 	}
-	struct epoll_event ev;
-	ev.data.fd = conv.fd;
-
-	switch (mode) {
-		case READ:
-			ev.events = EPOLLIN;
-			break;
-		case WRITE:
-			ev.events = EPOLLOUT;
-			break;
-		default:
-		std::cerr << "Unknown mode in setClientInterest\n";
-		return;
+	if (!S_ISSOCK(st.st_mode)) {
+	std::cerr << "FD " << conv.fd << " is NOT a socket!" << std::endl;
 	}
-	if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, conv.fd, &ev) < 0) {
-		std::cerr << "Failed to change interest mode on fd: " << conv.fd << std::endl;
-	}
+    if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, conv.fd, &ev) < 0) {
+        std::cerr << "epoll_ctl failed on fd: " << conv.fd 
+                  << " mode: " << mode << " error: " << strerror(errno) << std::endl;
+    } else {
+        std::cout << "Successfully changed fd " << conv.fd << " to mode " << mode << std::endl;
+    }
 }
+
+// void Dispatcher::setClientInterest(Conversation& conv, e_interest_mode mode) {
+
+// 	if (_clientsFds.find(conv.fd) == _clientsFds.end()) {
+// 		std::cerr << "Client fd not found in clients map: " << conv.fd << std::endl;
+// 		return ;
+// 	}
+// 	struct epoll_event ev;
+// 	ev.data.fd = conv.fd;
+
+// 	switch (mode) {
+// 		case READ:
+// 			ev.events = EPOLLIN;
+// 			break;
+// 		case WRITE:
+// 			ev.events = EPOLLOUT;
+// 			break;
+// 		default:
+// 		std::cerr << "Unknown mode in setClientInterest\n";
+// 		return;
+// 	}
+// 	if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, conv.fd, &ev) < 0) {
+// 		std::cerr << "Failed to change interest mode on fd: " << conv.fd << std::endl;
+// 	}
+// }
 
 void	Dispatcher::setEpollInterest(Conversation& conv, e_interest_mode mode) {
 

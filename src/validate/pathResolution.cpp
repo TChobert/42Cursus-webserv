@@ -161,4 +161,5 @@ void Validator::assembleUri(Conversation& conv, vector<string>& seg, size_t matc
 		conv.req.uri += '/' + seg[i];
 		i++;
 	}
+	conv.req.pathOnDisk = conv.req.uri;
 }
