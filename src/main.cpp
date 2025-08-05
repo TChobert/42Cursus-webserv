@@ -52,6 +52,7 @@ int main(int ac, char** av) {
 		std::cerr << e.what() << std::endl;
 		return (EXIT_FAILURE);
 	}
+
 	serversConfigs = configFileParser.getConfigs();
 
 	int epollFd = epoll_create1(0);
@@ -69,8 +70,8 @@ int main(int ac, char** av) {
 	ResponseBuilder responseBuilder;
 	Sender sender;
 	PostSender postSender;
-
 	moduleRegistry modules;
+
 	buildModuleRegistery(modules, &reader, &parser, &validator, &executor, &responseBuilder, &sender, &postSender);
 
 	try {

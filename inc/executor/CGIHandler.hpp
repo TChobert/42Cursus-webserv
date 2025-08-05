@@ -7,9 +7,12 @@
 class CGIHandler
 {
 	private:
-
+		static char**	prepareEnv(Conversation& conv);
+		static void		handleGetCGI(Conversation& conv);
+		static void		handlePostCGI(Conversation& conv);
 
 	public:
-		static bool isCGI(const Conversation& conv);
-		static void handleCGI(const Conversation& conv);
+		static bool		isCGI(const Conversation& conv);
+		static void		handleCGI(Conversation& conv);
+		static void		parseCgiOutput(Conversation& conv);
 };

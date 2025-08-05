@@ -7,6 +7,8 @@
 # include "webserv_enum.hpp"
 # include "IModule.hpp"
 
+class Conversation;
+
 class Sender : public IModule
 {
 	private:

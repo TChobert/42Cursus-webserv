@@ -8,9 +8,9 @@
 #include <string>
 #include <vector>
 
-// Inclure tes headers
 #include "GetExecutor.hpp"
-#include "webserv.hpp"  // Contient locationConfig, Conversation, response, etc.
+#include "webserv.hpp"
+#include "Executor.hpp"
 
 // Crée une locationConfig de test basique
 locationConfig createDummyLocation()
@@ -70,6 +70,163 @@ void setupDirWithFile(const std::string& dirName, const std::string& fileName)
     file.close();
 }
 
+void testCgiFakeRead() {
+    Conversation conv;
+
+    // Simule un CGI qui aurait été lu en entier
+    conv.cgiOutput =
+        "Status: 200\r\n"
+        "Content-Type: text/html\r\n"
+        "Set-Cookie: id=xyz\r\n"
+        "\r\n"
+        "<html><body><p>Hello CGI</p></body></html>";
+
+    CGIHandler::parseCgiOutput(conv);
+    Executor::updateResponseData(conv);
+
+    std::cout << "[Test CGI Fake Read] ";
+    if (conv.resp.status == OK &&
+        conv.resp.contentType == "text/html" &&
+        conv.resp.body.find("Hello CGI") != std::string::npos &&
+        !conv.resp.setCookies.empty())
+    {
+        std::cout << "PASS" << std::endl;
+    }
+    else
+    {
+        std::cout << "FAIL: "
+                  << "status=" << conv.resp.status
+                  << ", contentType=" << conv.resp.contentType
+                  << ", body=" << conv.resp.body
+                  << std::endl;
+    }
+}
+
+void testCgiStatus404() {
+    Conversation conv;
+    conv.cgiOutput =
+        "Status: 404\r\n"
+        "Content-Type: text/html\r\n"
+        "\r\n"
+        "<body>Not Found</body>";
+
+    CGIHandler::parseCgiOutput(conv);
+
+    std::cout << "[Test Status 404] ";
+    if (conv.resp.status == 404 &&
+        conv.resp.contentType == "text/html" &&
+        conv.resp.body.find("Not Found") != std::string::npos)
+        std::cout << "PASS\n";
+    else
+        std::cout << "FAIL: status=" << conv.resp.status << ", contentType=" << conv.resp.contentType << ", body=" << conv.resp.body << "\n";
+}
+
+void testCgiNoStatusHeader() { //attention au constructeur de la reponse.. pas bonne init de statusCode, qui devrait etre a 0
+    Conversation conv;
+	std::cout << "Status initial avant parsing 1.0: " << conv.resp.status << std::endl;
+
+    conv.cgiOutput =
+        "Content-Type: text/plain\r\n"
+        "\r\n"
+        "Hello world!";
+
+	std::cout << "Status initial avant parsing: " << conv.resp.status << std::endl;
+    CGIHandler::parseCgiOutput(conv);
+	std::cout << "Status after parsing: " << conv.resp.status << "\n";
+
+    std::cout << "[Test No Status Header] ";
+    if (conv.resp.status == OK &&
+        conv.resp.contentType == "text/plain" &&
+        conv.resp.body == "Hello world!")
+        std::cout << "PASS\n";
+    else
+        std::cout << "FAIL\n";
+}
+
+void testCgiMalformedHeader() { //a voir si on veut ca.. ?? ou si erreur 500 ?
+    Conversation conv;
+    conv.cgiOutput =
+        "Content-Type text/html\r\n"
+        "Set-Cookie=sessionid=123\r\n"
+        "\r\n"
+        "OK!";
+
+    CGIHandler::parseCgiOutput(conv);
+
+    std::cout << "[Test Malformed Header] ";
+    if (conv.resp.setCookies.empty()) // pas de cookie ajouté
+        std::cout << "PASS\n";
+    else
+        std::cout << "FAIL\n";
+}
+
+void testCgiHeaderSpacing() {
+    Conversation conv;
+    conv.cgiOutput =
+        "Content-Type    :   text/html\r\n"
+        "Status : 500\r\n"
+        "\r\n"
+        "<body>Error</body>";
+
+    CGIHandler::parseCgiOutput(conv);
+
+    std::cout << "[Test Header Spacing] ";
+    if (conv.resp.status == 500 &&
+        conv.resp.contentType == "text/html" &&
+        conv.resp.body.find("Error") != std::string::npos)
+        std::cout << "PASS\n";
+    else
+        std::cout << "FAIL\n";
+}
+
+void testCgiDoubleSetCookie() {
+    Conversation conv;
+    conv.cgiOutput =
+        "Set-Cookie: a=1\r\n"
+        "Set-Cookie: b=2\r\n"
+        "\r\n"
+        "OK";
+
+    CGIHandler::parseCgiOutput(conv);
+
+    std::cout << "[Test Double Set-Cookie] ";
+    if (conv.resp.setCookies.size() == 2 &&
+        conv.resp.setCookies[0] == "a=1" &&
+        conv.resp.setCookies[1] == "b=2")
+        std::cout << "PASS\n";
+    else
+        std::cout << "FAIL\n";
+}
+
+void testCgiNoCRLFSeparator() {
+    Conversation conv;
+    conv.cgiOutput =
+        "Status: 200\r\n"
+        "Content-Type: text/plain\r\n"
+        "No double CRLF";
+
+    CGIHandler::parseCgiOutput(conv);
+
+    std::cout << "[Test Missing CRLF] ";
+    if (conv.resp.status == INTERNAL_SERVER_ERROR)
+        std::cout << "PASS\n";
+    else
+        std::cout << "FAIL: status=" << conv.resp.status << "\n";
+}
+
+void testCgiEmptyOutput() {
+    Conversation conv;
+    conv.cgiOutput = "";
+
+    CGIHandler::parseCgiOutput(conv);
+
+    std::cout << "[Test Empty Output] ";
+    if (conv.resp.status == INTERNAL_SERVER_ERROR)
+        std::cout << "PASS\n";
+    else
+        std::cout << "FAIL\n";
+}
+
 int main()
 {
     Conversation conv;
@@ -121,6 +278,16 @@ int main()
     GetExecutor::handleGet(conv);
     std::cout << "[Test 4] fichier interdit: "
               << ((conv.resp.status == FORBIDDEN) ? "PASS" : ("FAIL (" + intToString(conv.resp.status) + ")")) << std::endl;
+
+	// Test CGI
+	testCgiFakeRead();
+	testCgiStatus404();
+    testCgiNoStatusHeader();
+    testCgiMalformedHeader();
+    testCgiHeaderSpacing();
+    testCgiDoubleSetCookie();
+    testCgiNoCRLFSeparator();
+    testCgiEmptyOutput();
 
     return 0;
 }

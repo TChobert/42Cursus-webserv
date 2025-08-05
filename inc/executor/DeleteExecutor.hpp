@@ -11,5 +11,4 @@ class DeleteExecutor
 {
 	public:
 		static void handleDelete(Conversation&);
-		static void resumeDelete(Conversation&);
 };

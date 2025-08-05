@@ -17,8 +17,8 @@ void	StaticFileHandler::handleStaticFile(Conversation& conv)
 	}
 
 	conv.tempFd = fd;
-	conv.state = READ_EXEC;
 	conv.eState = READ_EXEC_GET_STATIC;
+	conv.state = READ_EXEC;
 	return;
 }
 

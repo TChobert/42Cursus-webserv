@@ -15,7 +15,6 @@ void	ConfigParser::extractConfigs(const std::vector<std::string> formattedConten
 	parserContext context;
 
 	for (std::vector<std::string>::const_iterator it = formattedContent.begin(); it != formattedContent.end(); ++it)  {
-
 		switch (context.state) {
 		case START:
 		case HEADER_SECTION:
