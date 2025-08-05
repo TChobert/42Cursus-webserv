@@ -1,6 +1,8 @@
 #pragma once
 #include <stdint.h>
 #include <string>
+#include <sys/types.h>
+#include <ctime>
 #include "webserv_enum.hpp"
 
 class Conversation;
@@ -20,3 +22,5 @@ std::string	getFileExtension(const std::string& path);
 std::string	getMimeType(const std::string& path);
 void		freeEnv(char **envp);
 std::string trim(const std::string& str);
+bool		hasCgiProcessExitedCleanly(pid_t cgiPid);
+

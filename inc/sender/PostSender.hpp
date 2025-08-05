@@ -3,7 +3,7 @@
 
 # include "webserv_utils.hpp"
 # include "webserv_enum.hpp"
-# include "Conversation.hpp"
+# include "webserv.hpp"
 # include "IModule.hpp"
 
 class Conversation;

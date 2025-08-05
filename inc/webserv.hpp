@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <ctime>
+#include <sys/types.h>
 #include "webserv_enum.hpp"
 #include "webserv_utils.hpp"
 #include "parse/parse.hpp"
@@ -33,12 +35,17 @@ struct response {
 	std::vector<std::string> setCookies;
 	mapStr header;
 	std::string body;
+	response() : status(NOT_A_STATUS_CODE) {};
 };
 
 class Conversation {
 public:
 	int fd;
 	int tempFd;
+	int bodyFd;
+	int fdToClose;
+	pid_t cgiPid;
+	time_t cgiStartTime;
 	serverConfig config;
 	locationConfig* location;
 	request req;
@@ -49,5 +56,5 @@ public:
 	execState eState;
 	std::string finalResponse;
 	std::string cgiOutput;
-	Conversation() : fd(-1), state(PARSE), pState(START), eState(EXEC_START) {};
+	Conversation() : fd(-1), tempFd(-1), bodyFd(-1), fdToClose(-1), cgiPid(-1), cgiStartTime(0), state(PARSE), pState(START), eState(EXEC_START) {};
 };

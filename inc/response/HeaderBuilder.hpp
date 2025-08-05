@@ -4,8 +4,6 @@
 # include <sstream>
 # include "webserv.hpp"
 
-class HttpResponse;
-
 class HeaderBuilder
 {
 	private:

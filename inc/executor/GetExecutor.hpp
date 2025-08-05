@@ -20,4 +20,3 @@ class GetExecutor
 		static void resumeReadCGI(Conversation& conv);
 		static void resumeWriteCGI(Conversation& conv);
 };
-

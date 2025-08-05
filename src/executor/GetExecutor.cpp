@@ -150,14 +150,14 @@ void GetExecutor::resumeStatic(Conversation& conv)
 	}
 	else if (bytesRead == 0)
 	{
-		close(conv.tempFd);
+		conv.fdToClose = conv.tempFd;
 		conv.tempFd = -1;
 		Executor::setResponse(conv, OK);
 		return;
 	}
 	else
 	{
-		close(conv.tempFd);
+		conv.fdToClose = conv.tempFd;
 		conv.tempFd = -1;
 		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 		return;
@@ -182,12 +182,17 @@ void GetExecutor::resumeReadCGI(Conversation& conv)
 {
 	char buffer[1024];
 	ssize_t bytesRead = read(conv.tempFd, buffer, sizeof(buffer));
-if (bytesRead > 0)
-	conv.cgiOutput.append(buffer, bytesRead);
+	if (bytesRead > 0)
+		conv.cgiOutput.append(buffer, bytesRead);
 	else if (bytesRead == 0)
 	{
-		close(conv.tempFd);
+		conv.fdToClose = conv.tempFd;
 		conv.tempFd = -1;
+		if (!hasCgiProcessExitedCleanly(conv.cgiPid))
+		{
+			Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+			return;
+		}
 		CGIHandler::parseCgiOutput(conv);
 		Executor::updateResponseData(conv);
 		conv.eState = EXEC_START;
@@ -195,7 +200,8 @@ if (bytesRead > 0)
 	}
 	else
 	{
-		close(conv.tempFd);
+		conv.fdToClose = conv.tempFd;
+
 		conv.tempFd = -1;
 		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 	}

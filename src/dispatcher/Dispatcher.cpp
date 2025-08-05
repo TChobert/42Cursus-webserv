@@ -61,7 +61,7 @@ void	Dispatcher::dispatch(Conversation& conv) {
 		else if (conv.state == IS_SENT) {
 			_postSender->execute(conv);
 		}
-		else if (conv.state == PARSE || PARSE_BODY || SKIP_BODY || EOF_CLIENT) {
+		else if (conv.state == PARSE || conv.state == PARSE_BODY || conv.state == EOF_CLIENT) {
 			_parser->execute(conv);
 		}
 		else if (conv.state == VALIDATE) {
