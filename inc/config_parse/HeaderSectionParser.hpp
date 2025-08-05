@@ -31,15 +31,12 @@ class HeaderSectionParser {
 	void handleCurrentHeader(const std::string& header, parserContext *context);
 
 	class InvalidHeaderException : public std::exception {
-	public:
 		virtual const char *what() const throw();
 	};
 	class ServerlessSectionException : public std::exception {
-	public:
 		virtual const char *what() const throw();
 	};
 	class InvalidLocationName : public std::exception {
-	public:
 		virtual const char *what() const throw();
 	};
 };

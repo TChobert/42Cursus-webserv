@@ -18,7 +18,7 @@ class ServerPropertiesProcessor {
 
 	private:
 
-	enum keyType{PORT, HOST, NAME, ROOT, ERROR_PAGE, UNKNOWN};
+	enum keyType {PORT, HOST, NAME, ROOT, ERROR_PAGE, UNKNOWN};
 	static const char* forbiddenPaths[];
 	static const int validErrorCodes[];
 
@@ -32,7 +32,7 @@ class ServerPropertiesProcessor {
 
 	public:
 
-	typedef void (ServerPropertiesProcessor::*ProcessPtr)(const std::string&, parserContext*);
+	typedef void (ServerPropertiesProcessor::*ServerProcessPtr)(const std::string&, parserContext*);
 	ServerPropertiesProcessor(void);
 	~ServerPropertiesProcessor(void);
 
@@ -42,7 +42,7 @@ class ServerPropertiesProcessor {
 	void processRootProperty(const std::string& property, parserContext *context);
 	void processErrorPageProperty(const std::string& property, parserContext *context);
 
-	ProcessPtr getPropertyProcess(const std::string& propertyKey);
+	ServerProcessPtr getPropertyProcess(const std::string& propertyKey);
 
 	class InvalidPropertyException : public std::exception {
 		virtual const char *what() const throw();

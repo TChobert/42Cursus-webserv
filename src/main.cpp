@@ -2,6 +2,9 @@
 #include "EventsManager.hpp"
 #include "IModule.hpp"
 #include "ConfigParser.hpp"
+#include "HeaderSectionParser.hpp"
+#include "ServerSectionParser.hpp"
+#include "LocationSectionParser.hpp"
 #include "ConfigStore.hpp"
 #include "ServerInitializer.hpp"
 #include "Dispatcher.hpp"
@@ -36,16 +39,21 @@ int main(int ac, char** av) {
 
 	std::vector<serverConfig> serversConfigs;
 	const std::string configuration = av[1];
+	ConfigFileReader configReader;
+	HeaderSectionParser hSectionParser;
+	ServerSectionParser sSectionParser;
+	LocationSectionParser lSectionParser;
+	ConfigParser configFileParser(configuration, configReader, hSectionParser, sSectionParser, lSectionParser);
 
 	try {
-		ConfigFileReader reader;
-		ConfigParser configFileParser(configuration, reader);
-		serversConfigs = configFileParser.parse();
+		configFileParser.parse();
 	}
 	catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return (EXIT_FAILURE);
 	}
+
+	serversConfigs = configFileParser.getConfigs();
 
 	int epollFd = epoll_create1(0);
 	if (epollFd < 0) {
@@ -62,8 +70,8 @@ int main(int ac, char** av) {
 	ResponseBuilder responseBuilder;
 	Sender sender;
 	PostSender postSender;
+	moduleRegistry modules;
 
-	moduleRegistry modules ;
 	buildModuleRegistery(modules, &reader, &parser, &validator, &executor, &responseBuilder, &sender, &postSender);
 
 	try {

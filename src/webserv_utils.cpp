@@ -113,6 +113,19 @@ std::string getMimeType(const std::string& path)
 	return "application/octet-stream";
 }
 
+std::vector<std::string> split(const std::string& str, const char delimiter) {
+
+	std::vector<std::string> result;
+	std::string token;
+	std::istringstream iss(str);
+
+	while (std::getline(iss, token, delimiter)) {
+		if (!token.empty())
+			result.push_back(token);
+	}
+
+	return (result);
+
 void	freeEnv(char **envp)
 {
 	if (!envp)

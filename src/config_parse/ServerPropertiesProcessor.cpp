@@ -7,7 +7,7 @@ ServerPropertiesProcessor::~ServerPropertiesProcessor(void) {}
 
 const int ServerPropertiesProcessor::validErrorCodes[] = {400, 401, 403, 404, 405, 408, 413, 500, 501, 504};
 
-const char *ServerPropertiesProcessor::forbiddenPaths[] = {
+const char * ServerPropertiesProcessor::forbiddenPaths[] = {
 	"/etc", "/root", "/bin", "/sbin", "/dev", "/proc", "/sys", "/usr/bin"
 };
 
@@ -163,7 +163,7 @@ void ServerPropertiesProcessor::processRootProperty(const std::string& propertyV
 		throw InvalidServerRootException();
 	}
 	ensureRootIsAllowed(propertyValue);
-	ensureRootIsValid(propertyValue);
+//	ensureRootIsValid(propertyValue);
 	context->currentConfig.identity.root = propertyValue;
 	context->currentConfig.identity.hasRoot = true;
 	context->seenServerProperties.rootSeen = true;
@@ -184,7 +184,7 @@ void ServerPropertiesProcessor::processErrorPageProperty(const std::string& prop
 	addErrorPageToErrorMap(context, codeValue, pagePath);
 }
 
-ServerPropertiesProcessor::ProcessPtr ServerPropertiesProcessor::getPropertyProcess(const std::string& directiveKey) {
+ServerPropertiesProcessor::ServerProcessPtr ServerPropertiesProcessor::getPropertyProcess(const std::string& directiveKey) {
 
 	keyType type = getKeyType(directiveKey);
 
@@ -230,7 +230,7 @@ const char *ServerPropertiesProcessor::InvalidServerRootException::what() const 
 }
 
 const char *ServerPropertiesProcessor::ForbiddenServerRootException::what() const throw() {
-	return "Error: webserv: Forbidden server root file detected in configuration file.";
+	return "Error: webserv: Forbidden server root directory detected in configuration file.";
 }
 
 const char *ServerPropertiesProcessor::InvalidErrorPageException::what() const throw() {

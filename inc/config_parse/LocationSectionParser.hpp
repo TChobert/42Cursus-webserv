@@ -5,20 +5,34 @@
 #include <vector>
 #include <exception>
 
+#include "keyValue.hpp"
+#include "LocationPropertiesProcessor.hpp"
+#include "HeaderSectionParser.hpp"
+
 struct parserContext;
 
 class LocationSectionParser {
 
 	private:
 
-	//enum keyType{PORT, HOST, NAME, ROOT};
-	bool IsSectionHeader(const std::string& currentLine);
-	//keyType getKeyType(const std::string& key);
+	HeaderSectionParser _headerParser;
+	LocationPropertiesProcessor _propertiesProcessor;
+
+	// void ensureLocationConfigIsFull(parserContext *context);
+	// void setupLocationDefaultMethods(parserContext *context);
+	// void setupLocationDefaultRoot(parserContext *context);
 
 	public:
 
 	LocationSectionParser(void);
 	~LocationSectionParser(void);
 
-	void extractCurrentProperty(const std::string& directive, parserContext *context);
+	void ensureLocationConfigIsFull(parserContext *context);
+	void setupLocationDefaultMethods(parserContext *context);
+	void setupLocationDefaultRoot(parserContext *context);
+	void extractCurrentProperty(const std::string& property, parserContext *context);
+
+	class RootlessLocationException : public std::exception {
+		virtual const char * what() const throw();
+	};
 };

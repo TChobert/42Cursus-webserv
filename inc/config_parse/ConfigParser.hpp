@@ -6,6 +6,7 @@
 #include <exception>
 #include <vector>
 
+#include "webserv_utils.hpp"
 #include "CommentsRemover.hpp"
 #include "serverConfig.hpp"
 #include "ConfigFileReader.hpp"
@@ -15,19 +16,20 @@
 #include "HeaderSectionParser.hpp"
 #include "ServerSectionParser.hpp"
 #include "serverPropertiesFlags.hpp"
+#include "locationPropertiesFlags.hpp"
 
 enum currentState {
 	START,
 	HEADER_SECTION,
 	SERVER_SECTION,
 	LOCATION_SECTION,
-	END,
 };
 
 struct parserContext {
 
 	currentState state;
 	serverPropertiesFlags seenServerProperties;
+	locationPropertiesFlags seenLocationProperties;
 	bool isInServerScope;
 	std::string currentLocationName;
 	serverConfig currentConfig;
