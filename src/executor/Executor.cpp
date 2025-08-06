@@ -63,6 +63,7 @@ void	Executor::updateResponseData(Conversation& conv)
 	if (conv.resp.contentType.empty())
 	{
 		std::string type = getMimeType(conv.req.pathOnDisk);
+		std::cout << "PATH ON DISK = " << conv.req.pathOnDisk << std::endl;
 		if (type == "application/octet-stream")
 		{
 			if (conv.resp.body.find("<html>") != std::string::npos)

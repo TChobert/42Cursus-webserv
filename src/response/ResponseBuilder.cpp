@@ -16,6 +16,7 @@ void	ResponseBuilder::build(Conversation& conv)
 void	ResponseBuilder::execute(Conversation& conv)
 {
 	ResponseBuilder::build(conv);
+	std::cout << conv.finalResponse << std::endl;
 	conv.state = WRITE_CLIENT;
 }
 
