@@ -28,7 +28,7 @@ class EventsManager {
 	std::set<int>				_listenSockets;
 	std::map<int,Conversation>	_clients;
 	std::map<int, Conversation*> _executorFds;
-	int							_epollFd;
+	int&						_epollFd;
 	struct epoll_event			_events[MAX_EVENTS];
 
 	IModule* _reader;
@@ -55,7 +55,7 @@ class EventsManager {
 
 	public:
 
-	EventsManager(int epollFd, ConfigStore& configs,
+	EventsManager(int& epollFd, ConfigStore& configs,
 					ServerInitializer& initializer, const moduleRegistry& modules);
 	~EventsManager(void);
 

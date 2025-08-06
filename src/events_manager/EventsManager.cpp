@@ -1,6 +1,6 @@
 #include "EventsManager.hpp"
 
-EventsManager::EventsManager(int epollFd, ConfigStore& configs,
+EventsManager::EventsManager(int& epollFd, ConfigStore& configs,
 								ServerInitializer& initializer,
 								const moduleRegistry& modules)
 	: _epollFd(epollFd),

@@ -1,5 +1,7 @@
 #include "Dispatcher.hpp"
 #include <sys/stat.h>
+#include <unistd.h>
+#include<fcntl.h>
 
 Dispatcher::Dispatcher(int& EpollFd,
 						std::map<int, Conversation>& clientsFds,
@@ -65,53 +67,115 @@ void	Dispatcher::setExecutorInterest(Conversation& conv, e_interest_mode mode) {
 }
 
 void Dispatcher::setClientInterest(Conversation& conv, e_interest_mode mode) {
-    std::cout << "setClientInterest called with fd: " << conv.fd << " mode: " << mode << std::endl;
+    std::cout << "=== DEBUG setClientInterest ===" << std::endl;
+    std::cout << "fd: " << conv.fd << ", mode: " << mode << std::endl;
+    std::cout << "_epollFd: " << _epollFd << std::endl;
+    
+    // Vérifier si le fd est encore valide
+    int flags = fcntl(conv.fd, F_GETFL);
+    if (flags == -1) {
+        std::cerr << "ERROR: fd " << conv.fd << " is closed! " << strerror(errno) << std::endl;
+        return;
+    }
+    std::cout << "fd " << conv.fd << " is still open (flags: " << flags << ")" << std::endl;
+    
+    // Vérifier si _epollFd est valide
+    flags = fcntl(_epollFd, F_GETFL);
+    if (flags == -1) {
+        std::cerr << "ERROR: _epollFd " << _epollFd << " is invalid! " << strerror(errno) << std::endl;
+        return;
+    }
     
     if (_clientsFds.find(conv.fd) == _clientsFds.end()) {
         std::cerr << "Client fd not found in clients map: " << conv.fd << std::endl;
         return ;
     }
     
-    // VÉRIFIER SI LE SOCKET EST ENCORE VALIDE
-    int error = 0;
-    socklen_t len = sizeof(error);
-    if (getsockopt(conv.fd, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
-        std::cerr << "Socket fd " << conv.fd << " is invalid!" << std::endl;
-        return;
-    }
-    if (error != 0) {
-        std::cerr << "Socket fd " << conv.fd << " has error: " << strerror(error) << std::endl;
-        return;
-    }
-    
     struct epoll_event ev;
     ev.data.fd = conv.fd;
     switch (mode) {
-    case READ:
+    case READ: // mode 0
         ev.events = EPOLLIN;
+        std::cout << "Setting EPOLLIN (" << EPOLLIN << ")" << std::endl;
         break;
-    case WRITE:
+    case WRITE: // mode 1  
         ev.events = EPOLLOUT;
+        std::cout << "Setting EPOLLOUT (" << EPOLLOUT << ")" << std::endl;
         break;
     default:
-        std::cerr << "Unknown mode in setClientInterest\n";
+        std::cerr << "Unknown mode in setClientInterest: " << mode << std::endl;
         return;
     }
-
-	struct stat st;
-	if (fstat(conv.fd, &st) == 0) {
-		std::cout << "FD " << conv.fd << " is type: " << (st.st_mode & S_IFMT) << std::endl;
-	}
-	if (!S_ISSOCK(st.st_mode)) {
-	std::cerr << "FD " << conv.fd << " is NOT a socket!" << std::endl;
-	}
+    
+    std::cout << "Calling epoll_ctl with: epollfd=" << _epollFd 
+              << ", fd=" << conv.fd << ", events=" << ev.events << std::endl;
+    
     if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, conv.fd, &ev) < 0) {
-        std::cerr << "epoll_ctl failed on fd: " << conv.fd 
-                  << " mode: " << mode << " error: " << strerror(errno) << std::endl;
+        std::cout << "MOD failed: " << strerror(errno) << ", trying ADD..." << std::endl;
+        if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, conv.fd, &ev) < 0) {
+            std::cerr << "ADD also failed: " << strerror(errno) << std::endl;
+        } else {
+            std::cout << "ADD successful!" << std::endl;
+        }
     } else {
-        std::cout << "Successfully changed fd " << conv.fd << " to mode " << mode << std::endl;
+        std::cout << "MOD successful!" << std::endl;
     }
+    std::cout << "=== END DEBUG ===" << std::endl;
 }
+
+// void Dispatcher::setClientInterest(Conversation& conv, e_interest_mode mode) {
+//     std::cout << "setClientInterest called with fd: " << conv.fd << " mode: " << mode << std::endl;
+    
+//     if (_clientsFds.find(conv.fd) == _clientsFds.end()) {
+//         std::cerr << "Client fd not found in clients map: " << conv.fd << std::endl;
+//         return ;
+//     }
+    
+//     // VÉRIFIER SI LE SOCKET EST ENCORE VALIDE
+//     int error = 0;
+//     socklen_t len = sizeof(error);
+//     if (getsockopt(conv.fd, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
+//         std::cerr << "Socket fd " << conv.fd << " is invalid!" << std::endl;
+//         return;
+//     }
+//     if (error != 0) {
+//         std::cerr << "Socket fd " << conv.fd << " has error: " << strerror(error) << std::endl;
+//         return;
+//     }
+    
+//     struct epoll_event ev;
+//     ev.data.fd = conv.fd;
+//     switch (mode) {
+//     case READ:
+//         ev.events = EPOLLIN;
+//         break;
+//     case WRITE:
+//         ev.events = EPOLLOUT;
+//         break;
+//     default:
+//         std::cerr << "Unknown mode in setClientInterest\n";
+//         return;
+//     }
+
+// 	struct stat st;
+// 	if (fstat(conv.fd, &st) == 0) {
+// 		std::cout << "FD " << conv.fd << " is type: " << (st.st_mode & S_IFMT) << std::endl;
+// 	}
+// 	if (!S_ISSOCK(st.st_mode)) {
+// 	std::cerr << "FD " << conv.fd << " is NOT a socket!" << std::endl;
+// 	}
+//      if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, conv.fd, &ev) < 0) {
+//         std::cout << "MOD failed, trying ADD... ";
+//         if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, conv.fd, &ev) < 0) {
+//             std::cerr << "ADD also failed on fd: " << conv.fd 
+//                       << " error: " << strerror(errno) << std::endl;
+//         } else {
+//             std::cout << "ADD successful!" << std::endl;
+//         }
+//     } else {
+//         std::cout << "MOD successful!" << std::endl;
+//     }
+// }
 
 // void Dispatcher::setClientInterest(Conversation& conv, e_interest_mode mode) {
 
