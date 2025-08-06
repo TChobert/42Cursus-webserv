@@ -13,7 +13,6 @@ class HeaderBuilder
 		static std::string buildContentTypeHeader(const response& resp);
 		static std::string buildServerHeader();
 		static std::string buildConnectionHeader(const response& resp);
-		static bool isBodyForbidden(int statusCode);
 
 		static std::string buildCustomHeaders(const Conversation& conv);
 		static std::string buildLocationHeader(const response& resp);
@@ -22,6 +21,7 @@ class HeaderBuilder
 
 	public:
 		static std::string build(const Conversation& conv);
+		static bool isBodyForbidden(int statusCode);
 };
 
 //exemple d'utilisation du vector par executor/validator pour set-cookie

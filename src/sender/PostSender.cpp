@@ -1,4 +1,5 @@
 #include "PostSender.hpp"
+#include "ResponseBuilder.hpp"
 
 /* ---------------- PRIVATE METHODS ------------------ */
 
@@ -32,8 +33,7 @@ void PostSender::execute(Conversation& conv)
 	if (isKeepAlive(conv))
 	{
 		conv.state = PARSE;
-		conv.bytesSent = 0;
-		conv.finalResponse.clear();
+		ResponseBuilder::resetResponse(conv);
 		return ;
 	}
 	conv.state = FINISH;

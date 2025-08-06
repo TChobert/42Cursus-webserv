@@ -37,7 +37,16 @@ struct response {
 	std::vector<std::string> setCookies;
 	mapStr header;
 	std::string body;
-	response() : status(NOT_A_STATUS_CODE) {};
+
+	response()
+		: status(NOT_A_STATUS_CODE),
+		  shouldClose(false),
+		  location(""),
+		  contentType(""),
+		  setCookies(),
+		  header(),
+		  body("")
+	{}
 };
 
 class Conversation {

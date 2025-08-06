@@ -16,4 +16,5 @@ class ResponseBuilder : public IModule
 
 	public:
 		void		execute(Conversation& conv);
+		static void	resetResponse(Conversation& conv);
 };

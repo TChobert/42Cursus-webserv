@@ -5,5 +5,5 @@
 class ResponseAssembler
 {
 	public:
-		static std::string assemble(const std::string& statusLine, const std::string& headers, const std::string& body);
+		static std::string assemble(const std::string& statusLine, const std::string& headers, const response& resp);
 };

@@ -4,11 +4,6 @@
 
 /* ---------------- PRIVATE METHODS ------------------ */
 
-bool HeaderBuilder::isBodyForbidden(int statusCode)
-{
-	return ((statusCode >= 100 && statusCode < 200)
-		|| statusCode == NO_CONTENT || statusCode == 304);
-}
 
 std::string HeaderBuilder::buildGenericHeaders(const response& resp)
 {
@@ -125,4 +120,10 @@ std::string HeaderBuilder::build(const Conversation& conv)
 	headers << HeaderBuilder::buildCustomHeaders(conv);
 
 	return headers.str();
+}
+
+bool HeaderBuilder::isBodyForbidden(int statusCode)
+{
+	return ((statusCode >= 100 && statusCode < 200)
+		|| statusCode == NO_CONTENT || statusCode == 304);
 }

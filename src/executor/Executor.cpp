@@ -114,6 +114,8 @@ void	Executor::execute(Conversation& conv)
 
 void	Executor::executeStart(Conversation& conv)
 {
+	conv.resp.contentType.clear();
+
 	if (conv.resp.status != NOT_A_STATUS_CODE && conv.resp.status != CONTINUE)
 	{
 		setResponse(conv, conv.resp.status);
