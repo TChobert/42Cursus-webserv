@@ -50,9 +50,10 @@ void ServerPropertiesProcessor::ensureRootIsValid(const std::string& root) {
 		std::cerr << root << " : ";
 		throw InvalidServerRootException();
 	}
-	if (stat(root.c_str(), &pathStat) != 0 || !S_ISDIR(pathStat.st_mode))
+	if (stat(root.c_str(), &pathStat) != 0 || !S_ISDIR(pathStat.st_mode)) {
 		std::cerr << root << " : ";
 		throw InvalidServerRootException();
+	}
 }
 
 int ServerPropertiesProcessor::getErrorCodeValue(const std::string& errorCode) {
@@ -223,6 +224,7 @@ ServerPropertiesProcessor::ServerProcessPtr ServerPropertiesProcessor::getProper
 		case ERROR_PAGE :
 			return &ServerPropertiesProcessor::processErrorPageProperty;
 		default:
+		std::cerr << directiveKey << " : ";
 			throw InvalidPropertyException();
 	}
 }
@@ -230,7 +232,7 @@ ServerPropertiesProcessor::ServerProcessPtr ServerPropertiesProcessor::getProper
 //EXCEPTIONS
 
 const char* ServerPropertiesProcessor::InvalidPropertyException::what() const throw() {
-	return "Invalid property detected in configuration file.";
+	return "Invalid property detected in server configuration file.";
 }
 
 const char *ServerPropertiesProcessor::InvalidPortPropertyException::what() const throw() {

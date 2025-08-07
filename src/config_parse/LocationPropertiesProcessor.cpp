@@ -43,13 +43,17 @@ LocationPropertiesProcessor::keyType LocationPropertiesProcessor::getKeyType(con
 void LocationPropertiesProcessor::ensureRootIsAllowed(const std::string& root) const {
 
 	const size_t forbiddenCount = sizeof(forbiddenPaths) / sizeof(forbiddenPaths[0]);
-	for (size_t i = 0; i < forbiddenCount; ++i) {
 
+	for (size_t i = 0; i < forbiddenCount; ++i) {
 		const std::string forbidden(forbiddenPaths[i]);
 
-		if (root == forbidden || (root.size() > forbidden.size()
-			&& root.compare(0, forbidden.size(), forbidden) == 0 && root[forbidden.size()] == '/')) {
-				throw ForbiddenLocationRootException();
+		if (root == forbidden ||
+			(root.size() > forbidden.size() &&
+			root.compare(0, forbidden.size(), forbidden) == 0 &&
+			root[forbidden.size()] == '/')) 
+		{
+			std::cerr << root << " : ";
+			throw ForbiddenLocationRootException();
 		}
 	}
 }
@@ -59,10 +63,13 @@ void LocationPropertiesProcessor::ensureUploadDirIsValid(const std::string& dir)
 	struct stat pathStat;
 
 	if (access(dir.c_str(), F_OK | R_OK | X_OK) != 0) {
+		std::cerr << dir << " : ";
 		throw InvalidUploadDirException();
 	}
-	if (stat(dir.c_str(), &pathStat) != 0 || !S_ISDIR(pathStat.st_mode))
+	if (stat(dir.c_str(), &pathStat) != 0 || !S_ISDIR(pathStat.st_mode)) {
+		std::cerr << dir << " : ";
 		throw InvalidUploadDirException();
+	}
 }
 
 void LocationPropertiesProcessor::ensureUploadDirIsAllowed(const std::string& dir) const {
@@ -74,6 +81,7 @@ void LocationPropertiesProcessor::ensureUploadDirIsAllowed(const std::string& di
 
 		if (dir == forbidden || (dir.size() > forbidden.size()
 			&& dir.compare(0, forbidden.size(), forbidden) == 0 && dir[forbidden.size()] == '/')) {
+				std::cerr << dir << " : ";
 				throw ForbiddenUploadDirException();
 		}
 	}
@@ -84,6 +92,7 @@ void LocationPropertiesProcessor::processLocationRootProperty(const std::string&
 	if (context->seenLocationProperties.rootSeen)
 		throw DoubleLocationPropertyException();
 	if (property.empty() || property.find("..") != std::string::npos) {
+		std::cerr << property << " : ";
 		throw ForbiddenLocationRootException();
 	}
 	ensureRootIsAllowed(property);
@@ -101,8 +110,10 @@ void LocationPropertiesProcessor::processMethodsProperty(const std::string& prop
 
 	std::vector<std::string> methods;
 
-	if (context->seenLocationProperties.allowedMethodsSeen)
+	if (context->seenLocationProperties.allowedMethodsSeen) {
+		std::cerr << property << " : ";
 		throw DoubleLocationPropertyException();
+	}
 	if (property.empty())
 		throw EmptyLocationPropertyException();
 
@@ -111,8 +122,10 @@ void LocationPropertiesProcessor::processMethodsProperty(const std::string& prop
 		if (isValidMethod(*it)) {
 			context->currentConfig.locations[context->currentLocationName].allowedMethods.push_back(*it);
 		}
-		else
+		else {
+			std::cerr << property << " : ";
 			throw InvalidMethodException();
+		}
 	}
 	context->seenLocationProperties.allowedMethodsSeen = true;
 }
@@ -126,9 +139,10 @@ void LocationPropertiesProcessor::fetchUploadAuthorisation(const std::string& pr
 		context->currentConfig.locations[context->currentLocationName].uploadEnabled = true;
 	else if (property == "false")
 		context->currentConfig.locations[context->currentLocationName].uploadEnabled = false;
-	else
+	else {
+		std::cerr << property << " : ";
 		throw InvalidUploadAuthException();
-
+	}
 	context->seenLocationProperties.uploadAuthSeen = true;
 }
 
@@ -136,8 +150,10 @@ void LocationPropertiesProcessor::processUploadDirProperty(const std::string& pr
 
 	if (context->seenLocationProperties.uploadDirSeen)
 		throw DoubleLocationPropertyException();
-	if (property.empty() || property.find("..") != std::string::npos || property[0] != '/')
+	if (property.empty() || property.find("..") != std::string::npos || property[0] != '/') {
+		std::cerr << property << " : ";
 		throw InvalidUploadDirException();
+	}
 
 	ensureUploadDirIsAllowed(property);
 	ensureUploadDirIsValid(property);
@@ -148,16 +164,19 @@ void LocationPropertiesProcessor::processUploadDirProperty(const std::string& pr
 
 void LocationPropertiesProcessor::fetchAutoIndex(const std::string& property, parserContext *context) {
 
-	if (context->seenLocationProperties.autoIndexSeen)
+	if (context->seenLocationProperties.autoIndexSeen) {
+		std::cerr << property << " : ";
 		throw DoubleLocationPropertyException();
+	}
 
 	if (property == "on")
 		context->currentConfig.locations[context->currentLocationName].autoIndex = true;
 	else if (property == "off")
 		context->currentConfig.locations[context->currentLocationName].autoIndex = false;
-	else
+	else {
+		std::cerr << property << " : ";
 		throw InvalidAutoIndexException();
-
+	}
 	context->seenLocationProperties.autoIndexSeen = true;
 }
 
@@ -222,8 +241,10 @@ void LocationPropertiesProcessor::processCgiProperty(const std::string& property
 
 	if (property.empty())
 		throw EmptyLocationPropertyException();
-	if (context->seenLocationProperties.cgiSeen == true)
+	if (context->seenLocationProperties.cgiSeen == true) {
+		std::cerr << property << " : ";
 		throw DoubleLocationPropertyException();
+	}
 
 	std::map<std::string, std::string>cgiExtensionHandlers;
 
@@ -266,9 +287,11 @@ void LocationPropertiesProcessor::fetchLocationReturnInfo(const std::string& pro
 
 	if (property.empty())
 		throw EmptyLocationPropertyException();
-	if (context->seenLocationProperties.returnSeen == true)
-		throw DoubleLocationPropertyException();
 
+	if (context->seenLocationProperties.returnSeen == true) {
+		std::cerr << property << " : ";
+		throw DoubleLocationPropertyException();
+	}
 	std::vector<std::string>codeAndURL = split(property, SPACE);
 	if (codeAndURL.size() == 2 && isValidUrl(codeAndURL.at(1))) {
 
@@ -278,8 +301,10 @@ void LocationPropertiesProcessor::fetchLocationReturnInfo(const std::string& pro
 		context->currentConfig.locations[context->currentLocationName].redirCode = code;
 		context->currentConfig.locations[context->currentLocationName].redirURL = codeAndURL.at(1);
 		context->seenLocationProperties.returnSeen = true;
-	} else
+	} else {
+		std::cerr << property << " : ";
 		throw InvalidLocationReturnException();
+	}
 }
 
 size_t	LocationPropertiesProcessor::getMaxBodyValueByUnit(long value, const std::string& unit) {
@@ -295,19 +320,25 @@ size_t	LocationPropertiesProcessor::getMaxBodyValueByUnit(long value, const std:
 
 void LocationPropertiesProcessor::fetchMaxBodySize(const std::string& property, parserContext *context) {
 
-	if (context->seenLocationProperties.maxBodySeen)
+	if (context->seenLocationProperties.maxBodySeen) {
+		std::cerr << property << " : ";
 		throw DoubleLocationPropertyException();
+	}
 
 	size_t i = 0;
 	while (i < property.size() && std::isdigit(property[i])) {
 		++i;
 	}
-	if (i == 0)
+	if (i == 0) {
+		std::cerr << property << " : ";
 		throw InvalidBodySizeException();
+	}
 
 	long value = std::strtol(property.substr(0, i).c_str(), NULL, 10);
-	if (value < 0 || value > MAX_BODY_VALUE_ALLOWED)
+	if (value < 0 || value > MAX_BODY_VALUE_ALLOWED) {
+		std::cerr << property << " : ";
 		throw InvalidBodySizeException();
+	}
 
 	std::string unit = property.substr(i);
 	size_t maxBodySize;
@@ -325,6 +356,7 @@ LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::get
 	keyType type = getKeyType(key);
 
 	if (type == UNKNOWN) {
+		std::cerr << key << " : ";
 		throw InvalidLocationPropertyException();
 	}
 	switch (type) {
@@ -347,15 +379,17 @@ LocationPropertiesProcessor::LocationProcessPtr LocationPropertiesProcessor::get
 		case BODY_SIZE :
 			return &LocationPropertiesProcessor::fetchMaxBodySize;
 		case UNKNOWN :
+			std::cerr << key << " : ";
 			throw InvalidLocationPropertyException();
 	}
+	std::cerr << key << " : ";
 	throw InvalidLocationPropertyException();
 }
 
 // EXCEPTIONS
 
 const char *LocationPropertiesProcessor::InvalidLocationPropertyException::what() const throw() {
-	 return ("Error: webserv: Invalid location property detected in configuration file");
+	 return ("Invalid location property detected in configuration file");
 }
 
 const char *LocationPropertiesProcessor::EmptyLocationPropertyException::what() const throw() {
@@ -363,19 +397,19 @@ const char *LocationPropertiesProcessor::EmptyLocationPropertyException::what() 
 }
 
 const char *LocationPropertiesProcessor::InvalidUploadAuthException::what() const throw() {
-	 return ("Error: webserv: Invalid upload authorisation property detected in configuration file. Must be at format: upload_enabled=true | false");
+	 return ("Invalid upload authorisation property detected in configuration file. Must be at format: upload_enabled=true | false");
 }
 
 const char *LocationPropertiesProcessor::DoubleLocationPropertyException::what() const throw() {
-	 return ("Error: webserv: Double property detected in a location section of configuration file.");
+	 return ("Double property detected in a location section of configuration file.");
 }
 
 const char *LocationPropertiesProcessor::InvalidMethodException::what() const throw() {
-	 return ("Error: webserv: invalid methods authorisation list in a location section of configuration file. Accepted: GET POST DELETE.");
+	 return ("Invalid methods authorisation list in a location section of configuration file. Accepted: GET POST DELETE.");
 }
 
 const char *LocationPropertiesProcessor::InvalidAutoIndexException::what() const throw() {
-	 return ("Error: webserv: invalid auto index property detected in a location section. Must be on | off only.");
+	 return ("Invalid auto index property detected in a location section. Must be on | off only.");
 }
 
 const char *LocationPropertiesProcessor::InvalidCgiException::what() const throw() {
@@ -383,21 +417,21 @@ const char *LocationPropertiesProcessor::InvalidCgiException::what() const throw
 }
 
 const char *LocationPropertiesProcessor::ForbiddenLocationRootException::what() const throw() {
-	 return ("Error: webserv: Forbidden location root directory detected in configuration file.");
+	 return ("Forbidden location root directory detected in configuration file.");
 }
 
 const char *LocationPropertiesProcessor::InvalidUploadDirException::what() const throw() {
-	 return ("Error: webserv: Invalid upload directory detected in configuration file.");
+	 return ("Invalid upload directory detected in configuration file.");
 }
 
 const char *LocationPropertiesProcessor::ForbiddenUploadDirException::what() const throw() {
-	 return ("Error: webserv: Forbidden upload directory detected in configuration file.");
+	 return ("Forbidden upload directory detected in configuration file.");
 }
 
 const char *LocationPropertiesProcessor::InvalidLocationReturnException::what() const throw() {
-	 return ("Error: webserv: Invalid return detected in a location section from configuration file."); // codes listing ?
+	 return ("Invalid return detected in a location section from configuration file."); // codes listing ?
 }
 
 const char *LocationPropertiesProcessor::InvalidBodySizeException::what() const throw() {
-	 return ("Error: webserv: Invalid client_max_body_size detected in a location section from configuration file.");
+	 return ("Invalid client_max_body_size detected in a location section from configuration file.");
 }
