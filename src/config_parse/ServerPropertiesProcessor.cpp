@@ -36,6 +36,7 @@ void ServerPropertiesProcessor::ensureRootIsAllowed(const std::string& root) {
 
 		if (root == forbidden || (root.size() > forbidden.size()
 			&& root.compare(0, forbidden.size(), forbidden) == 0 && root[forbidden.size()] == '/')) {
+				std::cerr << root << " : ";
 				throw ForbiddenServerRootException();
 			}
 	}
@@ -46,9 +47,11 @@ void ServerPropertiesProcessor::ensureRootIsValid(const std::string& root) {
 	struct stat pathStat;
 
 	if (access(root.c_str(), F_OK | R_OK | X_OK) != 0) {
+		std::cerr << root << " : ";
 		throw InvalidServerRootException();
 	}
 	if (stat(root.c_str(), &pathStat) != 0 || !S_ISDIR(pathStat.st_mode))
+		std::cerr << root << " : ";
 		throw InvalidServerRootException();
 }
 
@@ -74,13 +77,16 @@ int ServerPropertiesProcessor::getErrorCodeValue(const std::string& errorCode) {
 void ServerPropertiesProcessor::ensureErrorPathIsValid(const std::string& pagePath) {
 
 	if (pagePath.find("..") != std::string::npos || pagePath.empty()) {
+		std::cerr << pagePath << " : ";
 		throw InvalidErrorPageException();
 	}
 	if (pagePath[0] == '/') {
+		std::cerr << pagePath << " : ";
 		throw InvalidErrorPageException();
 	}
 	std::ifstream pageStream(pagePath.c_str());
 	if (!pageStream.good()) {
+		std::cerr << pagePath << " : ";
 		throw UnexistantErrorPageException();
 	}
 }
@@ -96,9 +102,11 @@ bool ServerPropertiesProcessor::isValueInMap(const std::map<int, std::string>& m
 void ServerPropertiesProcessor::addErrorPageToErrorMap(parserContext *context, int codeValue, std::string pagePath) {
 
 	if (context->currentConfig.errorPagesCodes.find(codeValue) != context->currentConfig.errorPagesCodes.end()) {
+		std::cerr << pagePath << " : ";
 		throw DoubleErrorPathException();
 	}
 	if (isValueInMap(context->currentConfig.errorPagesCodes, pagePath)) {
+		std::cerr << pagePath << " : ";
 		throw DoubleErrorPathException();
 	}
 	context->currentConfig.errorPagesCodes[codeValue] = pagePath;
@@ -107,6 +115,7 @@ void ServerPropertiesProcessor::addErrorPageToErrorMap(parserContext *context, i
 void ServerPropertiesProcessor::processPortProperty(const std::string& propertyValue, parserContext *context) {
 
 	if (context->seenServerProperties.portSeen) {
+		std::cerr << propertyValue << " : ";
 		throw DoublePropertyException();
 	}
 	const char *propertyStr = propertyValue.c_str();
@@ -115,9 +124,11 @@ void ServerPropertiesProcessor::processPortProperty(const std::string& propertyV
 	errno = 0;
 	long port = std::strtol(propertyStr, &endPtr, 10);
 	if (errno != 0 || endPtr == propertyStr || *endPtr != '\0') {
+		std::cerr << propertyValue << " : ";
 		throw InvalidPortPropertyException();
 	}
 	if (port < 0 || port > 65535) {
+		std::cerr << propertyValue << " : ";
 		throw InvalidPortPropertyException();
 	}
 	context->seenServerProperties.portSeen = true;
@@ -127,9 +138,11 @@ void ServerPropertiesProcessor::processPortProperty(const std::string& propertyV
 void ServerPropertiesProcessor::processHostProperty(const std::string& propertyValue, parserContext *context) {
 
 	if (context->seenServerProperties.hostSeen) {
+		std::cerr << propertyValue << " : ";
 		throw DoublePropertyException();
 	}
 	if (propertyValue.empty()) {
+		std::cerr << propertyValue << " : ";
 		throw InvalidHostPropertyException();
 	}
 	context->currentConfig.identity.host = propertyValue;
@@ -141,11 +154,14 @@ void ServerPropertiesProcessor::processNameProperty(const std::string& propertyV
 	if (context->seenServerProperties.nameSeen) {
 		throw DoublePropertyException();
 	}
-	if (propertyValue.empty())
+	if (propertyValue.empty()) {
+		std::cerr << propertyValue << " : ";
 		throw InvalidNamePropertyException();
+	}
 	size_t i = 0;
 	while (i < propertyValue.size()) {
 		if (std::isspace(static_cast<unsigned char>(propertyValue[i]))) {
+			std::cerr << propertyValue << " : ";
 			throw InvalidNamePropertyException();
 		}
 		++i;
@@ -157,9 +173,11 @@ void ServerPropertiesProcessor::processNameProperty(const std::string& propertyV
 void ServerPropertiesProcessor::processRootProperty(const std::string& propertyValue, parserContext *context) {
 
 	if (context->seenServerProperties.rootSeen) {
+		std::cerr << propertyValue << " : ";
 		throw DoublePropertyException();
 	}
 	if (propertyValue.empty() || propertyValue.find("..") != std::string::npos) {
+		std::cerr << propertyValue << " : ";
 		throw InvalidServerRootException();
 	}
 	ensureRootIsAllowed(propertyValue);
@@ -177,6 +195,7 @@ void ServerPropertiesProcessor::processErrorPageProperty(const std::string& prop
 	iss >> code >> pagePath;
 
 	if (code.empty() || pagePath.empty() || code.size() > 3) {
+		std::cerr << propertyValue << " : ";
 		throw InvalidErrorPageException();
 	}
 	int codeValue = getErrorCodeValue(code);
@@ -189,6 +208,7 @@ ServerPropertiesProcessor::ServerProcessPtr ServerPropertiesProcessor::getProper
 	keyType type = getKeyType(directiveKey);
 
 	if (type == UNKNOWN) {
+		std::cerr << directiveKey << " : ";
 		throw InvalidPropertyException();
 	}
 	switch (type) {
@@ -210,45 +230,45 @@ ServerPropertiesProcessor::ServerProcessPtr ServerPropertiesProcessor::getProper
 //EXCEPTIONS
 
 const char* ServerPropertiesProcessor::InvalidPropertyException::what() const throw() {
-	return "Error: webserv: Invalid property detected in configuration file.";
+	return "Invalid property detected in configuration file.";
 }
 
 const char *ServerPropertiesProcessor::InvalidPortPropertyException::what() const throw() {
-	return "Error: webserv: Invalid port detected in configuration file. Must be an integer in range 0 - 65535";
+	return "Invalid port detected in configuration file. Must be an integer in range 0 - 65535";
 }
 
 const char *ServerPropertiesProcessor::InvalidHostPropertyException::what() const throw() {
-	return "Error: webserv: Invalid host detected in configuration file. Can't be empty";
+	return "Invalid host detected in configuration file. Can't be empty";
 }
 
 const char *ServerPropertiesProcessor::InvalidNamePropertyException::what() const throw() {
-	return "Error: webserv: Invalid server name detected in configuration file. Can't be empty or contains spaces.";
+	return "Invalid server name detected in configuration file. Can't be empty or contains spaces.";
 }
 
 const char *ServerPropertiesProcessor::InvalidServerRootException::what() const throw() {
-	return "Error: webserv: Invalid server root detected in configuration file.";
+	return "Invalid server root detected in configuration file.";
 }
 
 const char *ServerPropertiesProcessor::ForbiddenServerRootException::what() const throw() {
-	return "Error: webserv: Forbidden server root directory detected in configuration file.";
+	return "Forbidden server root directory detected in configuration file.";
 }
 
 const char *ServerPropertiesProcessor::InvalidErrorPageException::what() const throw() {
-	return "Error: webserv: Invalid error_page path property detected. Must be at format: error_page=404 error/404.html. Absolute paths are not accepted.";
+	return "Invalid error_page path property detected. Must be at format: error_page=404 error/404.html. Absolute paths are not accepted.";
 }
 
 const char *ServerPropertiesProcessor::DoublePropertyException::what() const throw() {
-	return "Error: webserv: Double property detected in server configuration.";
+	return "Double property detected in server configuration.";
 }
 
 const char *ServerPropertiesProcessor::UnknownErrorCodeException::what() const throw() {
-	return "Error: webserv: unknown error page code in configuration file.";
+	return "Unknown error page code in configuration file.";
 }
 
 const char *ServerPropertiesProcessor::DoubleErrorPathException::what() const throw() {
-	return "Error: webserv: duplicate error_page path property detected in configuration file.";
+	return "Duplicate error_page path property detected in configuration file.";
 }
 
 const char *ServerPropertiesProcessor::UnexistantErrorPageException::what() const throw() {
-	return "Error: webserv: non existant error_page path detected in configuration file.";
+	return "Non existant error_page path detected in configuration file.";
 }
