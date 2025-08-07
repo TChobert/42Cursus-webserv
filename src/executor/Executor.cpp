@@ -97,9 +97,9 @@ void	Executor::execute(Conversation& conv)
 			GetExecutor::resumeReadCGI(conv);
 			break;
 //cas pour POST
-		case WRITE_EXEC_POST_BODY:
-			PostExecutor::resumePostWriteBodyToFile(conv);
-			break;
+		// case WRITE_EXEC_POST_BODY:
+		// 	PostExecutor::resumePostWriteBodyToFile(conv);
+		// 	break;
 		case WRITE_EXEC_POST_CGI:
 			PostExecutor::resumePostWriteBodyToCGI(conv);
 			break;

@@ -46,8 +46,12 @@ void Validator::validateBodyFormat(Conversation& conv) {
 		} catch (std::invalid_argument& e) {
 			return earlyResponse(conv, BAD_REQUEST);
 		}
-		if (conv.req.bodyLeft > bodyMax)
+		if (conv.req.bodyLeft > conv.location->clientMaxBodySize)
+		{
+			std::cout << "CONV.BODYLEFT = " << conv.req.bodyLeft << std::endl;
+			std::cout << "BODYMAX = " << conv.location->clientMaxBodySize << std::endl;
 			return earlyResponse(conv, ENTITY_TOO_LARGE);
+		}
 		if (conv.req.header["content-length"].find_first_not_of(base10) != npos)
 			return earlyResponse(conv, BAD_REQUEST);
 
@@ -81,7 +85,7 @@ void Validator::validateMethod(Conversation& conv) {
 
 void Validator::validateHeader(Conversation& conv) {
 	mapStr& head = conv.req.header;
-	if (!head.count("host") 
+	if (!head.count("host")
 			|| (head["host"] != conv.config.identity.host
 				&& head["host"] != conv.config.identity.host + ':' + intToString(conv.config.identity.port)))
 		return earlyResponse(conv, BAD_REQUEST);

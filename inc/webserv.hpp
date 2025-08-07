@@ -15,6 +15,9 @@
 #include "execState.hpp"
 #include "keyValue.hpp"
 
+#define MAX_SAFE_SIZE (10 * 1024 * 1024)
+// #define MAX_FILE_LIMIT (50 * 1024 * 1024)
+
 class request {
 public:
 	std::string method;

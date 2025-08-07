@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Test POST avec upload fichier</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Formulaire de test POST</h1>
+  <form action="/" method="post" enctype="multipart/form-data">
+    <p>Remplissez ce formulaire pour envoyer un message, ou envoyez un fichier image :</p>
+
+    <label for="name">Nom :</label><br />
+    <input type="text" id="name" name="name" /><br /><br />
+
+    <label for="email">Email :</label><br />
+    <input type="email" id="email" name="email" /><br /><br />
+
+    <label for="message">Message :</label><br />
+    <textarea id="message" name="message" rows="4" cols="40"></textarea><br /><br />
+
+    <hr>
+
+    <label for="file">Ou choisissez un fichier image à uploader :</label><br />
+    <input type="file" id="file" name="file" accept="image/*" /><br /><br />
+
+    <button type="submit">Envoyer</button>
+  </form>
+</body>
+</html>
+

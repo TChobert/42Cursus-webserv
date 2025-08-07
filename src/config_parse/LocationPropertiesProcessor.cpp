@@ -47,13 +47,9 @@ void LocationPropertiesProcessor::ensureRootIsAllowed(const std::string& root) c
 	for (size_t i = 0; i < forbiddenCount; ++i) {
 		const std::string forbidden(forbiddenPaths[i]);
 
-		if (root == forbidden ||
-			(root.size() > forbidden.size() &&
-			root.compare(0, forbidden.size(), forbidden) == 0 &&
-			root[forbidden.size()] == '/')) 
-		{
-			std::cerr << root << " : ";
-			throw ForbiddenLocationRootException();
+		if (root == forbidden || (root.size() > forbidden.size()
+			&& root.compare(0, forbidden.size(), forbidden) == 0 && root[forbidden.size()] == '/')) {
+				throw ForbiddenLocationRootException();
 		}
 	}
 }

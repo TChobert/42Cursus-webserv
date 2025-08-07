@@ -1,5 +1,6 @@
 #include "StaticFileHandler.hpp"
 #include "Executor.hpp"
+#include "webserv.hpp"
 #include <unistd.h>
 #include <fcntl.h>
 #include <fstream>
@@ -8,29 +9,32 @@
 void StaticFileHandler::handleStaticFile(Conversation& conv)
 {
     const std::string& path = conv.req.pathOnDisk;
-    int fd = open(path.c_str(), O_RDONLY);  // Pas de O_NONBLOCK
-    if (fd == -1) {
+
+    // 1. Vérifier que le fichier existe et obtenir sa taille
+    struct stat st;
+    if (stat(path.c_str(), &st) == -1 || !S_ISREG(st.st_mode)) {
+        Executor::setResponse(conv, NOT_FOUND);
+        return;
+    }
+
+    // 2. Vérifier que la taille est acceptable
+    if (st.st_size > MAX_SAFE_SIZE) {
+        Executor::setResponse(conv, ENTITY_TOO_LARGE);
+        return;
+    }
+
+    // 3. Ouvrir avec ifstream et tout lire
+    std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
+    if (!file) {
         Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
         return;
     }
 
-    // Lire tout le fichier maintenant
-    std::string content;
-    char buffer[8192];
-    ssize_t bytesRead;
-    while ((bytesRead = read(fd, buffer, sizeof(buffer))) > 0) {
-        content.append(buffer, bytesRead);
-    }
-    close(fd);
+    std::ostringstream ss;
+    ss << file.rdbuf(); // lire tout le contenu dans le stringstream
+    conv.resp.body = ss.str();
 
-    if (bytesRead == -1) {
-        Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
-        return;
-    }
-
-    // Préparer la réponse
-    conv.resp.body = content;
-	Executor::setResponse(conv, OK);
+    Executor::setResponse(conv, OK);
 }
 
 // void	StaticFileHandler::handleStaticFile(Conversation& conv)

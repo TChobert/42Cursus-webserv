@@ -74,11 +74,11 @@ void Parser::parseBodyChunked(Conversation& conv) {
 	string& s = conv.buf;
 	while (true) {
 		size_t pos = s.find("\r\n");
-		if (pos == npos && s.size() <= bodyMax) {
+		if (pos == npos && s.size() <= conv.location->clientMaxBodySize) { //bodyMax
 			conv.state = READ_CLIENT;  // attendre plus de données
 			return;
 		}
-		if ((pos != npos && pos > bodyMax) || pos == npos)
+		if ((pos != npos && pos > conv.location->clientMaxBodySize) || pos == npos) //bodyMax
 			return earlyResponse(conv, BAD_REQUEST);
 
 		size_t chunkSize;
@@ -98,7 +98,7 @@ void Parser::parseBodyChunked(Conversation& conv) {
 			return;
 		}
 		s.erase(0, 2);
-		if (conv.req.body.size() + chunkSize > bodyMax)
+		if (conv.req.body.size() + chunkSize > conv.location->clientMaxBodySize)
 			return earlyResponse(conv, ENTITY_TOO_LARGE);
 		conv.req.body += s.substr(0, chunkSize);
 		s.erase(0, chunkSize);
