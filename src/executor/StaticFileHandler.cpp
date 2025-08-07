@@ -13,7 +13,7 @@ void StaticFileHandler::handleStaticFile(Conversation& conv)
         Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
         return;
     }
-    
+
     // Lire tout le fichier maintenant
     std::string content;
     char buffer[8192];
@@ -22,16 +22,15 @@ void StaticFileHandler::handleStaticFile(Conversation& conv)
         content.append(buffer, bytesRead);
     }
     close(fd);
-    
+
     if (bytesRead == -1) {
         Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
         return;
     }
-    
+
     // Préparer la réponse
     conv.resp.body = content;
-    conv.resp.status = OK;
-    conv.state = RESPONSE;  // Passer directement à la réponse
+	Executor::setResponse(conv, OK);
 }
 
 // void	StaticFileHandler::handleStaticFile(Conversation& conv)

@@ -26,6 +26,13 @@ struct locationConfig {
 	bool						uploadEnabled;
 	std::string					uploadStore;
 	std::map<cgiExtension, cgiHandler> cgiHandlers;
+
+	locationConfig()
+		: hasRoot(false),
+		  autoIndex(false),
+		  clientMaxBodySize(0),
+		  hasRedir(false),
+		  uploadEnabled(false) {}
 };
 
 struct serverInfo {
