@@ -146,7 +146,7 @@ void LocationPropertiesProcessor::processUploadDirProperty(const std::string& pr
 
 	if (context->seenLocationProperties.uploadDirSeen)
 		throw DoubleLocationPropertyException();
-	if (property.empty() || property.find("..") != std::string::npos || property[0] != '/') {
+	if (property.empty() || property.find("..") != std::string::npos) { //|| property[0] != '/') {
 		std::cerr << property << " : ";
 		throw InvalidUploadDirException();
 	}
