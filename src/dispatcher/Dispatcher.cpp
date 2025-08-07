@@ -268,7 +268,6 @@ void	Dispatcher::dispatch(Conversation& conv) {
 			_postSender->execute(conv);
 		}
 		else if (conv.state == PARSE || conv.state == PARSE_BODY || conv.state == EOF_CLIENT) {
-			std::cout << "PARSER CALLED" << std::endl;
 			_parser->execute(conv);
 		}
 		else if (conv.state == VALIDATE) {

@@ -103,6 +103,7 @@ std::set<int>	ServerInitializer::initServers(int epollFd) {
 			try {
 				socketInitProcess(epollFd, sock, config);
 				serversSockets.insert(sock);
+				std::cout << YELLOW << "[SERVER] ===> " << it->identity.serverName << " // [PORT: " << it->identity.port << " // SOCKET : " <<  sock << "] // ===> is ready to communicate!" << RESET << std::endl;
 			}
 			catch (const std::exception& e) {
 				close(sock);
