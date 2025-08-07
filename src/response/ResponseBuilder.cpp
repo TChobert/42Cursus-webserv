@@ -5,7 +5,10 @@
 void	ResponseBuilder::build(Conversation& conv)
 {
 	std::string statusLine = StatusLineBuilder::build(conv.resp);
+	std::cout << "RESPONSE BUILD: " << std::endl;
+	std::cout << statusLine << std::endl;
 	std::string headers = HeaderBuilder::build(conv);
+	std::cout << headers << std::endl;
 	std::string body = conv.resp.body;
 
 	conv.finalResponse = ResponseAssembler::assemble(statusLine, headers, conv.resp);
@@ -16,7 +19,6 @@ void	ResponseBuilder::build(Conversation& conv)
 void	ResponseBuilder::execute(Conversation& conv)
 {
 	ResponseBuilder::build(conv);
-	std::cout << conv.finalResponse << std::endl;
 	conv.state = WRITE_CLIENT;
 }
 
