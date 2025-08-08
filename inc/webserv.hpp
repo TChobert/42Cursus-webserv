@@ -6,6 +6,7 @@
 #include <iostream>
 #include <ctime>
 #include <sys/types.h>
+
 #include "webserv_enum.hpp"
 #include "webserv_utils.hpp"
 #include "parse/parse.hpp"
@@ -60,6 +61,7 @@ public:
 	int fdToClose;
 	size_t bytesSent;
 	pid_t cgiPid;
+	struct timeval lastActive;
 	time_t cgiStartTime;
 	serverConfig config;
 	locationConfig* location;
