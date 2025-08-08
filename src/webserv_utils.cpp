@@ -8,6 +8,8 @@
 
 #include "../inc/webserv.hpp"
 
+extern volatile sig_atomic_t gSignalStatus;
+
 using namespace std;
 
 void toLower(string& s, size_t start, size_t len) {
@@ -195,4 +197,9 @@ bool isClientCgiTimeOut(Conversation& client) {
 	time_t currentTime = time(NULL);
 
 	return (currentTime - client.cgiStartTime > CGI_TIMEOUT);
+}
+
+void signalHandler(int signum) {
+
+	gSignalStatus = signum;
 }

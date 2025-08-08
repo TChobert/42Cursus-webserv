@@ -1,4 +1,5 @@
 #include "EventsManager.hpp"
+extern volatile sig_atomic_t gSignalStatus;
 
 EventsManager::EventsManager(int& epollFd, ConfigStore& configs,
 								ServerInitializer& initializer,
@@ -214,7 +215,7 @@ void	EventsManager::handleNotifiedEvents(int fdsNumber) {
 
 void	EventsManager::listenEvents(void) {
 
- 	while (true) {
+	while (gSignalStatus == 0) {
 
 		closeFinishedClients();
 		checkClientsTimeouts();

@@ -6,6 +6,8 @@
 #include <iostream>
 #include <ctime>
 #include <sys/types.h>
+#include <csignal>
+#include <unistd.h>
 
 #include "webserv_enum.hpp"
 #include "webserv_utils.hpp"
@@ -18,6 +20,8 @@
 
 #define MAX_SAFE_SIZE (10 * 1024 * 1024)
 // #define MAX_FILE_LIMIT (50 * 1024 * 1024)
+
+//volatile sig_atomic_t g_signal_status;
 
 class request {
 public:

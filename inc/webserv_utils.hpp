@@ -36,3 +36,4 @@ std::vector<std::string> split(const std::string& str, const char delimiter);
 bool isClientTimeOut(Conversation& client);
 void updateClientLastActivity(Conversation& client, timeMode mode);
 bool isClientCgiTimeOut(Conversation& client);
+void signalHandler(int signum);
