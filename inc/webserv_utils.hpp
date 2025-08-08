@@ -7,7 +7,7 @@
 #include "webserv_enum.hpp"
 
 #define CGI_TIMEOUT 10
-#define TIMEOUT_LIMIT_MS 10
+#define TIMEOUT_LIMIT_MS 10000
 
 class Conversation;
 

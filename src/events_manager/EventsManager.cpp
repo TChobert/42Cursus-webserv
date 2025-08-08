@@ -162,23 +162,24 @@ void	EventsManager::handleNewClient(int serverFd) {
 	}
 }
 
-void EventsManager::deleteTimeoutsClients(std::vector<Conversation*> timeOutsClients) {
-
-	for (std::vector<Conversation*>::iterator it = timeOutsClients.begin(); it != timeOutsClients.end(); ++it) {
+void EventsManager::deleteTimeoutsClients(std::vector<int> timeOutsClients) {
+	for (std::vector<int>::iterator it = timeOutsClients.begin(); it != timeOutsClients.end(); ++it) {
 		std::cout << RED << "TIMEOUT" << RESET;
-		deleteClient(**it);
+		deleteClient(_clients[*it]);
 	}
 }
 
 void EventsManager::checkClientsTimeouts(void) {
+	std::cout << RED << "CHECKING FOR TIMEOUTS" << RESET << std::endl;
 
-	std::vector<Conversation*> timeOutsClients;
+	std::vector<int> timeOutsClients;
 
 	for (std::map<int, Conversation>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
 		if (isClientTimeOut(it->second)) {
-			timeOutsClients.push_back(&it->second);
+			timeOutsClients.push_back(it->first);
 		}
 	}
+
 	deleteTimeoutsClients(timeOutsClients);
 }
 
@@ -217,7 +218,7 @@ void	EventsManager::listenEvents(void) {
 
 		closeFinishedClients();
 		checkClientsTimeouts();
-		int	fdsNumber = epoll_wait(_epollFd, _events, MAX_EVENTS, - 1);
+		int	fdsNumber = epoll_wait(_epollFd, _events, MAX_EVENTS, 1000);
 		if (fdsNumber == -1) {
 			if (errno == EINTR) {
 				continue ;

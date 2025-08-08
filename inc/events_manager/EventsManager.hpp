@@ -56,7 +56,7 @@ class EventsManager {
 	void	setSocketNonBlocking(int fd);
 	void	handleClientEvent(int fd);
 	void	checkClientsTimeouts(void);
-	void	deleteTimeoutsClients(std::vector<Conversation*> timeOutsClients);
+	void	deleteTimeoutsClients(std::vector<int> timeOutsClients);
 	void	closeFinishedClients(void);
 	void	deleteClient(Conversation& conv);
 	void	deleteAllClients(void);
