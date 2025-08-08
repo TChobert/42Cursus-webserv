@@ -1,8 +1,44 @@
 #include "upload_utils.hpp"
+#include "ResourceChecker.hpp"
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
 #include <cctype>
+
+static void splitFilename(const std::string& filename, std::string& baseName, std::string& ext)
+{
+	std::string::size_type pos = filename.rfind('.'); //cherche derniere occurence
+	if (pos == std::string::npos)
+	{
+		baseName = filename;
+		ext = "";
+	}
+	else
+	{
+		baseName = filename.substr(0, pos);
+		ext = filename.substr(pos);
+	}
+}
+
+static std::string getUniqueFilename(const std::string& directory, const std::string& filename)
+{
+	std::string baseName, ext;
+	splitFilename(filename, baseName, ext);
+
+	std::string candidate = filename;
+	std::string fullPath = directory + "/" + candidate;
+	int counter = 1;
+
+	while (ResourceChecker::exists(fullPath))
+	{
+		std::ostringstream ss;
+		ss << baseName << "_" << counter << ext;
+		candidate = ss.str();
+		fullPath = directory + "/" + candidate;
+		++counter;
+	}
+	return candidate;
+}
 
 //fabriquer un nom unique simple
 static std::string	generateUploadFileName(const std::string& ext)
@@ -33,9 +69,10 @@ static std::string cleanFilename(const std::string& raw, const std::string& ext)
 void saveUploadedFile(const MultipartPart& part, Conversation& conv)
 {
 	std::string ext = getFileExtension(part.filename);
-	std::string filename = cleanFilename(part.filename, ext);
+	std::string cleanedName = cleanFilename(part.filename, ext);
+	std::string uniqueName = getUniqueFilename(conv.location->uploadStore, cleanedName);
 
-	std::string path = conv.location->uploadStore + "/" + filename;
+	std::string path = conv.location->uploadStore + "/" + uniqueName;
 
 	std::ofstream file(path.c_str(), std::ios::binary | std::ios::trunc);
 	if (!file.is_open())

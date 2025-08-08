@@ -2,9 +2,26 @@
 #include <sstream>
 #include <cctype>
 
+//EXEMPLE - MULTIPART DATA QUI ARRIVE EN BRUT >> ce qu'il y a a parser
+
+// ------WebKitFormBoundary7MA4YWxkTrZu0gW
+// Content-Disposition: form-data; name="username" (headers terminé par un double CRLF (\r\n\r\n))
+//
+// alice
+// ------WebKitFormBoundary7MA4YWxkTrZu0gW
+// Content-Disposition: form-data; name="avatar"; filename="photo.jpg"
+// Content-Type: image/jpeg
+
+// (binary data ici)
+// ------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+
 MultipartParser::MultipartParser(const std::string& body, const std::string& boundary)
 	: _body(body), _boundary(boundary) {}
 
+
+//rechercher toutes les occurences de boundary dans body
+//extrait sous chaines entre chaque boundary
 std::vector<std::string> MultipartParser::splitParts()
 {
 	std::vector<std::string> parts;
@@ -24,6 +41,9 @@ std::vector<std::string> MultipartParser::splitParts()
 	return parts;
 }
 
+//pour chaque partie, trouver fin des headers
+//parser ligne par ligne headers (name, filename, content type)
+//stocke reste (body) dans parsed.data
 MultipartPart MultipartParser::parsePart(const std::string& part)
 {
 	MultipartPart parsed;
@@ -78,7 +98,7 @@ MultipartPart MultipartParser::parsePart(const std::string& part)
 std::vector<MultipartPart> MultipartParser::parse()
 {
 	std::vector<MultipartPart> result;
-	std::vector<std::string> rawParts = splitParts();
+	std::vector<std::string> rawParts = splitParts(); //decouper body en string brutes
 
 	for (std::vector<std::string>::size_type i = 0; i < rawParts.size(); ++i)
 	{

@@ -7,8 +7,30 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+//EXEMPLE REQUETE POST...
+
+// POST /upload HTTP/1.1
+// Host: example.com
+// Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+// Content-Length: 123456
+
+
+//RFC 2046: le standard multipart dit que les frontieres sont precedees de 2 tirets (--) dans le body
+//c'est la chaine qui va reellement apparaitre dans le body recu
+static std::string extractBoundary(const std::string& contentType)
+{
+	std::string::size_type pos = contentType.find("boundary=");
+	if (pos == std::string::npos)
+		return "";
+
+	return "--" + contentType.substr(pos + 9);
+}
+
 void PostExecutor::handlePost(Conversation& conv)
 {
+	conv.uploadedFiles.clear();
+	conv.formFields.clear();
+
 	if (CGIHandler::isCGI(conv))
 	{
 		CGIHandler::handleCGI(conv);
@@ -16,14 +38,9 @@ void PostExecutor::handlePost(Conversation& conv)
 	}
 
 	std::string contentType = conv.req.header["content-type"];
-	std::string::size_type pos = contentType.find("boundary=");
-	if (pos == std::string::npos)
-	{
-		Executor::setResponse(conv, BAD_REQUEST);
-		return;
-	}
-
-	std::string boundary = "--" + contentType.substr(pos + 9);
+	std::string boundary = extractBoundary(contentType);
+	if (boundary.empty())
+		return Executor::setResponse(conv, BAD_REQUEST);
 
 	try
 	{
@@ -38,7 +55,8 @@ void PostExecutor::handlePost(Conversation& conv)
 				storeFormField(parts[i], conv);
 		}
 
-		saveFormSummary(conv);
+		if (!conv.formFields.empty()) //si upload une simple image sans autre info, on ne cree pas un form
+			saveFormSummary(conv);
 
 		conv.resp.body = "<html><body><h1>Upload successful</h1></body></html>";
 		Executor::setResponse(conv, CREATED);
