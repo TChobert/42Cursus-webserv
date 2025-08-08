@@ -9,6 +9,7 @@
 #include <cstring>
 #include <vector>
 #include <sstream>
+#include <cstdio>
 
 //ATTENTION: ce qui peut etre encore a faire, a checker..
 //- Si CGI ecrit par un tiers, attention aux headers dangereux (ex : Transfer-Encoding, Content-Length, etc.)
@@ -111,6 +112,8 @@ char**	CGIHandler::prepareEnv(Conversation& conv)
 			envStrings.push_back("CONTENT_TYPE=" + it->second);
 	}
 
+	std::cerr << "HEY FROM PREPARE ENV" << std::endl;
+
 	char** envp = (char**)malloc(sizeof(char*) * (envStrings.size() + 1));
 	if (!envp)
 		return NULL;
@@ -131,6 +134,7 @@ void	CGIHandler::handleGetCGI(Conversation& conv)
 {
 	//chemin absolu du script CGI a executer
 	const std::string& scriptPath = conv.req.pathOnDisk;
+	std::cout << "SCRIPT PATH HANDLEGETCGI = " << scriptPath << std::endl;
 
 	//recuperer la bonne extension du script a faire (.py, .php, etc)
 	std::string extension = getFileExtension(scriptPath);
@@ -140,15 +144,19 @@ void	CGIHandler::handleGetCGI(Conversation& conv)
 	if (it == conv.location->cgiHandlers.end())
 		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 	const std::string& interpreter = it->second;
+	std::cout << "INTERPRETER = " << interpreter << std::endl;
 
 	//creation pipe pour que Webserv puisse lire la sortie du script (stockee dans le pipe)
 	int pipe_out[2];
 	if (pipe(pipe_out) == -1)
 		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 
+	std::cout << "HELLO" << std::endl;
+
 	pid_t pid = fork();
 	if (pid < 0)
 	{
+		std::cout << "PID < 0" << std::endl;
 		close(pipe_out[0]);
 		close(pipe_out[1]);
 		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
@@ -164,16 +172,28 @@ void	CGIHandler::handleGetCGI(Conversation& conv)
 		close(pipe_out[1]);
 
 		//ICI - boucle de fermeture de fds herites du parent ?
-		// for (int fd = 3; fd < 1024; ++fd)
-		// 	close(fd);
+		for (int fd = 3; fd < 1024; ++fd)
+		{
+			if (fd != STDOUT_FILENO)
+				close(fd);
+		}
 
 		char** envp = prepareEnv(conv);
 		if (!envp)
 			exit(EXIT_FAILURE);
+		for (int i = 0; envp[i]; ++i)
+    		std::cerr << "envp[" << i << "] = " << envp[i] << std::endl;
 
+		std::cerr << "[CHILD] PID: " << getpid() << " executing CGI" << std::endl;
 		//{interpreter, scriptPath, NULL}
 		char* argv[] = {const_cast<char*>(interpreter.c_str()), const_cast<char*>(scriptPath.c_str()), NULL};
+		std::cerr << "[CHILD] launching execve: "
+          << interpreter << " " << scriptPath << std::endl;
 		execve(interpreter.c_str(), argv, envp);
+		// {
+    	// 		perror("execve failed");
+   		// 		_exit(EXIT_FAILURE);
+		// }
 		freeEnv(envp);
 		exit(EXIT_FAILURE);
 	}

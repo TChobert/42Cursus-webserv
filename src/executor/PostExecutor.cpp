@@ -58,7 +58,10 @@ void PostExecutor::handlePost(Conversation& conv)
 		if (!conv.formFields.empty()) //si upload une simple image sans autre info, on ne cree pas un form
 			saveFormSummary(conv);
 
-		conv.resp.body = "<html><body><h1>Upload successful</h1></body></html>";
+		conv.resp.body = "<html><body>"
+						"<h1>Upload successful</h1>"
+						"<p><a href=\"/\">Back Welcome Page</a></p>"
+						"</body></html>";
 		Executor::setResponse(conv, CREATED);
 	}
 	catch (std::exception& e)

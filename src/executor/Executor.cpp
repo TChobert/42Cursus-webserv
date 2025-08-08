@@ -90,16 +90,10 @@ void	Executor::execute(Conversation& conv)
 			Executor::executeStart(conv);
 			break;
 //cas pour GET
-		case READ_EXEC_GET_STATIC:
-			GetExecutor::resumeStatic(conv);
-			break;
 		case READ_EXEC_GET_CGI:
 			GetExecutor::resumeReadCGI(conv);
 			break;
 //cas pour POST
-		// case WRITE_EXEC_POST_BODY:
-		// 	PostExecutor::resumePostWriteBodyToFile(conv);
-		// 	break;
 		case WRITE_EXEC_POST_CGI:
 			PostExecutor::resumePostWriteBodyToCGI(conv);
 			break;
