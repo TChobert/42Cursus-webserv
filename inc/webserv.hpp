@@ -71,5 +71,7 @@ public:
 	execState eState;
 	std::string finalResponse;
 	std::string cgiOutput;
+	std::map<std::string, std::string> formFields;
+	std::vector<std::string> uploadedFiles;
 	Conversation() : fd(-1), tempFd(-1), bodyFd(-1), fdToClose(-1),  bytesSent(0), cgiPid(-1), cgiStartTime(0), state(PARSE), pState(START), eState(EXEC_START) {};
 };

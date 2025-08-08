@@ -1,109 +1,11 @@
 #include "PostExecutor.hpp"
 #include "Executor.hpp"
+#include "MultipartParser.hpp"
+#include "upload_utils.hpp"
 #include <sstream>
 #include <fstream>
 #include <unistd.h>
 #include <fcntl.h>
-
-struct MultipartPart
-{
-	std::string name;
-	std::string filename;
-	std::string contentType;
-	std::string data;
-};
-
-static std::string	generateUploadFileName()
-{
-	static int counter = 0;
-	std::ostringstream ss;
-	ss << "upload_" << counter++ << ".txt";
-	return ss.str();
-}
-
-static std::string sanitizeFilename(const std::string& raw)
-{
-	std::string clean;
-	for (std::string::size_type i = 0; i < raw.size(); ++i)
-	{
-		if (std::isalnum(static_cast<unsigned char>(raw[i])) || raw[i] == '.' || raw[i] == '_' || raw[i] == '-')
-		{
-			clean += raw[i];
-		}
-	}
-	return clean.empty() ? generateUploadFileName() : clean;
-}
-
-std::vector<std::string> splitMultipartBody(const std::string& body, const std::string& boundary)
-{
-	std::vector<std::string> parts;
-	std::string::size_type start = 0;
-	std::string::size_type end;
-
-	while ((end = body.find(boundary, start)) != std::string::npos)
-	{
-		if (end != start)
-		{
-			std::string part = body.substr(start, end - start);
-			if (!part.empty())
-				parts.push_back(part);
-		}
-		start = end + boundary.length();
-	}
-	return parts;
-}
-
-MultipartPart parsePart(const std::string& part)
-{
-	MultipartPart parsed;
-	std::string::size_type headerEnd = part.find("\r\n\r\n");
-	if (headerEnd == std::string::npos)
-		return parsed;
-
-	std::string headerSection = part.substr(0, headerEnd);
-	std::string body = part.substr(headerEnd + 4); // skip \r\n\r\n
-
-	std::istringstream headers(headerSection);
-	std::string line;
-	while (std::getline(headers, line))
-	{
-		if (line.find("Content-Disposition:") != std::string::npos)
-		{
-			std::string::size_type namePos = line.find("name=\"");
-			if (namePos != std::string::npos)
-			{
-				std::string::size_type end = line.find("\"", namePos + 6);
-				parsed.name = line.substr(namePos + 6, end - (namePos + 6));
-			}
-			std::string::size_type filePos = line.find("filename=\"");
-			if (filePos != std::string::npos)
-			{
-				std::string::size_type end = line.find("\"", filePos + 10);
-				parsed.filename = line.substr(filePos + 10, end - (filePos + 10));
-			}
-		}
-		else if (line.find("Content-Type:") != std::string::npos)
-		{
-			parsed.contentType = line.substr(14); // after "Content-Type: "
-			if (!parsed.contentType.empty() &&
-				parsed.contentType[parsed.contentType.size() - 1] == '\r')
-			{
-				parsed.contentType.erase(parsed.contentType.size() - 1);
-			}
-		}
-	}
-
-	// Trim trailing CRLF or dashes
-	while (!body.empty() && (body[body.size() - 1] == '\r' ||
-							 body[body.size() - 1] == '\n' ||
-							 body[body.size() - 1] == '-'))
-	{
-		body.erase(body.size() - 1);
-	}
-
-	parsed.data = body;
-	return parsed;
-}
 
 void PostExecutor::handlePost(Conversation& conv)
 {
@@ -122,31 +24,29 @@ void PostExecutor::handlePost(Conversation& conv)
 	}
 
 	std::string boundary = "--" + contentType.substr(pos + 9);
-	std::vector<std::string> parts = splitMultipartBody(conv.req.body, boundary);
 
-	std::vector<std::string>::size_type i;
-	for (i = 0; i < parts.size(); ++i)
+	try
 	{
-		MultipartPart part = parsePart(parts[i]);
+		MultipartParser parser(conv.req.body, boundary);
+		std::vector<MultipartPart> parts = parser.parse();
 
-		if (!part.filename.empty())
+		for (std::vector<MultipartPart>::size_type i = 0; i < parts.size(); ++i)
 		{
-			std::string filename = sanitizeFilename(part.filename);
-			std::string path = conv.location->uploadStore + "/" + filename;
-
-			std::ofstream file(path.c_str(), std::ios::binary | std::ios::trunc);
-			if (!file.is_open())
-			{
-				Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
-				return;
-			}
-			file.write(part.data.c_str(), static_cast<std::streamsize>(part.data.size()));
-			file.close();
+			if (!parts[i].filename.empty() && !parts[i].data.empty())
+				saveUploadedFile(parts[i], conv);
+			else
+				storeFormField(parts[i], conv);
 		}
-	}
 
-	conv.resp.body = "<html><body><h1>Upload successful</h1></body></html>";
-	Executor::setResponse(conv, CREATED);
+		saveFormSummary(conv);
+
+		conv.resp.body = "<html><body><h1>Upload successful</h1></body></html>";
+		Executor::setResponse(conv, CREATED);
+	}
+	catch (std::exception& e)
+	{
+		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+	}
 }
 
 // void PostExecutor::handlePost(Conversation& conv)

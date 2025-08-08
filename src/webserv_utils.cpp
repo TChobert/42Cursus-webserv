@@ -164,3 +164,4 @@ bool hasCgiProcessExitedCleanly(pid_t cgiPid)
 	else
 		return false; //erreur waitpid
 }
+
