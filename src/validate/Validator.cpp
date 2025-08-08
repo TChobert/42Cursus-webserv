@@ -83,30 +83,100 @@ void Validator::validateMethod(Conversation& conv) {
 		skipBody(conv, METHOD_NOT_ALLOWED);
 }
 
+// void Validator::validateHeader(Conversation& conv) {
+// 	mapStr& head = conv.req.header;
+// 	if (!head.count("host")
+// 			|| (head["host"] != conv.config.identity.host
+// 				&& head["host"] != conv.config.identity.host + ':' + intToString(conv.config.identity.port)))
+// 		return earlyResponse(conv, BAD_REQUEST);
+// 	if (head.count("content-encoding"))
+// 		return skipBody(conv, NOT_IMPLEMENTED);
+// 	if (head.count("connection")) {
+// 		if (head["connection"] == "close") {
+// 			conv.resp.shouldClose = true;
+// 		} else if (head["connection"] != "keep-alive")
+// 			return skipBody(conv, NOT_IMPLEMENTED);
+// 	}
+// 	//if (head.count("cookie")) {
+// 	//	conv.req.cookie = head["cookie"];
+// 	//}
+// 	if (head.count("expect")) {
+// 		if (head["expect"] == "100-continue") {
+// 			if (!conv.resp.status) {
+// 				conv.resp.status = CONTINUE;
+// 				conv.state = RESPONSE;
+// 			}
+// 		} else
+// 			return earlyResponse(conv, EXPECTATION_FAILED);
+// 	}
+// }
+
 void Validator::validateHeader(Conversation& conv) {
 	mapStr& head = conv.req.header;
-	if (!head.count("host")
-			|| (head["host"] != conv.config.identity.host
-				&& head["host"] != conv.config.identity.host + ':' + intToString(conv.config.identity.port)))
+
+	if (!head.count("host")) {
 		return earlyResponse(conv, BAD_REQUEST);
-	if (head.count("content-encoding"))
+	}
+
+	std::string hostHeader = head["host"];
+	std::string expectedHost = conv.config.identity.host; // e.g. "0.0.0.0"
+	std::string expectedName = conv.config.identity.serverName; // e.g. "test_server"
+	std::string expectedPortStr = intToString(conv.config.identity.port);
+
+	// Split Host header: host[:port]
+	std::string hostOnly = hostHeader;
+	std::string portOnly = "";
+	size_t colon = hostHeader.find(':');
+	if (colon != std::string::npos) {
+		hostOnly = hostHeader.substr(0, colon);
+		portOnly = hostHeader.substr(colon + 1);
+	}
+
+	// Validate port (if specified)
+	if (!portOnly.empty() && portOnly != expectedPortStr) {
+		std::cout << "[DEBUG] Port mismatch: got " << portOnly << ", expected " << expectedPortStr << std::endl;
+		return earlyResponse(conv, BAD_REQUEST);
+	}
+
+	// Check if host matches any expected value
+	bool hostMatch = false;
+
+	if (expectedHost == "0.0.0.0") {
+		// Accept any local connection
+		hostMatch = true;
+	} else if (hostOnly == expectedHost || hostOnly == expectedName) {
+		hostMatch = true;
+	} else if ((expectedHost == "127.0.0.1" && hostOnly == "localhost") ||
+	           (expectedHost == "localhost" && hostOnly == "127.0.0.1")) {
+		hostMatch = true;
+	}
+
+	if (!hostMatch) {
+		std::cout << "[DEBUG] Host mismatch: got '" << hostOnly << "', expected '" << expectedHost << "' or '" << expectedName << "'" << std::endl;
+		return earlyResponse(conv, BAD_REQUEST);
+	}
+
+	// Handle remaining headers
+	if (head.count("content-encoding")) {
 		return skipBody(conv, NOT_IMPLEMENTED);
+	}
+
 	if (head.count("connection")) {
 		if (head["connection"] == "close") {
 			conv.resp.shouldClose = true;
-		} else if (head["connection"] != "keep-alive")
+		} else if (head["connection"] != "keep-alive") {
 			return skipBody(conv, NOT_IMPLEMENTED);
+		}
 	}
-	//if (head.count("cookie")) {
-	//	conv.req.cookie = head["cookie"];
-	//}
+
 	if (head.count("expect")) {
 		if (head["expect"] == "100-continue") {
 			if (!conv.resp.status) {
 				conv.resp.status = CONTINUE;
 				conv.state = RESPONSE;
 			}
-		} else
+		} else {
 			return earlyResponse(conv, EXPECTATION_FAILED);
+		}
 	}
 }
