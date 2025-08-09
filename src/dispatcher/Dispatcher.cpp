@@ -237,6 +237,11 @@ void	Dispatcher::removeExecutorFdFromEpoll(Conversation& conv) {
 	conv.fdToClose = -1;
 }
 
+void Dispatcher::setTimeoutResponse(COnversation& conv) {
+
+
+}
+
 void	Dispatcher::dispatch(Conversation& conv) {
 
 	std::cout << "Dispatcher called" << std::endl;
@@ -251,6 +256,9 @@ void	Dispatcher::dispatch(Conversation& conv) {
 
 	while (true) {
 
+		if (conv.state == CLIENT_TIMEOUT) {
+			setTimeOutResponse(conv);
+		}
 		if (conv.state == TO_SEND) {
 			_sender->execute(conv);
 		}

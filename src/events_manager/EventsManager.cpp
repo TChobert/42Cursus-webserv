@@ -179,6 +179,10 @@ void EventsManager::checkClientsTimeouts(void) {
 		if (isClientTimeOut(it->second)) {
 			timeOutsClients.push_back(it->first);
 		}
+		else if (isClientCgiTimeOut(it->second)) {
+			it->second.state = CLIENT_TIMEOUT;
+			_dispatcher.dispatch(it->second);
+		}
 	}
 
 	deleteTimeoutsClients(timeOutsClients);

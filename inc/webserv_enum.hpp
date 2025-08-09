@@ -37,5 +37,6 @@ enum convState {
 	EXEC,
 	TO_READ,
 	TO_SEND,
-	IS_SENT
+	IS_SENT,
+	CLIENT_TIMEOUT
 };
