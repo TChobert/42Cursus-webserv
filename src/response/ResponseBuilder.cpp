@@ -7,11 +7,45 @@ void	ResponseBuilder::build(Conversation& conv)
 	std::string statusLine = StatusLineBuilder::build(conv.resp);
 	std::cout << "RESPONSE BUILD: " << std::endl;
 	std::cout << statusLine << std::endl;
-	std::string headers = HeaderBuilder::build(conv);
-	std::cout << headers << std::endl;
-	std::string body = conv.resp.body;
 
-	conv.finalResponse = ResponseAssembler::assemble(statusLine, headers, conv.resp);
+	//----HEADERS----//
+	std::string headers;
+	if (conv.streamState == NORMAL || conv.streamState == START_STREAM)
+	{
+		headers = HeaderBuilder::build(conv);
+		if (conv.streamState == START_STREAM)
+			conv.streamState = STREAM_IN_PROGRESS;
+	}
+	else
+		headers.clear();
+	std::cout << headers << std::endl;
+
+	//----BODY----//
+	std::string body;
+	if (conv.streamState == STREAM_IN_PROGRESS || conv.streamState == START_STREAM)
+	{
+		// Chunked encoding
+		if (!conv.resp.body.empty())
+		{
+			std::ostringstream chunk;
+			chunk << std::hex << conv.resp.body.size() << "\r\n";
+			chunk << conv.resp.body << "\r\n";
+			body = chunk.str();
+		}
+		else if (conv.cgiFinished)
+		{
+			body = "0\r\n\r\n";
+			conv.streamState = NORMAL;
+			conv.cgiFinished = false;
+		}
+	}
+	else
+	{
+		// Normal encoding
+		body = conv.resp.body;
+	}
+
+	conv.finalResponse = ResponseAssembler::assemble(statusLine, headers, body, conv.resp.status);
 }
 
 /* ---------------- PUBLIC ------------------ */

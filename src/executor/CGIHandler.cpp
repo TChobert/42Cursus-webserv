@@ -279,6 +279,14 @@ void	CGIHandler::handlePostCGI(Conversation& conv)
 		conv.cgiStartTime = time(NULL);
 		conv.tempFd = pipe_in[1];
 		conv.bodyFd = pipe_out[0];
+
+		const size_t chunkSize = 4096; //correspond a la taille dans Resume
+
+		if (conv.req.body.size() <= chunkSize)
+			conv.streamState = NORMAL;
+		else
+			conv.streamState = START_STREAM;
+
 		conv.eState = WRITE_EXEC_POST_CGI;
 		conv.state = WRITE_EXEC;
 	}

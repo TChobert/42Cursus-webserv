@@ -63,7 +63,7 @@ public:
 	int tempFd;
 	int bodyFd;
 	int fdToClose;
-	bool bodyParsedCgi;
+	bool cgiFinished;
 	size_t bytesSent;
 	pid_t cgiPid;
 	struct timeval lastActive;
@@ -76,9 +76,10 @@ public:
 	std::string buf;
 	parseState pState;
 	execState eState;
+	streamState streamState;
 	std::string finalResponse;
 	std::string cgiOutput;
 	std::map<std::string, std::string> formFields;
 	std::vector<std::string> uploadedFiles;
-	Conversation() : fd(-1), tempFd(-1), bodyFd(-1), fdToClose(-1), bodyParsedCgi(false), bytesSent(0), cgiPid(-1), cgiStartTime(0), state(PARSE), pState(START), eState(EXEC_START) {};
+	Conversation() : fd(-1), tempFd(-1), bodyFd(-1), fdToClose(-1), cgiFinished(false), bytesSent(0), cgiPid(-1), cgiStartTime(0), state(PARSE), pState(START), eState(EXEC_START), streamState(NORMAL) {};
 };

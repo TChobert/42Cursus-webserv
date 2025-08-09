@@ -39,3 +39,9 @@ enum convState {
 	TO_SEND,
 	IS_SENT
 };
+
+enum streamState {
+	NORMAL,
+	START_STREAM,
+	STREAM_IN_PROGRESS
+};

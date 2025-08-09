@@ -5,15 +5,22 @@
 /* ---------------- PRIVATE METHODS ------------------ */
 
 
-std::string HeaderBuilder::buildGenericHeaders(const response& resp)
+std::string HeaderBuilder::buildGenericHeaders(const Conversation& conv)
 {
 	std::ostringstream headers;
 
 	headers << buildDateHeader();
 	headers << buildServerHeader();
-	headers << buildContentTypeHeader(resp);
-	headers << buildContentLengthHeader(resp);
-	headers << buildConnectionHeader(resp);
+	headers << buildContentTypeHeader(conv.resp);
+	if (conv.streamState == STREAM_IN_PROGRESS || conv.streamState == START_STREAM)
+	{
+		headers << "Transfer-Encoding: chunked\r\n";
+	}
+	else
+	{
+		headers << buildContentLengthHeader(conv.resp);
+	}
+	headers << buildConnectionHeader(conv.resp);
 
 	return headers.str();
 }
@@ -116,7 +123,7 @@ std::string HeaderBuilder::build(const Conversation& conv)
 {
 	std::ostringstream headers;
 
-	headers << HeaderBuilder::buildGenericHeaders(conv.resp);
+	headers << HeaderBuilder::buildGenericHeaders(conv);
 	headers << HeaderBuilder::buildCustomHeaders(conv);
 
 	return headers.str();
