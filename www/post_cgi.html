@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Test POST vers CGI</title>
+</head>
+<body>
+  <h1>Formulaire de test POST (CGI)</h1>
+  <form action="/cgi-bin/test_post_cgi.py" method="post" enctype="multipart/form-data">
+    <p>Remplissez ce formulaire pour envoyer un message, ou envoyez un ou plusieurs fichiers :</p>
+
+    <label for="name">Nom :</label><br />
+    <input type="text" id="name" name="name" /><br /><br />
+
+    <label for="email">Email :</label><br />
+    <input type="email" id="email" name="email" /><br /><br />
+
+    <label for="message">Message :</label><br />
+    <textarea id="message" name="message" rows="4" cols="40"></textarea><br /><br />
+
+    <hr>
+
+    <label for="file">Choisissez un ou plusieurs fichiers (images ou PDF) :</label><br />
+    <input type="file" id="file" name="files[]" accept="image/*,application/pdf" multiple /><br /><br />
+
+    <button type="submit">Envoyer vers CGI</button>
+  </form>
+</body>
+</html>

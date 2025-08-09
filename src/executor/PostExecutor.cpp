@@ -6,6 +6,8 @@
 #include <fstream>
 #include <unistd.h>
 #include <fcntl.h>
+#include <algorithm>
+#include <cstring>
 
 //EXEMPLE REQUETE POST...
 
@@ -129,23 +131,32 @@ void PostExecutor::handlePost(Conversation& conv)
 
 void PostExecutor::resumePostWriteBodyToCGI(Conversation& conv)
 {
-	ssize_t written = write(conv.tempFd, conv.req.body.c_str(), conv.req.body.size());
+	const size_t chunkSize = 4096;
+	size_t toWrite = std::min(chunkSize, conv.req.body.size());
+
+	ssize_t written = write(conv.tempFd, conv.req.body.c_str(), toWrite);
+
+	std::cout << "[resumePostWrite] written: " << written << std::endl;
 
 	if (written < 0)
 	{
+		std::cerr << "[ERROR resumePostWrite] write failed with errno=" << errno << " (" << strerror(errno) << ")" << std::endl;
 		conv.fdToClose = conv.tempFd;
 		conv.tempFd = -1;
+		std::cerr << "[ERROR resumePostWrite] written < 0: " << written << std::endl;
 		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 		return;
 	}
 
 	conv.req.body.erase(0, written);
+	std::cout << "[resumePostWriteBodyToCGI] Remaining body size after erase: " << conv.req.body.size() << std::endl;
 
 	if (conv.req.body.empty())
 	{
 		conv.fdToClose = conv.tempFd;
 		conv.tempFd = conv.bodyFd; //je switch et je stocke bodyFd dans tempFd (comme ca, il reste le seul a etre surveille par epoll)
 		conv.bodyFd = -1;
+		std::cout << "[resumePostWriteBodyToCGI] Finished writing body. Switching tempFd to bodyFd: " << conv.tempFd << std::endl;
 		conv.eState = READ_EXEC_POST_CGI;
 		conv.state = READ_EXEC;
 	}
@@ -153,6 +164,7 @@ void PostExecutor::resumePostWriteBodyToCGI(Conversation& conv)
 	{
 		conv.eState = WRITE_EXEC_POST_CGI;
 		conv.state = WRITE_EXEC;
+		std::cout << "[resumePostWriteBodyToCGI] More body to write. Staying in WRITE_EXEC_POST_CGI." << std::endl;
 	}
 }
 
@@ -161,14 +173,21 @@ void PostExecutor::resumePostReadCGI(Conversation& conv)
 	char buffer[1024];
 	ssize_t bytesRead = read(conv.tempFd, buffer, sizeof(buffer));
 
+	std::cout << "[resumePostReadCGI] bytesRead: " << bytesRead << std::endl;
+
 	if (bytesRead > 0)
+	{
 		conv.cgiOutput.append(buffer, bytesRead);
+		std::cout << "[resumePostReadCGI] cgiOutput size: " << conv.cgiOutput.size() << std::endl;
+	}
 	else if (bytesRead == 0)
 	{
+		std::cout << "[resumePostReadCGI] EOF reached on fd " << conv.tempFd << std::endl;
 		conv.fdToClose = conv.tempFd;
 		conv.tempFd = -1;
 		if (!hasCgiProcessExitedCleanly(conv.cgiPid))
 		{
+			std::cerr << "[resumePostReadCGI] CGI process did not exit cleanly." << std::endl;
 			Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 			return;
 		}
@@ -181,6 +200,7 @@ void PostExecutor::resumePostReadCGI(Conversation& conv)
 	{
 		conv.fdToClose = conv.tempFd;
 		conv.tempFd = -1;
+		std::cerr << "[resumePostReadCGI] read error" << std::endl;
 		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 	}
 }

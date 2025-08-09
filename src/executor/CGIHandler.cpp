@@ -33,13 +33,21 @@ void	CGIHandler::parseCgiOutput(Conversation& conv)
 {
 	const std::string& raw = conv.cgiOutput;
 
+	std::cout << "[parseCgiOutput] CGI raw output size: " << raw.size() << std::endl;
+
 	size_t headerEnd = raw.find("\r\n\r\n");
 	if (headerEnd == std::string::npos) //respecte pas format
+	{
+		std::cerr << "[parseCgiOutput] ERROR: CGI output does not contain header/body separator." << std::endl;
 		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+	}
 
 
 	std::string headersPart = raw.substr(0, headerEnd);
 	std::string bodyPart = raw.substr(headerEnd + 4); // skip \r\n\r\n
+
+	std::cout << "[parseCgiOutput] Headers part size: " << headersPart.size() << std::endl;
+	std::cout << "[parseCgiOutput] Body part size: " << bodyPart.size() << std::endl;
 
 	std::istringstream stream(headersPart);
 	std::string line;
@@ -61,6 +69,9 @@ void	CGIHandler::parseCgiOutput(Conversation& conv)
 		//repartition des headers dans leurs variables respectives
 		std::string keyLower = key;
 		toLower(keyLower);
+
+		std::cout << "[parseCgiOutput] Header: \"" << key << "\" => \"" << value << "\"" << std::endl;
+
 		if (keyLower == "content-type")
 			conv.resp.contentType = value;
 		else if (keyLower == "status")
@@ -79,7 +90,10 @@ void	CGIHandler::parseCgiOutput(Conversation& conv)
 	conv.resp.body = bodyPart;
 
 	if (conv.resp.status == 0)
+	{
 		conv.resp.status = OK;
+		std::cout << "[parseCgiOutput] No status header found, defaulting to 200 OK." << std::endl;
+	}
 }
 
 
@@ -112,7 +126,11 @@ char**	CGIHandler::prepareEnv(Conversation& conv)
 			envStrings.push_back("CONTENT_TYPE=" + it->second);
 	}
 
-	std::cerr << "HEY FROM PREPARE ENV" << std::endl;
+	std::cerr << "[prepareEnv] Environment variables prepared:" << std::endl;
+	for (size_t i = 0; i < envStrings.size(); ++i)
+	{
+		std::cerr << "  " << envStrings[i] << std::endl;
+	}
 
 	char** envp = (char**)malloc(sizeof(char*) * (envStrings.size() + 1));
 	if (!envp)
@@ -122,6 +140,7 @@ char**	CGIHandler::prepareEnv(Conversation& conv)
 		envp[i] = strdup(envStrings[i].c_str());
 		if (!envp[i])
 		{
+			std::cerr << "[prepareEnv] ERROR: strdup failed at index " << i << std::endl;
 			freeEnv(envp);
 			return NULL;
 		}
