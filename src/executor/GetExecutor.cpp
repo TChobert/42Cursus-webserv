@@ -163,44 +163,6 @@ void	GetExecutor::handleAutoindex(Conversation& conv)
 	return;
 }
 
-// ----- POUR INFO -----
-// struct dirent
-//{
-//		ino_t	d_ino;       // numéro d'inode du fichier
-//		char	d_name[256]; // nom du fichier (attention : longueur max)
-//	+ autres champs
-//};
-
-void GetExecutor::resumeStatic(Conversation& conv)
-{
-	const size_t BUFFER_SIZE = 4096;
-	char buffer[BUFFER_SIZE];
-
-	ssize_t bytesRead = read(conv.tempFd, buffer, BUFFER_SIZE);
-
-	if (bytesRead > 0)
-	{
-		conv.resp.body.append(buffer, bytesRead);
-		conv.state = READ_EXEC;
-		conv.eState = READ_EXEC_GET_STATIC;
-		return; //on attend prochain EPOLLIN (encore donnees a lire)
-	}
-	else if (bytesRead == 0)
-	{
-		conv.fdToClose = conv.tempFd;
-		conv.tempFd = -1;
-		Executor::setResponse(conv, OK);
-		return;
-	}
-	else
-	{
-		conv.fdToClose = conv.tempFd;
-		conv.tempFd = -1;
-		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
-		return;
-	}
-}
-
 //EXEMPLE de lecture de resultat de script CGI sans parsing:
 // Content-Type: text/html
 // Set-Cookie: sessionid=123abc
@@ -218,10 +180,12 @@ void GetExecutor::resumeStatic(Conversation& conv)
 void GetExecutor::resumeReadCGI(Conversation& conv)
 {
 	char buffer[1024];
-	ssize_t bytesRead = read(conv.tempFd, buffer, sizeof(buffer));
-	if (bytesRead > 0)
+	ssize_t bytesRead;
+	while ((bytesRead = read(conv.tempFd, buffer, sizeof(buffer))) > 0)
+	{
 		conv.cgiOutput.append(buffer, bytesRead);
-	else if (bytesRead == 0)
+	}
+	if (bytesRead == 0)
 	{
 		conv.fdToClose = conv.tempFd;
 		conv.tempFd = -1;
@@ -235,7 +199,7 @@ void GetExecutor::resumeReadCGI(Conversation& conv)
 		conv.eState = EXEC_START;
 		conv.state = RESPONSE;
 	}
-	else
+	else if (bytesRead < 0)
 	{
 		conv.fdToClose = conv.tempFd;
 

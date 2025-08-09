@@ -2,11 +2,11 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Test POST avec upload fichiers</title>
+  <title>Test POST vers CGI</title>
 </head>
 <body>
-  <h1>Formulaire de test POST</h1>
-  <form action="/" method="post" enctype="multipart/form-data">
+  <h1>Formulaire de test POST (CGI)</h1>
+  <form action="/cgi-bin/test_post_cgi.py" method="post" enctype="multipart/form-data">
     <p>Remplissez ce formulaire pour envoyer un message, ou envoyez un ou plusieurs fichiers :</p>
 
     <label for="name">Nom :</label><br />
@@ -23,7 +23,7 @@
     <label for="file">Choisissez un ou plusieurs fichiers (images ou PDF) :</label><br />
     <input type="file" id="file" name="files[]" accept="image/*,application/pdf" multiple /><br /><br />
 
-    <button type="submit">Envoyer</button>
+    <button type="submit">Envoyer vers CGI</button>
   </form>
 </body>
 </html>
