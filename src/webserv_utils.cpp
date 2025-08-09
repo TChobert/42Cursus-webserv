@@ -8,6 +8,8 @@
 
 #include "../inc/webserv.hpp"
 
+extern volatile sig_atomic_t gSignalStatus;
+
 using namespace std;
 
 void toLower(string& s, size_t start, size_t len) {
@@ -165,3 +167,39 @@ bool hasCgiProcessExitedCleanly(pid_t cgiPid)
 		return false; //erreur waitpid
 }
 
+void updateClientLastActivity(Conversation& client, timeMode mode) {
+
+	if (mode == CGI)
+		client.cgiStartTime = time(NULL);
+	else
+		gettimeofday(&client.lastActive, NULL);
+}
+
+bool isClientTimeOut(Conversation& client) {
+
+	struct timeval now;
+
+	gettimeofday(&now, NULL);
+	long seconds = now.tv_sec - client.lastActive.tv_sec;
+	long useconds = now.tv_usec - client.lastActive.tv_usec;
+
+	if (useconds < 0) {
+		seconds -= 1;
+		useconds += 1000000;
+	}
+
+	unsigned long msec_diff = seconds * 1000 + useconds / 1000;
+	return (msec_diff > TIMEOUT_LIMIT_MS);
+}
+
+bool isClientCgiTimeOut(Conversation& client) {
+
+	time_t currentTime = time(NULL);
+
+	return (currentTime - client.cgiStartTime > CGI_TIMEOUT);
+}
+
+void signalHandler(int signum) {
+
+	gSignalStatus = signum;
+}

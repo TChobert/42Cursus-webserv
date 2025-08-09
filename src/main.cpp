@@ -17,7 +17,9 @@
 #include "PostSender.hpp"
 #include "moduleRegistry.hpp"
 
-void buildModuleRegistery(moduleRegistry& registry,
+volatile sig_atomic_t gSignalStatus = 0;
+
+static void buildModuleRegistery(moduleRegistry& registry,
 							IModule *reader, IModule *parser, IModule *validator,
 							IModule *executor, IModule *responseBuilder,
 							IModule *sender, IModule *postSender) {
@@ -37,6 +39,8 @@ int main(int ac, char** av) {
 		return (EXIT_FAILURE);
 	}
 
+	std::signal(SIGINT, signalHandler);
+	std::signal(SIGTERM, signalHandler);
 	std::vector<serverConfig> serversConfigs;
 	const std::string configuration = av[1];
 	ConfigFileReader configReader;

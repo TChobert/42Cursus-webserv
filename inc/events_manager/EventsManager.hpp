@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include <map>
 #include <set>
+#include <ctime>
+#include <sys/time.h>
 
 #include "webserv.hpp"
 #include "ConfigStore.hpp"
@@ -53,6 +55,8 @@ class EventsManager {
 	void	addClientToInterestList(int clientFd);
 	void	setSocketNonBlocking(int fd);
 	void	handleClientEvent(int fd);
+	void	checkClientsTimeouts(void);
+	void	deleteTimeoutsClients(std::vector<int> timeOutsClients);
 	void	closeFinishedClients(void);
 	void	deleteClient(Conversation& conv);
 	void	deleteAllClients(void);

@@ -1,4 +1,5 @@
 #include "EventsManager.hpp"
+extern volatile sig_atomic_t gSignalStatus;
 
 EventsManager::EventsManager(int& epollFd, ConfigStore& configs,
 								ServerInitializer& initializer,
@@ -74,11 +75,13 @@ void EventsManager::handleClientEvent(int fd) {
 
 	std::map<int, Conversation*>::iterator execIt = _executorFds.find(fd);
 	if (execIt != _executorFds.end()) {
+		updateClientLastActivity(*execIt->second, REGULAR);
 		_dispatcher.dispatch(*execIt->second);
 	} else {
 		std::map<int, Conversation>::iterator clientIt = _clients.find(fd);
 		if (clientIt != _clients.end()) {
 			std::cout << "Client found !!" << std::endl;
+			updateClientLastActivity(clientIt->second, REGULAR);
 			_dispatcher.dispatch(clientIt->second);
 		}
 	}
@@ -108,6 +111,8 @@ void	EventsManager::setClientConversation(int serverFd, int clientFd) {
 
 	clientConversation.config = config;
 	clientConversation.fd = clientFd;
+	updateClientLastActivity(clientConversation, REGULAR);
+
 	_clients[clientFd] = clientConversation;
 }
 
@@ -158,6 +163,27 @@ void	EventsManager::handleNewClient(int serverFd) {
 	}
 }
 
+void EventsManager::deleteTimeoutsClients(std::vector<int> timeOutsClients) {
+	for (std::vector<int>::iterator it = timeOutsClients.begin(); it != timeOutsClients.end(); ++it) {
+		std::cout << RED << "TIMEOUT" << RESET;
+		deleteClient(_clients[*it]);
+	}
+}
+
+void EventsManager::checkClientsTimeouts(void) {
+	std::cout << RED << "CHECKING FOR TIMEOUTS" << RESET << std::endl;
+
+	std::vector<int> timeOutsClients;
+
+	for (std::map<int, Conversation>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+		if (isClientTimeOut(it->second)) {
+			timeOutsClients.push_back(it->first);
+		}
+	}
+
+	deleteTimeoutsClients(timeOutsClients);
+}
+
 void EventsManager::closeFinishedClients(void) {
 
 	std::vector<int> toRemove;
@@ -171,6 +197,7 @@ void EventsManager::closeFinishedClients(void) {
 		deleteClient(_clients[toRemove[i]]);
 	}
 }
+
 void	EventsManager::handleNotifiedEvents(int fdsNumber) {
 
 	for (int i = 0; i < fdsNumber; ++i) {
@@ -188,10 +215,11 @@ void	EventsManager::handleNotifiedEvents(int fdsNumber) {
 
 void	EventsManager::listenEvents(void) {
 
- 	while (true) {
+	while (gSignalStatus == 0) {
 
 		closeFinishedClients();
-		int	fdsNumber = epoll_wait(_epollFd, _events, MAX_EVENTS, - 1);
+		checkClientsTimeouts();
+		int	fdsNumber = epoll_wait(_epollFd, _events, MAX_EVENTS, 1000);
 		if (fdsNumber == -1) {
 			if (errno == EINTR) {
 				continue ;
