@@ -84,6 +84,10 @@ void	Executor::setResponse(Conversation& conv, statusCode code)
 
 void	Executor::execute(Conversation& conv)
 {
+	if(isClientCgiTimeOut(conv)) {
+		std::cerr << "ICI" << std::endl;
+		setResponse(conv, GATEWAY_TIMEOUT);
+	}
 	switch (conv.eState)
 	{
 		case EXEC_START:

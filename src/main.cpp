@@ -41,6 +41,7 @@ int main(int ac, char** av) {
 
 	std::signal(SIGINT, signalHandler);
 	std::signal(SIGTERM, signalHandler);
+
 	std::vector<serverConfig> serversConfigs;
 	const std::string configuration = av[1];
 	ConfigFileReader configReader;

@@ -38,6 +38,12 @@ void	EventsManager::deleteClient(Conversation& client) {
 		_executorFds.erase(client.fdToClose);
 		client.fdToClose = -1;
 	}
+	if (client.cgiPid > 0) {
+		kill(client.cgiPid, SIGKILL);
+		int status;
+		waitpid(client.cgiPid, &status, 0);
+		client.cgiPid = -1;
+	}
 	std::cout << RED << "[client] =" << "= " << client.fd << "==> is now removed from network." << RESET << std::endl;
 	close(client.fd);
 	_clients.erase(client.fd);
@@ -184,7 +190,6 @@ void EventsManager::checkClientsTimeouts(void) {
 			_dispatcher.dispatch(it->second);
 		}
 	}
-
 	deleteTimeoutsClients(timeOutsClients);
 }
 

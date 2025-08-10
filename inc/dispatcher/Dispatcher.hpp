@@ -10,6 +10,7 @@
 #include <cerrno>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 
 #include "webserv.hpp"
 #include "webserv_enum.hpp"
@@ -44,6 +45,7 @@ class Dispatcher {
 	void	setEpollInterest(Conversation& conv, e_interest_mode mode);
 	void	removeClientFromEpoll(Conversation& conv);
 	void	removeExecutorFdFromEpoll(Conversation	& conv);
+	void	setTimeoutResponse(Conversation& conv);
 
 	public:
 

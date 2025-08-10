@@ -42,7 +42,6 @@ void	CGIHandler::parseCgiOutput(Conversation& conv)
 		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 	}
 
-
 	std::string headersPart = raw.substr(0, headerEnd);
 	std::string bodyPart = raw.substr(headerEnd + 4); // skip \r\n\r\n
 
@@ -226,8 +225,16 @@ void	CGIHandler::handleGetCGI(Conversation& conv)
 		conv.cgiStartTime = time(NULL);
 
 		conv.tempFd = pipe_out[0]; //on veut lire ce qui a ete stocke dans le pipe
+		int flags = fcntl(conv.tempFd, F_GETFL, 0);
+		if (flags == -1) {
+			perror("fcntl F_GETFL");
+		}
+		if (fcntl(conv.tempFd, F_SETFL, flags | O_NONBLOCK) == -1) {
+			perror("fcntl F_SETFL O_NONBLOCK");
+		}
 		conv.eState = READ_EXEC_GET_CGI;
 		conv.state = READ_EXEC;
+		std::cerr << "END OF PROCESS" << std::endl;
 	}
 }
 

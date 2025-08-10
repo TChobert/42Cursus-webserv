@@ -194,12 +194,15 @@ bool isClientTimeOut(Conversation& client) {
 
 bool isClientCgiTimeOut(Conversation& client) {
 
-	time_t currentTime = time(NULL);
-
-	return (currentTime - client.cgiStartTime > CGI_TIMEOUT);
+	std::cout << "CGI START TIME: " << client.cgiStartTime << std::endl;
+	if (client.cgiStartTime != 0) {
+		std::cout << "VERIFICATION" << std::endl;
+		time_t currentTime = time(NULL);
+		return (currentTime - client.cgiStartTime > CGI_TIMEOUT);
+	}
+	return (false);
 }
 
 void signalHandler(int signum) {
-
 	gSignalStatus = signum;
 }
