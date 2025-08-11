@@ -30,22 +30,14 @@ class EventsManager {
 
 	private:
 
+	int&						_epollFd;
 	ConfigStore&				_configs;
 	ServerInitializer&			_initializer;
-	Dispatcher					_dispatcher;
 	std::set<int>				_listenSockets;
 	std::map<int,Conversation>	_clients;
 	std::map<int, Conversation*> _executorFds;
-	int&						_epollFd;
+	Dispatcher					_dispatcher;
 	struct epoll_event			_events[MAX_EVENTS];
-
-	IModule* _reader;
-	IModule* _parser;
-	IModule* _validator;
-	IModule* _executor;
-	IModule* _responseBuilder;
-	IModule* _sender;
-	IModule* _postSender;
 
 	void	listenEvents(void);
 	void	handleNotifiedEvents(int fdsNumber);

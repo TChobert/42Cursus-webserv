@@ -13,14 +13,7 @@ EventsManager::EventsManager(int& epollFd, ConfigStore& configs,
 	_dispatcher(epollFd, _clients, _executorFds,
 		modules.reader, modules.parser, modules.validator,
 		modules.executor, modules.responseBuilder,
-		modules.sender, modules.postSender),
-	_reader(modules.reader),
-	_parser(modules.parser),
-	_validator(modules.validator),
-	_executor(modules.executor),
-	_responseBuilder(modules.responseBuilder),
-	_sender(modules.sender),
-	_postSender(modules.postSender) {}
+		modules.sender, modules.postSender) {}
 
 EventsManager::~EventsManager(void) {
 	deleteAllNetwork();
@@ -38,13 +31,13 @@ void	EventsManager::deleteClient(Conversation& client) {
 		_executorFds.erase(client.fdToClose);
 		client.fdToClose = -1;
 	}
-	if (client.cgiPid > 0) {
-		kill(client.cgiPid, SIGKILL);
-		int status;
-		waitpid(client.cgiPid, &status, 0);
-		client.cgiPid = -1;
-	}
-	std::cout << RED << "[client] =" << "= " << client.fd << "==> is now removed from network." << RESET << std::endl;
+	// if (client.cgiPid > 0) {
+	// 	kill(client.cgiPid, SIGKILL);
+	// 	int status;
+	// 	waitpid(client.cgiPid, &status, 0);
+	// 	client.cgiPid = -1;
+	// }
+	std::cout << RED << "[client] =" << "= " << client.fd << " ==> is now removed from network." << RESET << std::endl;
 	close(client.fd);
 	_clients.erase(client.fd);
 }
@@ -80,6 +73,7 @@ void	EventsManager::deleteAllNetwork(void) {
 void EventsManager::handleClientEvent(int fd) {
 
 	std::map<int, Conversation*>::iterator execIt = _executorFds.find(fd);
+
 	if (execIt != _executorFds.end()) {
 		updateClientLastActivity(*execIt->second, REGULAR);
 		_dispatcher.dispatch(*execIt->second);

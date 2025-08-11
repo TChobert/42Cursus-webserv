@@ -125,60 +125,6 @@ void Dispatcher::setClientInterest(Conversation& conv, e_interest_mode mode) {
 }
 
 // void Dispatcher::setClientInterest(Conversation& conv, e_interest_mode mode) {
-//     std::cout << "setClientInterest called with fd: " << conv.fd << " mode: " << mode << std::endl;
-    
-//     if (_clientsFds.find(conv.fd) == _clientsFds.end()) {
-//         std::cerr << "Client fd not found in clients map: " << conv.fd << std::endl;
-//         return ;
-//     }
-    
-//     // VÉRIFIER SI LE SOCKET EST ENCORE VALIDE
-//     int error = 0;
-//     socklen_t len = sizeof(error);
-//     if (getsockopt(conv.fd, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
-//         std::cerr << "Socket fd " << conv.fd << " is invalid!" << std::endl;
-//         return;
-//     }
-//     if (error != 0) {
-//         std::cerr << "Socket fd " << conv.fd << " has error: " << strerror(error) << std::endl;
-//         return;
-//     }
-    
-//     struct epoll_event ev;
-//     ev.data.fd = conv.fd;
-//     switch (mode) {
-//     case READ:
-//         ev.events = EPOLLIN;
-//         break;
-//     case WRITE:
-//         ev.events = EPOLLOUT;
-//         break;
-//     default:
-//         std::cerr << "Unknown mode in setClientInterest\n";
-//         return;
-//     }
-
-// 	struct stat st;
-// 	if (fstat(conv.fd, &st) == 0) {
-// 		std::cout << "FD " << conv.fd << " is type: " << (st.st_mode & S_IFMT) << std::endl;
-// 	}
-// 	if (!S_ISSOCK(st.st_mode)) {
-// 	std::cerr << "FD " << conv.fd << " is NOT a socket!" << std::endl;
-// 	}
-//      if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, conv.fd, &ev) < 0) {
-//         std::cout << "MOD failed, trying ADD... ";
-//         if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, conv.fd, &ev) < 0) {
-//             std::cerr << "ADD also failed on fd: " << conv.fd 
-//                       << " error: " << strerror(errno) << std::endl;
-//         } else {
-//             std::cout << "ADD successful!" << std::endl;
-//         }
-//     } else {
-//         std::cout << "MOD successful!" << std::endl;
-//     }
-// }
-
-// void Dispatcher::setClientInterest(Conversation& conv, e_interest_mode mode) {
 
 // 	if (_clientsFds.find(conv.fd) == _clientsFds.end()) {
 // 		std::cerr << "Client fd not found in clients map: " << conv.fd << std::endl;
@@ -240,18 +186,12 @@ void	Dispatcher::removeExecutorFdFromEpoll(Conversation& conv) {
 
 void Dispatcher::setTimeoutResponse(Conversation& conv) {
 
-	std::cerr << "earlyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy" << std::endl;
 	return earlyResponse(conv, GATEWAY_TIMEOUT);
 }
 
 void	Dispatcher::dispatch(Conversation& conv) {
 
 	std::cout << "Dispatcher called" << std::endl;
-	if (conv.state == READ_EXEC) {
-		if (isClientCgiTimeOut(conv)) {
-			setTimeoutResponse(conv);
-		}
-	}
 	if (conv.state == WRITE_CLIENT)
 		conv.state = TO_SEND;
 	else if (conv.state == READ_CLIENT)
