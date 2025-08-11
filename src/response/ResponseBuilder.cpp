@@ -32,6 +32,8 @@ void	ResponseBuilder::build(Conversation& conv)
 			chunk << std::hex << conv.resp.body.size() << "\r\n";
 			chunk << conv.resp.body << "\r\n";
 			body = chunk.str();
+			conv.eState = WRITE_EXEC_POST_CGI;
+			conv.state = WRITE_EXEC;
 		}
 		else if (conv.cgiFinished)
 		{

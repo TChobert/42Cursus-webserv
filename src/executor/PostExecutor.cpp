@@ -109,6 +109,7 @@ void PostExecutor::resumePostWriteBodyToCGI(Conversation& conv)
 			conv.streamState = STREAM_IN_PROGRESS;
 		else
 			conv.streamState = START_STREAM;
+		conv.eState = READ_EXEC_POST_CGI;
 		conv.state = READ_EXEC;
 		std::cout << "[resumePostWriteBodyToCGI] More body to write. Staying in WRITE_EXEC_POST_CGI." << std::endl;
 	}
