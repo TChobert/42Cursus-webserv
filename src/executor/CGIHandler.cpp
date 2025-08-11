@@ -284,8 +284,8 @@ void	CGIHandler::handlePostCGI(Conversation& conv)
 		close(pipe_out[1]);
 		conv.cgiPid = pid;
 		conv.cgiStartTime = time(NULL);
-		conv.writeFd = pipe_in[1]; //ecrire dans CGI
-		conv.readFd = pipe_out[0]; //lire sortie CGI
+		conv.cgiIn = pipe_in[1]; //ecrire dans CGI
+		conv.cgiOut = pipe_out[0]; //lire sortie CGI
 
 		const size_t chunkSize = 4096; //correspond a la taille dans Resume
 
@@ -294,8 +294,8 @@ void	CGIHandler::handlePostCGI(Conversation& conv)
 		else
 			conv.streamState = START_STREAM;
 
-		conv.eState = WRITE_EXEC_POST_CGI;
-		conv.state = WRITE_EXEC;
+	//	conv.eState = WRITE_EXEC_POST_CGI;
+		conv.state = CGI_EXECUTOR;
 	}
 }
 

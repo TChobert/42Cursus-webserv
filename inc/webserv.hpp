@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <csignal>
 #include <unistd.h>
+#include <set>
 
 #include "webserv_enum.hpp"
 #include "webserv_utils.hpp"
@@ -60,10 +61,9 @@ struct response {
 class Conversation {
 public:
 	int fd;
-	int tempFd;
-	int bodyFd;
-	int writeFd;
-	int readFd;
+	int cgiIn;
+	int cgiOut;
+	std::set<int> readyFds;
 	std::vector<int> fdsToClose;
 	bool cgiFinished;
 	bool headersSent;
@@ -84,5 +84,5 @@ public:
 	std::string cgiOutput;
 	std::map<std::string, std::string> formFields;
 	std::vector<std::string> uploadedFiles;
-	Conversation() : fd(-1), tempFd(-1), bodyFd(-1), writeFd(-1), readFd(-1), cgiFinished(false), headersSent(false), bytesSent(0), cgiPid(-1), cgiStartTime(0), location (0), state(PARSE), pState(START), eState(EXEC_START), streamState(NORMAL) {};
+	Conversation() : fd(-1), cgiIn(-1), cgiOut(-1), cgiFinished(false), headersSent(false), bytesSent(0), cgiPid(-1), cgiStartTime(0), location (0), state(PARSE), pState(START), eState(EXEC_START), streamState(NORMAL) {};
 };
