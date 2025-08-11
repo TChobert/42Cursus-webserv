@@ -7,7 +7,7 @@
 class HeaderBuilder
 {
 	private:
-		static std::string buildGenericHeaders(const response& resp);
+		static std::string buildGenericHeaders(const Conversation& conv);
 		static std::string buildDateHeader();
 		static std::string buildContentLengthHeader(const response& resp);
 		static std::string buildContentTypeHeader(const response& resp);

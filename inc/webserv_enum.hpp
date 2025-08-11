@@ -41,3 +41,9 @@ enum convState {
 	IS_SENT,
 	CLIENT_TIMEOUT
 };
+
+enum streamState {
+	NORMAL,
+	START_STREAM,
+	STREAM_IN_PROGRESS
+};

@@ -267,8 +267,8 @@ void	CGIHandler::handlePostCGI(Conversation& conv)
 		close(pipe_in[0]); close(pipe_out[1]);
 
 		//ICI - boucle de fermeture de fds herites du parent ?
-		// for (int fd = 3; fd < 1024; ++fd)
-		// 	close(fd);
+		for (int fd = 3; fd < 1024; ++fd)
+			close(fd);
 
 		char** envp = prepareEnv(conv);
 		if (!envp)
@@ -284,8 +284,16 @@ void	CGIHandler::handlePostCGI(Conversation& conv)
 		close(pipe_out[1]);
 		conv.cgiPid = pid;
 		conv.cgiStartTime = time(NULL);
-		conv.tempFd = pipe_in[1];
-		conv.bodyFd = pipe_out[0];
+		conv.writeFd = pipe_in[1]; //ecrire dans CGI
+		conv.readFd = pipe_out[0]; //lire sortie CGI
+
+		const size_t chunkSize = 4096; //correspond a la taille dans Resume
+
+		if (conv.req.body.size() <= chunkSize)
+			conv.streamState = NORMAL;
+		else
+			conv.streamState = START_STREAM;
+
 		conv.eState = WRITE_EXEC_POST_CGI;
 		conv.state = WRITE_EXEC;
 	}

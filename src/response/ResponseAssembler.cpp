@@ -1,10 +1,10 @@
 #include "ResponseAssembler.hpp"
 #include "HeaderBuilder.hpp"
 
-std::string ResponseAssembler::assemble(const std::string& statusLine, const std::string& headers, const response& resp)
+std::string ResponseAssembler::assemble(const std::string& statusLine, const std::string& headers, const std::string& body, int status)
 {
-	if (!HeaderBuilder::isBodyForbidden(resp.status) && !resp.body.empty())
-		return statusLine + headers + "\r\n" + resp.body;
+	if (!HeaderBuilder::isBodyForbidden(status) && !body.empty())
+		return statusLine + headers + "\r\n" + body;
 	else
 		return statusLine + headers + "\r\n";
 }
