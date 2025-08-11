@@ -38,6 +38,7 @@ void PostExecutor::handlePost(Conversation& conv)
 		CGIHandler::handleCGI(conv);
 		return;
 	}
+	std::cout << "[handlePost] isCGI ? " << CGIHandler::isCGI(conv) << std::endl;
 
 	std::string contentType = conv.req.header["content-type"];
 	std::string boundary = extractBoundary(contentType);
@@ -120,58 +121,56 @@ void PostExecutor::resumePostReadCGI(Conversation& conv)
 	std::cout << "[resumePostReadCGI] bytesRead: " << bytesRead << std::endl;
 
 	if (bytesRead > 0)
-    {
-        // On ajoute les données au buffer brut CGI
-        conv.cgiOutput.append(buffer, bytesRead);
-        std::cout << "[resumePostReadCGI] cgiOutput size: " << conv.cgiOutput.size() << std::endl;
+	{
+		// ajout donnees buffer
+		conv.cgiOutput.append(buffer, bytesRead);
+		std::cout << "[resumePostReadCGI] cgiOutput size: " << conv.cgiOutput.size() << std::endl;
 
-        if (conv.streamState == START_STREAM)
-        {
-            // Première lecture dans un contexte streaming → parse + envoyer headers + début du body
-            CGIHandler::parseCgiOutput(conv);
-
-            conv.streamState = STREAM_IN_PROGRESS;
-        }
-        else if (conv.streamState == STREAM_IN_PROGRESS)
-        {
-            // En streaming, on append directement au body (pas de re-parse)
-            conv.resp.body.append(buffer, bytesRead);
-        }
+		if (conv.streamState == START_STREAM)
+		{
+			// Premiere lecture dans un contexte streaming > parse + envoyer headers + debut du body
+			CGIHandler::parseCgiOutput(conv);
+			conv.streamState = STREAM_IN_PROGRESS;
+		}
+		else if (conv.streamState == STREAM_IN_PROGRESS)
+		{
+			// En streaming, on append directement au body (pas de re-parse)
+			conv.resp.body.append(buffer, bytesRead);
+		}
 		Executor::updateResponseData(conv);
-        conv.state = RESPONSE;
-    }
-    else if (bytesRead == 0)
-    {
-        std::cout << "[resumePostReadCGI] EOF reached on fd " << conv.tempFd << std::endl;
-        conv.fdToClose = conv.tempFd;
-        conv.tempFd = -1;
-		conv.cgiFinished = true; 
-        if (!hasCgiProcessExitedCleanly(conv.cgiPid))
-        {
-            std::cerr << "[resumePostReadCGI] CGI process did not exit cleanly." << std::endl;
-            Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
-            return;
-        }
+		conv.state = RESPONSE;
+	}
+	else if (bytesRead == 0)
+	{
+		std::cout << "[resumePostReadCGI] EOF reached on fd " << conv.tempFd << std::endl;
+		conv.fdToClose = conv.tempFd;
+		conv.tempFd = -1;
+		conv.cgiFinished = true;
+		if (!hasCgiProcessExitedCleanly(conv.cgiPid))
+		{
+			std::cerr << "[resumePostReadCGI] CGI process did not exit cleanly." << std::endl;
+			Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+			return;
+		}
 
-        if (conv.streamState == NORMAL)
-        {
-            // Pas de streaming → parse seulement à la fin
-            CGIHandler::parseCgiOutput(conv);
-        }
-        // STREAM_IN_PROGRESS → on a déjà envoyé le body au fur et à mesure
-
-        Executor::updateResponseData(conv);
-        conv.streamState = NORMAL; // Reset pour la prochaine requête
-        conv.eState = EXEC_START;
-        conv.state = RESPONSE;
-    }
-    else
-    {
-        conv.fdToClose = conv.tempFd;
-        conv.tempFd = -1;
-        std::cerr << "[resumePostReadCGI] read error" << std::endl;
-        Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
-    }
+		if (conv.streamState == NORMAL)
+		{
+			// Pas de streaming > parse seulement a la fin
+			CGIHandler::parseCgiOutput(conv);
+		}
+		// STREAM_IN_PROGRESS > on a deja envoye le body au fur et a mesure
+		Executor::updateResponseData(conv);
+		conv.streamState = NORMAL; // Reset pour prochaine requete
+		conv.eState = EXEC_START;
+		conv.state = RESPONSE;
+	}
+	else
+	{
+		conv.fdToClose = conv.tempFd;
+		conv.tempFd = -1;
+		std::cerr << "[resumePostReadCGI] read error" << std::endl;
+		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+	}
 
 	// if (bytesRead > 0)
 	// {
