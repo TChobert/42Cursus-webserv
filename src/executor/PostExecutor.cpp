@@ -78,15 +78,15 @@ void PostExecutor::resumePostWriteBodyToCGI(Conversation& conv)
 	const size_t chunkSize = 4096;
 	size_t toWrite = std::min(chunkSize, conv.req.body.size());
 
-	ssize_t written = write(conv.tempFd, conv.req.body.c_str(), toWrite);
+	ssize_t written = write(conv.writeFd, conv.req.body.c_str(), toWrite);
 
 	std::cout << "[resumePostWrite] written: " << written << std::endl;
 
 	if (written < 0)
 	{
 		std::cerr << "[ERROR resumePostWrite] write failed with errno=" << errno << " (" << strerror(errno) << ")" << std::endl;
-		conv.fdToClose = conv.tempFd;
-		conv.tempFd = -1;
+		conv.fdsToClose.push_back(conv.writeFd);
+		conv.writeFd = -1;
 		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 		return;
 	}
@@ -96,19 +96,21 @@ void PostExecutor::resumePostWriteBodyToCGI(Conversation& conv)
 
 	if (conv.req.body.empty())
 	{
-		conv.fdToClose = conv.tempFd;
-		conv.tempFd = conv.bodyFd; //je switch et je stocke bodyFd dans tempFd (comme ca, il reste le seul a etre surveille par epoll)
-		conv.bodyFd = -1;
+		conv.fdsToClose.push_back(conv.writeFd);
+		conv.writeFd = -1;
 		conv.streamState = NORMAL;
-		std::cout << "[resumePostWriteBodyToCGI] Finished writing body. Switching tempFd to bodyFd: " << conv.tempFd << std::endl;
+		std::cout << "[resumePostWriteBodyToCGI] Finished writing body." << std::endl;
 		conv.eState = READ_EXEC_POST_CGI;
 		conv.state = READ_EXEC;
 	}
 	else
 	{
-		conv.streamState = START_STREAM;
-		conv.eState = WRITE_EXEC_POST_CGI;
-		conv.state = WRITE_EXEC;
+		if (conv.headersSent)
+			conv.streamState = STREAM_IN_PROGRESS;
+		else
+			conv.streamState = START_STREAM;
+		// conv.eState = WRITE_EXEC_POST_CGI;
+		// conv.state = WRITE_EXEC;					>> ca ne va plus car on a besoin d'envoyer a la lecture ce qui a ete ecrit
 		std::cout << "[resumePostWriteBodyToCGI] More body to write. Staying in WRITE_EXEC_POST_CGI." << std::endl;
 	}
 }
@@ -116,35 +118,30 @@ void PostExecutor::resumePostWriteBodyToCGI(Conversation& conv)
 void PostExecutor::resumePostReadCGI(Conversation& conv)
 {
 	char buffer[4096];
-	ssize_t bytesRead = read(conv.tempFd, buffer, sizeof(buffer));
+	ssize_t bytesRead = read(conv.readFd, buffer, sizeof(buffer));
 
 	std::cout << "[resumePostReadCGI] bytesRead: " << bytesRead << std::endl;
 
 	if (bytesRead > 0)
 	{
-		// ajout donnees buffer
 		conv.cgiOutput.append(buffer, bytesRead);
 		std::cout << "[resumePostReadCGI] cgiOutput size: " << conv.cgiOutput.size() << std::endl;
 
 		if (conv.streamState == START_STREAM)
 		{
-			// Premiere lecture dans un contexte streaming > parse + envoyer headers + debut du body
 			CGIHandler::parseCgiOutput(conv);
 			conv.streamState = STREAM_IN_PROGRESS;
 		}
 		else if (conv.streamState == STREAM_IN_PROGRESS)
-		{
-			// En streaming, on append directement au body (pas de re-parse)
 			conv.resp.body.append(buffer, bytesRead);
-		}
 		Executor::updateResponseData(conv);
 		conv.state = RESPONSE;
 	}
 	else if (bytesRead == 0)
 	{
-		std::cout << "[resumePostReadCGI] EOF reached on fd " << conv.tempFd << std::endl;
-		conv.fdToClose = conv.tempFd;
-		conv.tempFd = -1;
+		std::cout << "[resumePostReadCGI] EOF reached on fd " << conv.readFd << std::endl;
+		conv.fdsToClose.push_back(conv.readFd);
+		conv.readFd = -1;
 		conv.cgiFinished = true;
 		if (!hasCgiProcessExitedCleanly(conv.cgiPid))
 		{
@@ -154,23 +151,20 @@ void PostExecutor::resumePostReadCGI(Conversation& conv)
 		}
 
 		if (conv.streamState == NORMAL)
-		{
-			// Pas de streaming > parse seulement a la fin
 			CGIHandler::parseCgiOutput(conv);
-		}
-		// STREAM_IN_PROGRESS > on a deja envoye le body au fur et a mesure
 		Executor::updateResponseData(conv);
-		conv.streamState = NORMAL; // Reset pour prochaine requete
-		conv.eState = EXEC_START;
 		conv.state = RESPONSE;
 	}
 	else
 	{
-		conv.fdToClose = conv.tempFd;
-		conv.tempFd = -1;
-		std::cerr << "[resumePostReadCGI] read error" << std::endl;
+		conv.fdsToClose.push_back(conv.readFd);
+		conv.readFd = -1;
 		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 	}
+}
+
+
+
 
 	// if (bytesRead > 0)
 	// {
@@ -200,4 +194,3 @@ void PostExecutor::resumePostReadCGI(Conversation& conv)
 	// 	std::cerr << "[resumePostReadCGI] read error" << std::endl;
 	// 	Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 	// }
-}

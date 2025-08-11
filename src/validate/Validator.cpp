@@ -46,7 +46,7 @@ void Validator::validateBodyFormat(Conversation& conv) {
 		} catch (std::invalid_argument& e) {
 			return earlyResponse(conv, BAD_REQUEST);
 		}
-		if (conv.req.bodyLeft > conv.location->clientMaxBodySize)
+		if (conv.location && conv.req.bodyLeft > conv.location->clientMaxBodySize)
 		{
 			std::cout << "CONV.BODYLEFT = " << conv.req.bodyLeft << std::endl;
 			std::cout << "BODYMAX = " << conv.location->clientMaxBodySize << std::endl;
