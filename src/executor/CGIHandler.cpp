@@ -164,7 +164,6 @@ void	CGIHandler::handleGetCGI(Conversation& conv)
 	const std::string& interpreter = it->second;
 	std::cout << "INTERPRETER = " << interpreter << std::endl;
 
-	//creation pipe pour que Webserv puisse lire la sortie du script (stockee dans le pipe)
 	int pipe_out[2];
 	if (pipe(pipe_out) == -1)
 		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
@@ -199,19 +198,11 @@ void	CGIHandler::handleGetCGI(Conversation& conv)
 		char** envp = prepareEnv(conv);
 		if (!envp)
 			exit(EXIT_FAILURE);
-		for (int i = 0; envp[i]; ++i)
-    		std::cerr << "envp[" << i << "] = " << envp[i] << std::endl;
 
 		std::cerr << "[CHILD] PID: " << getpid() << " executing CGI" << std::endl;
 		//{interpreter, scriptPath, NULL}
 		char* argv[] = {const_cast<char*>(interpreter.c_str()), const_cast<char*>(scriptPath.c_str()), NULL};
-		std::cerr << "[CHILD] launching execve: "
-          << interpreter << " " << scriptPath << std::endl;
 		execve(interpreter.c_str(), argv, envp);
-		// {
-    	// 		perror("execve failed");
-   		// 		_exit(EXIT_FAILURE);
-		// }
 		freeEnv(envp);
 		exit(EXIT_FAILURE);
 	}
@@ -224,17 +215,16 @@ void	CGIHandler::handleGetCGI(Conversation& conv)
 		conv.cgiPid = pid;
 		conv.cgiStartTime = time(NULL);
 
-		conv.tempFd = pipe_out[0]; //on veut lire ce qui a ete stocke dans le pipe
-		int flags = fcntl(conv.tempFd, F_GETFL, 0);
+		conv.cgiOut = pipe_out[0]; //on veut lire ce qui a ete stocke dans le pipe
+		int flags = fcntl(conv.cgiOut, F_GETFL, 0);
 		if (flags == -1) {
 			perror("fcntl F_GETFL");
 		}
-		if (fcntl(conv.tempFd, F_SETFL, flags | O_NONBLOCK) == -1) {
+		if (fcntl(conv.cgiOut, F_SETFL, flags | O_NONBLOCK) == -1) {
 			perror("fcntl F_SETFL O_NONBLOCK");
 		}
 		conv.eState = READ_EXEC_GET_CGI;
-		conv.state = READ_EXEC;
-		std::cerr << "END OF PROCESS" << std::endl;
+		conv.state = CGI_EXECUTOR;
 	}
 }
 
@@ -261,14 +251,17 @@ void	CGIHandler::handlePostCGI(Conversation& conv)
 	}
 	if (pid == 0)
 	{
-		dup2(pipe_in[0], STDIN_FILENO);
-		dup2(pipe_out[1], STDOUT_FILENO);
+		if (dup2(pipe_in[0], STDIN_FILENO) == -1 || dup2(pipe_out[1], STDOUT_FILENO) == -1)
+			exit(EXIT_FAILURE);
 		close(pipe_in[1]); close(pipe_out[0]);
 		close(pipe_in[0]); close(pipe_out[1]);
 
-		//ICI - boucle de fermeture de fds herites du parent ?
+		//fermeture fds herites du parent
 		for (int fd = 3; fd < 1024; ++fd)
-			close(fd);
+		{
+			if (fd != STDIN_FILENO && fd != STDOUT_FILENO)
+				close(fd);
+		}
 
 		char** envp = prepareEnv(conv);
 		if (!envp)
@@ -287,6 +280,17 @@ void	CGIHandler::handlePostCGI(Conversation& conv)
 		conv.cgiIn = pipe_in[1]; //ecrire dans CGI
 		conv.cgiOut = pipe_out[0]; //lire sortie CGI
 
+		int flags;
+		// rendre cgiOut non bloquant (lecture sortie CGI)
+		flags = fcntl(conv.cgiOut, F_GETFL, 0);
+		if (flags == -1 || fcntl(conv.cgiOut, F_SETFL, flags | O_NONBLOCK) == -1)
+			perror("fcntl cgiOut");
+
+		// rendre cgiIn non bloquant (ecriture dans CGI)
+		flags = fcntl(conv.cgiIn, F_GETFL, 0);
+		if (flags == -1 || fcntl(conv.cgiIn, F_SETFL, flags | O_NONBLOCK) == -1)
+			perror("fcntl cgiIn");
+
 		const size_t chunkSize = 4096; //correspond a la taille dans Resume
 
 		if (conv.req.body.size() <= chunkSize)
@@ -294,7 +298,6 @@ void	CGIHandler::handlePostCGI(Conversation& conv)
 		else
 			conv.streamState = START_STREAM;
 
-	//	conv.eState = WRITE_EXEC_POST_CGI;
 		conv.state = CGI_EXECUTOR;
 	}
 }
@@ -304,19 +307,14 @@ void	CGIHandler::handlePostCGI(Conversation& conv)
 bool CGIHandler::isCGI(const Conversation& conv)
 {
 	const std::string& path = conv.req.pathOnDisk;
-
-	//Trouver l'extension
 	std::size_t dotPos = path.rfind('.');
 	if (dotPos == std::string::npos)
-		return false; //Aucun point = aucune extension = pas CGI
+		return false;
 
-	//Extraire l'extension
 	std::string extension = path.substr(dotPos);
 
-	//Recup la map des CGI handlers
 	const std::map<cgiExtension, cgiHandler>& cgiMap = conv.location->cgiHandlers;
 
-	//Verif extension
 	bool isCgiExtension = (cgiMap.find(extension) != cgiMap.end());
 
 	if (isCgiExtension)

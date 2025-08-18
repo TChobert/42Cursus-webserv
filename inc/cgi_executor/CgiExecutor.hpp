@@ -14,4 +14,6 @@ class CgiExecutor : public IModule {
 	CgiExecutor(int& epollFd);
 	~CgiExecutor(void);
 	void execute(Conversation& conv);
+	void executeCgiGet(Conversation& conv);
+	void executeCgiPost(Conversation& conv);
 };

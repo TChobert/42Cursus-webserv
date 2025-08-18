@@ -36,6 +36,7 @@ enum convState {
 	VALIDATE,
 	RESPONSE,
 	EXEC,
+	CGI_EXECUTOR,
 	TO_READ,
 	TO_SEND,
 	IS_SENT,
