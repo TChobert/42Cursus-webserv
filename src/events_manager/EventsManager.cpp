@@ -21,16 +21,16 @@ EventsManager::~EventsManager(void) {
 
 void	EventsManager::deleteClient(Conversation& client) {
 
-	if (client.tempFd != -1) {
-		close(client.tempFd);
-		_executorFds.erase(client.tempFd);
-		client.tempFd = -1;
-	}
-	if (client.fdToClose != -1) {
-		close(client.fdToClose);
-		_executorFds.erase(client.fdToClose);
-		client.fdToClose = -1;
-	}
+	// if (client.tempFd != -1) {
+	// 	close(client.tempFd);
+	// 	_executorFds.erase(client.tempFd);
+	// 	client.tempFd = -1;
+	// }
+	// if (client.fdToClose != -1) {
+	// 	close(client.fdToClose);
+	// 	_executorFds.erase(client.fdToClose);
+	// 	client.fdToClose = -1;
+	// }
 	// if (client.cgiPid > 0) {
 	// 	kill(client.cgiPid, SIGKILL);
 	// 	int status;

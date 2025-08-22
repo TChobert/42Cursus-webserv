@@ -7,5 +7,5 @@
 class StaticFileHandler
 {
 	public:
-		static void handleStaticFile(Conversation& conv);
+		static void handleStaticFile(Conversation& conv, statusCode code);
 };

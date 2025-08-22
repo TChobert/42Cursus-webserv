@@ -43,7 +43,7 @@ void PostExecutor::handlePost(Conversation& conv)
 	std::string contentType = conv.req.header["content-type"];
 	std::string boundary = extractBoundary(contentType);
 	if (boundary.empty())
-		return Executor::setResponse(conv, BAD_REQUEST);
+		Executor::sendErrorPage(conv, BAD_REQUEST);
 
 	try
 	{
@@ -61,107 +61,105 @@ void PostExecutor::handlePost(Conversation& conv)
 		if (!conv.formFields.empty()) //si upload une simple image sans autre info, on ne cree pas un form
 			saveFormSummary(conv);
 
-		conv.resp.body = "<html><body>"
-						"<h1>Upload successful</h1>"
-						"<p><a href=\"/\">Back Welcome Page</a></p>"
-						"</body></html>";
-		Executor::setResponse(conv, CREATED);
+		conv.req.pathOnDisk = "./www/upload_success.html";
+		StaticFileHandler::handleStaticFile(conv, CREATED);
+		// Executor::setResponse(conv, CREATED);
 	}
 	catch (std::exception& e)
 	{
-		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+		Executor::sendErrorPage(conv, INTERNAL_SERVER_ERROR);
 	}
 }
 
-void PostExecutor::resumePostWriteBodyToCGI(Conversation& conv)
-{
-	const size_t chunkSize = 4096;
-	size_t toWrite = std::min(chunkSize, conv.req.body.size());
+// void PostExecutor::resumePostWriteBodyToCGI(Conversation& conv)
+// {
+// 	const size_t chunkSize = 4096;
+// 	size_t toWrite = std::min(chunkSize, conv.req.body.size());
 
-	ssize_t written = write(conv.writeFd, conv.req.body.c_str(), toWrite);
+// 	ssize_t written = write(conv.writeFd, conv.req.body.c_str(), toWrite);
 
-	std::cout << "[resumePostWrite] written: " << written << std::endl;
+// 	std::cout << "[resumePostWrite] written: " << written << std::endl;
 
-	if (written < 0)
-	{
-		std::cerr << "[ERROR resumePostWrite] write failed with errno=" << errno << " (" << strerror(errno) << ")" << std::endl;
-		conv.fdsToClose.push_back(conv.writeFd);
-		conv.writeFd = -1;
-		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
-		return;
-	}
+// 	if (written < 0)
+// 	{
+// 		std::cerr << "[ERROR resumePostWrite] write failed with errno=" << errno << " (" << strerror(errno) << ")" << std::endl;
+// 		conv.fdsToClose.push_back(conv.writeFd);
+// 		conv.writeFd = -1;
+// 		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+// 		return;
+// 	}
 
-	conv.req.body.erase(0, written);
-	std::cout << "[resumePostWriteBodyToCGI] Remaining body size after erase: " << conv.req.body.size() << std::endl;
+// 	conv.req.body.erase(0, written);
+// 	std::cout << "[resumePostWriteBodyToCGI] Remaining body size after erase: " << conv.req.body.size() << std::endl;
 
-	if (conv.req.body.empty())
-	{
-		conv.fdsToClose.push_back(conv.writeFd);
-		conv.writeFd = -1;
-		conv.streamState = NORMAL;
-		std::cout << "[resumePostWriteBodyToCGI] Finished writing body." << std::endl;
-		conv.eState = READ_EXEC_POST_CGI;
-		conv.state = READ_EXEC;
-	}
-	else
-	{
-		if (conv.headersSent)
-			conv.streamState = STREAM_IN_PROGRESS;
-		else
-			conv.streamState = START_STREAM;
-		conv.eState = READ_EXEC_POST_CGI;
-		conv.state = READ_EXEC;
-		std::cout << "[resumePostWriteBodyToCGI] More body to write. Staying in WRITE_EXEC_POST_CGI." << std::endl;
-	}
-}
+// 	if (conv.req.body.empty())
+// 	{
+// 		conv.fdsToClose.push_back(conv.writeFd);
+// 		conv.writeFd = -1;
+// 		conv.streamState = NORMAL;
+// 		std::cout << "[resumePostWriteBodyToCGI] Finished writing body." << std::endl;
+// 		conv.eState = READ_EXEC_POST_CGI;
+// 		conv.state = READ_EXEC;
+// 	}
+// 	else
+// 	{
+// 		if (conv.headersSent)
+// 			conv.streamState = STREAM_IN_PROGRESS;
+// 		else
+// 			conv.streamState = START_STREAM;
+// 		conv.eState = READ_EXEC_POST_CGI;
+// 		conv.state = READ_EXEC;
+// 		std::cout << "[resumePostWriteBodyToCGI] More body to write. Staying in WRITE_EXEC_POST_CGI." << std::endl;
+// 	}
+// }
 
-void PostExecutor::resumePostReadCGI(Conversation& conv)
-{
-	char buffer[4096];
-	ssize_t bytesRead = read(conv.readFd, buffer, sizeof(buffer));
+// void PostExecutor::resumePostReadCGI(Conversation& conv)
+// {
+// 	char buffer[4096];
+// 	ssize_t bytesRead = read(conv.readFd, buffer, sizeof(buffer));
 
-	std::cout << "[resumePostReadCGI] bytesRead: " << bytesRead << std::endl;
+// 	std::cout << "[resumePostReadCGI] bytesRead: " << bytesRead << std::endl;
 
-	if (bytesRead > 0)
-	{
-		conv.cgiOutput.append(buffer, bytesRead);
-		std::cout << "[resumePostReadCGI] cgiOutput size: " << conv.cgiOutput.size() << std::endl;
+// 	if (bytesRead > 0)
+// 	{
+// 		conv.cgiOutput.append(buffer, bytesRead);
+// 		std::cout << "[resumePostReadCGI] cgiOutput size: " << conv.cgiOutput.size() << std::endl;
 
-		if (conv.streamState == START_STREAM)
-		{
-			CGIHandler::parseCgiOutput(conv);
-			conv.streamState = STREAM_IN_PROGRESS;
-		}
-		else if (conv.streamState == STREAM_IN_PROGRESS)
-			conv.resp.body.append(buffer, bytesRead);
-		Executor::updateResponseData(conv);
-		conv.state = RESPONSE;
-	}
-	else if (bytesRead == 0)
-	{
-		std::cout << "[resumePostReadCGI] EOF reached on fd " << conv.readFd << std::endl;
-		conv.fdsToClose.push_back(conv.readFd);
-		conv.readFd = -1;
-		conv.cgiFinished = true;
-		if (!hasCgiProcessExitedCleanly(conv.cgiPid))
-		{
-			std::cerr << "[resumePostReadCGI] CGI process did not exit cleanly." << std::endl;
-			Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
-			return;
-		}
+// 		if (conv.streamState == START_STREAM)
+// 		{
+// 			CGIHandler::parseCgiOutput(conv);
+// 			conv.streamState = STREAM_IN_PROGRESS;
+// 		}
+// 		else if (conv.streamState == STREAM_IN_PROGRESS)
+// 			conv.resp.body.append(buffer, bytesRead);
+// 		Executor::updateResponseData(conv);
+// 		conv.state = RESPONSE;
+// 	}
+// 	else if (bytesRead == 0)
+// 	{
+// 		std::cout << "[resumePostReadCGI] EOF reached on fd " << conv.readFd << std::endl;
+// 		conv.fdsToClose.push_back(conv.readFd);
+// 		conv.readFd = -1;
+// 		conv.cgiFinished = true;
+// 		if (!hasCgiProcessExitedCleanly(conv.cgiPid))
+// 		{
+// 			std::cerr << "[resumePostReadCGI] CGI process did not exit cleanly." << std::endl;
+// 			Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+// 			return;
+// 		}
 
-		if (conv.streamState == NORMAL)
-			CGIHandler::parseCgiOutput(conv);
-		Executor::updateResponseData(conv);
-		conv.state = RESPONSE;
-	}
-	else
-	{
-		conv.fdsToClose.push_back(conv.readFd);
-		conv.readFd = -1;
-		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
-	}
-}
+// 		if (conv.streamState == NORMAL)
+// 			CGIHandler::parseCgiOutput(conv);
+// 		Executor::updateResponseData(conv);
+// 		conv.state = RESPONSE;
+// 	}
+// 	else
+// 	{
+// 		conv.fdsToClose.push_back(conv.readFd);
+// 		conv.readFd = -1;
+// 		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+// 	}
+// }
 
 
 

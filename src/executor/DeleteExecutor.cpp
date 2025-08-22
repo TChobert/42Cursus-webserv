@@ -7,9 +7,9 @@ void	DeleteExecutor::handleDelete(Conversation& conv)
 	const std::string& path = conv.req.pathOnDisk;
 
 	if (!ResourceChecker::exists(path))
-		return Executor::setResponse(conv, NOT_FOUND);
+		return Executor::sendErrorPage(conv, NOT_FOUND);
 	if (!ResourceChecker::canDelete(conv.req.pathOnDisk)) //check droits d'ecriture sur le dossier parent
-		return Executor::setResponse(conv, FORBIDDEN);
+		return Executor::sendErrorPage(conv, FORBIDDEN);
 
 	//checker la valeur de retour de unlink ou rmdir, si c'est 0 >> OK !
 	int result;
@@ -18,11 +18,11 @@ void	DeleteExecutor::handleDelete(Conversation& conv)
 	else if (ResourceChecker::isDir(path))
 	{
 		if (!ResourceChecker::isDirEmpty(path))
-			return Executor::setResponse(conv, FORBIDDEN);
+			return Executor::sendErrorPage(conv, FORBIDDEN);;
 		result = rmdir(path.c_str());
 	}
 	else
-		return Executor::setResponse(conv, FORBIDDEN);
+		return Executor::sendErrorPage(conv, FORBIDDEN);;
 
 	if (result == 0) //si on mettait un body html de confirmation, on mettrait 200 OK
 	{
@@ -30,6 +30,6 @@ void	DeleteExecutor::handleDelete(Conversation& conv)
 		Executor::setResponse(conv, NO_CONTENT);
 	}
 	else
-		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+		Executor::sendErrorPage(conv, INTERNAL_SERVER_ERROR);
 }
 

@@ -6,35 +6,32 @@
 #include <fstream>
 #include <sstream>
 
-void StaticFileHandler::handleStaticFile(Conversation& conv)
+void StaticFileHandler::handleStaticFile(Conversation& conv, statusCode code)
 {
-    const std::string& path = conv.req.pathOnDisk;
+	const std::string& path = conv.req.pathOnDisk;
 
-    // 1. Vérifier que le fichier existe et obtenir sa taille
-    struct stat st;
-    if (stat(path.c_str(), &st) == -1 || !S_ISREG(st.st_mode)) {
-        Executor::setResponse(conv, NOT_FOUND);
-        return;
-    }
+	// 1. Vérifier que le fichier existe et obtenir sa taille
+	struct stat st;
+	if (stat(path.c_str(), &st) == -1 || !S_ISREG(st.st_mode))
+			return Executor::setResponse(conv, NOT_FOUND);
 
-    // 2. Vérifier que la taille est acceptable
-    if (st.st_size > MAX_SAFE_SIZE) {
-        Executor::setResponse(conv, ENTITY_TOO_LARGE);
-        return;
-    }
+	// 2. Vérifier que la taille est acceptable
+	if (st.st_size > MAX_SAFE_SIZE)
+		return Executor::setResponse(conv, ENTITY_TOO_LARGE);
 
-    // 3. Ouvrir avec ifstream et tout lire
-    std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
-    if (!file) {
-        Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
-        return;
-    }
+	// 3. Ouvrir avec ifstream et tout lire
+	std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
+	if (!file)
+		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
 
-    std::ostringstream ss;
-    ss << file.rdbuf(); // lire tout le contenu dans le stringstream
-    conv.resp.body = ss.str();
+	std::ostringstream ss;
+	ss << file.rdbuf(); // lire tout le contenu dans le stringstream
+	conv.resp.body = ss.str();
 
-    Executor::setResponse(conv, OK);
+	Executor::setResponse(conv, code);
+	conv.streamState = NORMAL;
+	conv.headersSent = false;
+	conv.eState = EXEC_START;
 }
 
 // void	StaticFileHandler::handleStaticFile(Conversation& conv)

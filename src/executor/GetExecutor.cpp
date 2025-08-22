@@ -28,7 +28,7 @@ void	GetExecutor::handleGet(Conversation& conv)
 	}
 	else {
 		std::cout << "[handleGet] Neither file nor directory -> forbidden." << std::endl;
-		Executor::setResponse(conv, FORBIDDEN);
+		Executor::sendErrorPage(conv, FORBIDDEN);
 	}
 }
 
@@ -38,7 +38,7 @@ void	GetExecutor::handleFile(Conversation& conv)
 	if (CGIHandler::isCGI(conv))
 		CGIHandler::handleCGI(conv);
 	else
-		StaticFileHandler::handleStaticFile(conv);
+		StaticFileHandler::handleStaticFile(conv, OK);
 }
 
 void GetExecutor::handleDirectory(Conversation& conv)
@@ -66,7 +66,7 @@ void GetExecutor::handleDirectory(Conversation& conv)
 	if (conv.location->autoIndex)
 		handleAutoindex(conv);
 	else
-		Executor::setResponse(conv, FORBIDDEN);
+		Executor::sendErrorPage(conv, FORBIDDEN);;
 }
 
 // void	GetExecutor::handleDirectory(Conversation& conv)
@@ -177,34 +177,34 @@ void	GetExecutor::handleAutoindex(Conversation& conv)
 // >> extraire headers et mettre dans les variables appropriees
 // >> extraire body
 
-void GetExecutor::resumeReadCGI(Conversation& conv)
-{
-	char buffer[1024];
-	ssize_t bytesRead;
-	while ((bytesRead = read(conv.cgiOut, buffer, sizeof(buffer))) > 0)
-	{
-		conv.cgiOutput.append(buffer, bytesRead);
-	}
-	if (bytesRead == 0)
-	{
-		conv.fdToClose = conv.cgiOut;
-		conv.cgiOut= -1;
-		if (!hasCgiProcessExitedCleanly(conv.cgiPid))
-		{
-			Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
-			return;
-		}
-		CGIHandler::parseCgiOutput(conv);
-		Executor::updateResponseData(conv);
-		conv.eState = EXEC_START;
-		conv.state = RESPONSE;
-	}
-	else if (bytesRead < 0)
-	{
-		conv.fdToClose = conv.cgiOut;
+// void GetExecutor::resumeReadCGI(Conversation& conv)
+// {
+// 	char buffer[1024];
+// 	ssize_t bytesRead;
+// 	while ((bytesRead = read(conv.cgiOut, buffer, sizeof(buffer))) > 0)
+// 	{
+// 		conv.cgiOutput.append(buffer, bytesRead);
+// 	}
+// 	if (bytesRead == 0)
+// 	{
+// 		conv.fdToClose = conv.cgiOut;
+// 		conv.cgiOut= -1;
+// 		if (!hasCgiProcessExitedCleanly(conv.cgiPid))
+// 		{
+// 			Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+// 			return;
+// 		}
+// 		CGIHandler::parseCgiOutput(conv);
+// 		Executor::updateResponseData(conv);
+// 		conv.eState = EXEC_START;
+// 		conv.state = RESPONSE;
+// 	}
+// 	else if (bytesRead < 0)
+// 	{
+// 		conv.fdToClose = conv.cgiOut;
 
-		conv.cgiOut= -1;
-		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
-	}
-}
+// 		conv.cgiOut= -1;
+// 		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+// 	}
+// }
 

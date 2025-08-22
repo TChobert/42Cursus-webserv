@@ -33,12 +33,12 @@ bool	Dispatcher::isInExecutorFdsMap(const int& fd) const {
 
 void	Dispatcher::setExecutorInterest(Conversation& conv, e_interest_mode mode) {
 
-	if (conv.tempFd < 0) {
+	if (conv.cgiIn < 0) {
 		std::cerr << "Invalid tempFd passed to setExecutorInterest" << std::endl;
 		return ;
 	}
 	struct epoll_event ev;
-	ev.data.fd = conv.tempFd;
+	ev.data.fd = conv.cgiIn;
 
 	switch (mode) {
 		case READ_EXEC_FD:
@@ -48,19 +48,19 @@ void	Dispatcher::setExecutorInterest(Conversation& conv, e_interest_mode mode) {
 			ev.events = EPOLLOUT;
 			break;
 	}
-	if (!isInExecutorFdsMap(conv.tempFd)) {
-		if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, conv.tempFd, &ev) < 0) {
-			std::cerr << "Failed to add fd requested by executor (" << conv.tempFd << ") to interest list. Closing it." << std::endl;
-			close(conv.tempFd);
+	if (!isInExecutorFdsMap(conv.cgiIn)) {
+		if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, conv.cgiIn, &ev) < 0) {
+			std::cerr << "Failed to add fd requested by executor (" << conv.cgiIn << ") to interest list. Closing it." << std::endl;
+			close(conv.cgiIn);
 			return ;
 		}
-		_executorFds[conv.tempFd]= &conv;
+		_executorFds[conv.cgiIn]= &conv;
 	}
 	else {
-		if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, conv.tempFd, &ev) < 0) {
-			std::cerr << "epoll_ctl MOD failed on fd " << conv.tempFd << ": " << strerror(errno) << ". Closing it." << std::endl;
-			close(conv.tempFd);
-			_executorFds.erase(conv.tempFd);
+		if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, conv.cgiIn, &ev) < 0) {
+			std::cerr << "epoll_ctl MOD failed on fd " << conv.cgiIn << ": " << strerror(errno) << ". Closing it." << std::endl;
+			close(conv.cgiIn);
+			_executorFds.erase(conv.cgiIn);
 			return ;
 		}
 	}
@@ -70,7 +70,7 @@ void Dispatcher::setClientInterest(Conversation& conv, e_interest_mode mode) {
 	std::cout << "=== DEBUG setClientInterest ===" << std::endl;
 	std::cout << "fd: " << conv.fd << ", mode: " << mode << std::endl;
 	std::cout << "_epollFd: " << _epollFd << std::endl;
-    
+
 	// Vérifier si le fd est encore valide
 	int flags = fcntl(conv.fd, F_GETFL);
 	if (flags == -1) {
@@ -108,7 +108,7 @@ void Dispatcher::setClientInterest(Conversation& conv, e_interest_mode mode) {
 		return;
 	}
 
-	std::cout << "Calling epoll_ctl with: epollfd=" << _epollFd 
+	std::cout << "Calling epoll_ctl with: epollfd=" << _epollFd
 			<< ", fd=" << conv.fd << ", events=" << ev.events << std::endl;
 
 	if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, conv.fd, &ev) < 0) {
@@ -172,17 +172,17 @@ void	Dispatcher::removeClientFromEpoll(Conversation& conv) {
 	}
 }
 
-void	Dispatcher::removeExecutorFdFromEpoll(Conversation& conv) {
+// void	Dispatcher::removeExecutorFdFromEpoll(Conversation& conv) {
 
-	int executorFd = conv.fdToClose;
+// 	int executorFd = conv.fdToClose;
 
-	if (epoll_ctl(_epollFd, EPOLL_CTL_DEL, executorFd, NULL) < 0) {
-		std::cerr << "Failed to remove executor fd " << conv.config.identity.host << " from epoll\n";
-	}
-	close(executorFd);
-	_executorFds.erase(conv.fdToClose);
-	conv.fdToClose = -1;
-}
+// 	if (epoll_ctl(_epollFd, EPOLL_CTL_DEL, executorFd, NULL) < 0) {
+// 		std::cerr << "Failed to remove executor fd " << conv.config.identity.host << " from epoll\n";
+// 	}
+// 	close(executorFd);
+// 	_executorFds.erase(conv.fdToClose);
+// 	conv.fdToClose = -1;
+// }
 
 void Dispatcher::setTimeoutResponse(Conversation& conv) {
 
@@ -252,7 +252,7 @@ void	Dispatcher::dispatch(Conversation& conv) {
 		}
 	}
 
-	if (conv.fdToClose != -1) {
-		removeExecutorFdFromEpoll(conv);
-	}
+	// if (conv.fdToClose != -1) {
+	// 	removeExecutorFdFromEpoll(conv);
+	// }
 }

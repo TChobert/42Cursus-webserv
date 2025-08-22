@@ -160,13 +160,13 @@ void	CGIHandler::handleGetCGI(Conversation& conv)
 	//recuperer le bon interpreteur par rapport a extension, exemple, .py >> python3
 	std::map<cgiExtension, cgiHandler>::const_iterator it = conv.location->cgiHandlers.find(extension);
 	if (it == conv.location->cgiHandlers.end())
-		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+		return Executor::sendErrorPage(conv, INTERNAL_SERVER_ERROR);
 	const std::string& interpreter = it->second;
 	std::cout << "INTERPRETER = " << interpreter << std::endl;
 
 	int pipe_out[2];
 	if (pipe(pipe_out) == -1)
-		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+		return Executor::sendErrorPage(conv, INTERNAL_SERVER_ERROR);
 
 	std::cout << "HELLO" << std::endl;
 
@@ -176,7 +176,7 @@ void	CGIHandler::handleGetCGI(Conversation& conv)
 		std::cout << "PID < 0" << std::endl;
 		close(pipe_out[0]);
 		close(pipe_out[1]);
-		Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+		Executor::sendErrorPage(conv, INTERNAL_SERVER_ERROR);
 		return;
 	}
 
@@ -235,19 +235,19 @@ void	CGIHandler::handlePostCGI(Conversation& conv)
 
 	std::map<cgiExtension, cgiHandler>::const_iterator it = conv.location->cgiHandlers.find(extension);
 	if (it == conv.location->cgiHandlers.end())
-		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+		return Executor::sendErrorPage(conv, INTERNAL_SERVER_ERROR);
 	const std::string& interpreter = it->second;
 
 	int pipe_in[2], pipe_out[2];
 	if (pipe(pipe_in) == -1 || pipe(pipe_out) == -1)
-		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+		return Executor::sendErrorPage(conv, INTERNAL_SERVER_ERROR);
 
 	pid_t pid = fork();
 	if (pid < 0)
 	{
 		close(pipe_in[0]); close(pipe_in[1]);
 		close(pipe_out[0]); close(pipe_out[1]);
-		return Executor::setResponse(conv, INTERNAL_SERVER_ERROR);
+		return Executor::sendErrorPage(conv, INTERNAL_SERVER_ERROR);
 	}
 	if (pid == 0)
 	{
@@ -332,5 +332,5 @@ void CGIHandler::handleCGI(Conversation& conv)
 	else if (method == "POST")
 		handlePostCGI(conv);
 	else
-		Executor::setResponse(conv, NOT_IMPLEMENTED);
+		Executor::sendErrorPage(conv, NOT_IMPLEMENTED);
 }

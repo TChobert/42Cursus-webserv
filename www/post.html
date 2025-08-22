@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <title>Test POST avec upload fichiers</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <h1>Formulaire de test POST</h1>
-  <form action="/" method="post" enctype="multipart/form-data">
-    <p>Remplissez ce formulaire pour envoyer un message, ou envoyez un ou plusieurs fichiers :</p>
+  <p>Remplissez ce formulaire pour envoyer un message, ou envoyer un ou plusieurs fichiers :</p>
 
+  <form action="/" method="post" enctype="multipart/form-data" class="post-form">
     <label for="name">Nom :</label><br />
     <input type="text" id="name" name="name" /><br /><br />
 
@@ -20,10 +21,18 @@
 
     <hr>
 
-    <label for="file">Choisissez un ou plusieurs fichiers (images ou PDF) :</label><br />
+    <label for="file">Choisissez un ou plusieurs fichiers :</label><br />
     <input type="file" id="file" name="files[]" accept="image/*,application/pdf" multiple /><br /><br />
 
     <button type="submit">Envoyer</button>
   </form>
+
+  <div class="form-nav">
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+</div>
 </body>
 </html>

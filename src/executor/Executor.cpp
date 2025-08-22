@@ -82,11 +82,28 @@ void	Executor::setResponse(Conversation& conv, statusCode code)
 	conv.state = RESPONSE;
 }
 
+void	Executor::sendErrorPage(Conversation& conv, statusCode code)
+{
+	std::map<int, std::string>& errorPages = conv.config.errorPagesCodes;
+	std::map<int, std::string>::iterator it = errorPages.find(code);
+
+	if (it != errorPages.end())
+	{
+		conv.req.pathOnDisk = it->second;
+		StaticFileHandler::handleStaticFile(conv, code);
+	}
+	else
+	{
+		conv.resp.body = "<html><body><h1>Error</h1></body></html>";
+		Executor::setResponse(conv, code);
+	}
+}
+
 void	Executor::execute(Conversation& conv)
 {
 	if(isClientCgiTimeOut(conv)) {
 		std::cerr << "ICI" << std::endl;
-		setResponse(conv, GATEWAY_TIMEOUT);
+		sendErrorPage(conv, GATEWAY_TIMEOUT);
 	}
 	switch (conv.eState)
 	{
@@ -94,18 +111,18 @@ void	Executor::execute(Conversation& conv)
 			Executor::executeStart(conv);
 			break;
 //cas pour GET
-		case READ_EXEC_GET_CGI:
-			GetExecutor::resumeReadCGI(conv);
-			break;
-//cas pour POST
-		case WRITE_EXEC_POST_CGI:
-			PostExecutor::resumePostWriteBodyToCGI(conv);
-			break;
-		case READ_EXEC_POST_CGI:
-			PostExecutor::resumePostReadCGI(conv);
+// 		case READ_EXEC_GET_CGI:
+// 			GetExecutor::resumeReadCGI(conv);
+// 			break;
+// //cas pour POST
+// 		case WRITE_EXEC_POST_CGI:
+// 			PostExecutor::resumePostWriteBodyToCGI(conv);
+// 			break;
+// 		case READ_EXEC_POST_CGI:
+// 			PostExecutor::resumePostReadCGI(conv);
 			break;
 		default:
-			setResponse(conv, INTERNAL_SERVER_ERROR);
+			sendErrorPage(conv, INTERNAL_SERVER_ERROR);
 			break;
 	}
 }
@@ -116,7 +133,7 @@ void	Executor::executeStart(Conversation& conv)
 
 	if (conv.resp.status != NOT_A_STATUS_CODE && conv.resp.status != CONTINUE)
 	{
-		setResponse(conv, conv.resp.status);
+		sendErrorPage(conv, conv.resp.status);
 		return;
 	}
 
@@ -128,5 +145,5 @@ void	Executor::executeStart(Conversation& conv)
 	else if (method == "DELETE")
 		DeleteExecutor::handleDelete(conv);
 	else
-		setResponse(conv, NOT_IMPLEMENTED);
+		sendErrorPage(conv, NOT_IMPLEMENTED);
 }
