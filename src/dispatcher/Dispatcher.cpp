@@ -172,17 +172,17 @@ void	Dispatcher::removeClientFromEpoll(Conversation& conv) {
 	}
 }
 
-// void	Dispatcher::removeExecutorFdFromEpoll(Conversation& conv) {
+void	Dispatcher::removeExecutorFdFromEpoll(Conversation& conv) {
 
-// 	int executorFd = conv.fdToClose;
+	int executorFd = conv.fdToClose;
 
-// 	if (epoll_ctl(_epollFd, EPOLL_CTL_DEL, executorFd, NULL) < 0) {
-// 		std::cerr << "Failed to remove executor fd " << conv.config.identity.host << " from epoll\n";
-// 	}
-// 	close(executorFd);
-// 	_executorFds.erase(conv.fdToClose);
-// 	conv.fdToClose = -1;
-// }
+	if (epoll_ctl(_epollFd, EPOLL_CTL_DEL, executorFd, NULL) < 0) {
+		std::cerr << "Failed to remove executor fd " << conv.config.identity.host << " from epoll\n";
+	}
+	close(executorFd);
+	_executorFds.erase(conv.fdToClose);
+	conv.fdToClose = -1;
+}
 
 void Dispatcher::setTimeoutResponse(Conversation& conv) {
 
@@ -252,7 +252,7 @@ void	Dispatcher::dispatch(Conversation& conv) {
 		}
 	}
 
-	// if (conv.fdToClose != -1) {
-	// 	removeExecutorFdFromEpoll(conv);
-	// }
+	if (conv.fdToClose != -1) {
+		removeExecutorFdFromEpoll(conv);
+	}
 }

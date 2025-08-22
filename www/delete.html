@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Test DELETE</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Ajustements spécifiques à ce formulaire tout en gardant le style sobre */
+    .delete-form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 400px;
+      width: 100%;
+      margin: 2rem auto;
+      gap: 1rem;
+    }
+    .delete-form input {
+      padding: 0.75rem;
+      font-size: 1rem;
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .delete-form button {
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 12px;
+      border: none;
+      background: #cc0000;
+      color: #eee;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .delete-form button:hover {
+      background: #990000;
+      transform: translateY(-2px);
+    }
+    #result {
+      margin-top: 1rem;
+      font-weight: bold;
+      color: #cc0000;
+    }
+  </style>
+</head>
+<body>
+  <h1>🗑️ Test DELETE</h1>
+  <p>Entrez le nom du fichier à supprimer :</p>
+
+  <div class="delete-form">
+    <input type="text" id="filePath" placeholder="Ex: test.txt" />
+    <button onclick="sendDelete()">Supprimer</button>
+    <p id="result"></p>
+  </div>
+
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+
+  <script>
+    function sendDelete() {
+      const filePath = document.getElementById('filePath').value.trim();
+      if (!filePath) {
+        alert("Veuillez entrer un nom de fichier !");
+        return;
+      }
+
+      fetch(`/${filePath}`, { method: 'DELETE' })
+        .then(response => {
+          if (response.ok) return "Fichier supprimé avec succès !";
+          else return `Erreur ${response.status}: ${response.statusText}`;
+        })
+        .then(msg => {
+          document.getElementById('result').textContent = msg;
+        })
+        .catch(err => {
+          document.getElementById('result').textContent = "Erreur réseau : " + err;
+        });
+    }
+  </script>
+</body>
+</html>
