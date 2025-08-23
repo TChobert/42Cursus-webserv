@@ -12,7 +12,8 @@ Dispatcher::Dispatcher(int& EpollFd,
 						IModule* executor,
 						IModule* responseBuilder,
 						IModule* sender,
-						IModule* postSender) :
+						IModule* postSender,
+						IModule* cgiExecutor) :
 	_epollFd(EpollFd),
 	_clientsFds(clientsFds),
 	_executorFds(executorFds),
@@ -22,49 +23,52 @@ Dispatcher::Dispatcher(int& EpollFd,
 	_executor(executor),
 	_responseBuilder(responseBuilder),
 	_sender(sender),
-	_postSender(postSender) {}
+	_postSender(postSender),
+	_cgiExecutor(cgiExecutor) {}
 
 Dispatcher::~Dispatcher(void) {}
 
-bool	Dispatcher::isInExecutorFdsMap(const int& fd) const {
+// bool	Dispatcher::isInExecutorFdsMap(const int& fd) const {
 
-	return _executorFds.find(fd) != _executorFds.end();
-}
+// 	return _executorFds.find(fd) != _executorFds.end();
+// }
 
-void	Dispatcher::setExecutorInterest(Conversation& conv, e_interest_mode mode) {
+// void	Dispatcher::setExecutorInterest(Conversation& conv, e_interest_mode mode) {
 
-	if (conv.cgiIn < 0) {
-		std::cerr << "Invalid tempFd passed to setExecutorInterest" << std::endl;
-		return ;
-	}
-	struct epoll_event ev;
-	ev.data.fd = conv.cgiIn;
+// 	int fd = conv.execFd; //changement de l'interet, on passe au fd courant
 
-	switch (mode) {
-		case READ_EXEC_FD:
-			ev.events = EPOLLIN;
-			break;
-		case WRITE_EXEC_FD:
-			ev.events = EPOLLOUT;
-			break;
-	}
-	if (!isInExecutorFdsMap(conv.cgiIn)) {
-		if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, conv.cgiIn, &ev) < 0) {
-			std::cerr << "Failed to add fd requested by executor (" << conv.cgiIn << ") to interest list. Closing it." << std::endl;
-			close(conv.cgiIn);
-			return ;
-		}
-		_executorFds[conv.cgiIn]= &conv;
-	}
-	else {
-		if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, conv.cgiIn, &ev) < 0) {
-			std::cerr << "epoll_ctl MOD failed on fd " << conv.cgiIn << ": " << strerror(errno) << ". Closing it." << std::endl;
-			close(conv.cgiIn);
-			_executorFds.erase(conv.cgiIn);
-			return ;
-		}
-	}
-}
+// 	if (fd < 0) {
+// 		std::cerr << "Invalid tempFd passed to setExecutorInterest" << std::endl;
+// 		return ;
+// 	}
+// 	struct epoll_event ev;
+// 	ev.data.fd = fd;
+
+// 	switch (mode) {
+// 		case READ_EXEC_FD:
+// 			ev.events = EPOLLIN;
+// 			break;
+// 		case WRITE_EXEC_FD:
+// 			ev.events = EPOLLOUT;
+// 			break;
+// 	}
+// 	if (!isInExecutorFdsMap(fd)) {
+// 		if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, fd, &ev) < 0) {
+// 			std::cerr << "Failed to add fd requested by executor (" << fd << ") to interest list. Closing it." << std::endl;
+// 			close(fd);
+// 			return ;
+// 		}
+// 		_executorFds[fd]= &conv;
+// 	}
+// 	else {
+// 		if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, fd, &ev) < 0) {
+// 			std::cerr << "epoll_ctl MOD failed on fd " << fd << ": " << strerror(errno) << ". Closing it." << std::endl;
+// 			close(fd);
+// 			_executorFds.erase(fd);
+// 			return ;
+// 		}
+// 	}
+// }
 
 void Dispatcher::setClientInterest(Conversation& conv, e_interest_mode mode) {
 	std::cout << "=== DEBUG setClientInterest ===" << std::endl;
@@ -156,10 +160,10 @@ void	Dispatcher::setEpollInterest(Conversation& conv, e_interest_mode mode) {
 		case WRITE:
 			setClientInterest(conv, mode);
 			break;
-		case READ_EXEC_FD:
-		case WRITE_EXEC_FD:
-			setExecutorInterest(conv, mode);
-			break;
+		// case READ_EXEC_FD:
+		// case WRITE_EXEC_FD:
+		// 	setExecutorInterest(conv, mode);
+		// 	break;
 	}
 }
 
@@ -172,16 +176,25 @@ void	Dispatcher::removeClientFromEpoll(Conversation& conv) {
 	}
 }
 
-void	Dispatcher::removeExecutorFdFromEpoll(Conversation& conv) {
+// void	Dispatcher::removeExecutorFdFromEpoll(Conversation& conv) {
 
-	int executorFd = conv.fdToClose;
+// 	int executorFd = conv.fdToClose;
 
+// 	if (epoll_ctl(_epollFd, EPOLL_CTL_DEL, executorFd, NULL) < 0) {
+// 		std::cerr << "Failed to remove executor fd " << conv.config.identity.host << " from epoll\n";
+// 	}
+// 	close(executorFd);
+// 	_executorFds.erase(conv.fdToClose);
+// 	conv.fdToClose = -1;
+// }
+
+void Dispatcher::removeExecutorFdFromEpoll(Conversation& conv, int executorFd)
+{
 	if (epoll_ctl(_epollFd, EPOLL_CTL_DEL, executorFd, NULL) < 0) {
-		std::cerr << "Failed to remove executor fd " << conv.config.identity.host << " from epoll\n";
+		std::cerr << "Failed to remove executor fd " << executorFd << " from epoll: " << strerror(errno) << std::endl;
 	}
 	close(executorFd);
-	_executorFds.erase(conv.fdToClose);
-	conv.fdToClose = -1;
+	_executorFds.erase(executorFd);
 }
 
 void Dispatcher::setTimeoutResponse(Conversation& conv) {
@@ -196,10 +209,10 @@ void	Dispatcher::dispatch(Conversation& conv) {
 		conv.state = TO_SEND;
 	else if (conv.state == READ_CLIENT)
 		conv.state = TO_READ;
-	else if (conv.state == READ_EXEC)
-		conv.state = EXEC;
-	else if (conv.state == WRITE_EXEC)
-		conv.state = EXEC;
+	// else if (conv.state == READ_EXEC)
+	// 	conv.state = EXEC;
+	// else if (conv.state == WRITE_EXEC)
+	// 	conv.state = EXEC;
 
 	while (true) {
 
@@ -230,6 +243,10 @@ void	Dispatcher::dispatch(Conversation& conv) {
 			std::cout << "VALIDATOR CALLED" << std::endl;
 			_validator->execute(conv);
 		}
+		else if (conv.state == CGI_EXECUTOR) {
+			std::cout << "CGI EXECUTOR CALLED" << std::endl;
+			_cgiExecutor->execute(conv);
+		}
 		else if (conv.state == READ_EXEC) {
 			setEpollInterest(conv, READ_EXEC_FD);
 			break ;
@@ -252,7 +269,16 @@ void	Dispatcher::dispatch(Conversation& conv) {
 		}
 	}
 
-	if (conv.fdToClose != -1) {
-		removeExecutorFdFromEpoll(conv);
+	// if (conv.fdToClose != -1) {
+	// 	removeExecutorFdFromEpoll(conv);
+	// }
+	if (!conv.fdsToClose.empty())
+	{
+		for (size_t i = 0; i < conv.fdsToClose.size(); ++i)
+		{
+			int fd = conv.fdsToClose[i];
+			removeExecutorFdFromEpoll(conv, fd);
+		}
+		conv.fdsToClose.clear(); // tous fermés → on vide le vecteur
 	}
 }

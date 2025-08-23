@@ -35,6 +35,7 @@ void PostExecutor::handlePost(Conversation& conv)
 
 	if (CGIHandler::isCGI(conv))
 	{
+		conv.isCgi = true;
 		CGIHandler::handleCGI(conv);
 		return;
 	}

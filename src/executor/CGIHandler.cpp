@@ -17,17 +17,7 @@
 //- gestion timeouts
 
 
-
 /* ---------------- PRIVATE METHODS ------------------ */
-
-//Exemple:
-// line = "Content-Type: text/html"
-
-// colon = 12
-
-// key = line.substr(0, 12) = "Content-Type"
-// value = line.substr(13) = " text/html"
-// value.erase(0, value.find_first_not_of(" \t")) => "text/html"
 
 void	CGIHandler::parseCgiOutput(Conversation& conv)
 {
@@ -150,25 +140,19 @@ char**	CGIHandler::prepareEnv(Conversation& conv)
 
 void	CGIHandler::handleGetCGI(Conversation& conv)
 {
-	//chemin absolu du script CGI a executer
 	const std::string& scriptPath = conv.req.pathOnDisk;
 	std::cout << "SCRIPT PATH HANDLEGETCGI = " << scriptPath << std::endl;
 
-	//recuperer la bonne extension du script a faire (.py, .php, etc)
 	std::string extension = getFileExtension(scriptPath);
 
-	//recuperer le bon interpreteur par rapport a extension, exemple, .py >> python3
 	std::map<cgiExtension, cgiHandler>::const_iterator it = conv.location->cgiHandlers.find(extension);
 	if (it == conv.location->cgiHandlers.end())
 		return Executor::sendErrorPage(conv, INTERNAL_SERVER_ERROR);
 	const std::string& interpreter = it->second;
-	std::cout << "INTERPRETER = " << interpreter << std::endl;
 
 	int pipe_out[2];
 	if (pipe(pipe_out) == -1)
 		return Executor::sendErrorPage(conv, INTERNAL_SERVER_ERROR);
-
-	std::cout << "HELLO" << std::endl;
 
 	pid_t pid = fork();
 	if (pid < 0)
@@ -223,7 +207,9 @@ void	CGIHandler::handleGetCGI(Conversation& conv)
 		if (fcntl(conv.cgiOut, F_SETFL, flags | O_NONBLOCK) == -1) {
 			perror("fcntl F_SETFL O_NONBLOCK");
 		}
-		conv.eState = READ_EXEC_GET_CGI;
+		// conv.execFd = conv.cgiOut;
+		// conv.eState = READ_EXEC_GET_CGI;
+		// conv.state = READ_EXEC;
 		conv.state = CGI_EXECUTOR;
 	}
 }
@@ -298,7 +284,7 @@ void	CGIHandler::handlePostCGI(Conversation& conv)
 		else
 			conv.streamState = START_STREAM;
 
-		conv.state = CGI_EXECUTOR;
+		conv.state = WRITE_EXEC;
 	}
 }
 

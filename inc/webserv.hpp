@@ -63,8 +63,10 @@ public:
 	int fd;
 	int cgiIn;
 	int cgiOut;
+	int execFd;
 	std::set<int> readyFds;
 	std::vector<int> fdsToClose;
+	bool isCgi;
 	bool cgiFinished;
 	bool headersSent;
 	size_t bytesSent;
@@ -84,5 +86,6 @@ public:
 	std::string cgiOutput;
 	std::map<std::string, std::string> formFields;
 	std::vector<std::string> uploadedFiles;
-	Conversation() : fd(-1), cgiIn(-1), cgiOut(-1), cgiFinished(false), headersSent(false), bytesSent(0), cgiPid(-1), cgiStartTime(0), location (0), state(PARSE), pState(START), eState(EXEC_START), streamState(NORMAL) {};
+	std::map<std::string, std::string> cgiHeaders;
+	Conversation() : fd(-1), cgiIn(-1), cgiOut(-1), execFd(-1), isCgi(false), cgiFinished(false), headersSent(false), bytesSent(0), cgiPid(-1), cgiStartTime(0), location (0), state(PARSE), pState(START), eState(EXEC_START), streamState(NORMAL) {};
 };

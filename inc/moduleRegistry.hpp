@@ -11,4 +11,5 @@ struct moduleRegistry {
 	IModule *responseBuilder;
 	IModule *sender;
 	IModule *postSender;
+	IModule *cgiExecutor;
 };

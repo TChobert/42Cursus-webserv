@@ -38,19 +38,20 @@ class Dispatcher {
 	IModule*	_responseBuilder;
 	IModule*	_sender;
 	IModule*	_postSender;
+	IModule*	_cgiExecutor;
 
 	bool	isInExecutorFdsMap(const int& fd) const;
 	void	setExecutorInterest(Conversation& conv, e_interest_mode mode);
 	void	setClientInterest(Conversation& conv, e_interest_mode mode);
 	void	setEpollInterest(Conversation& conv, e_interest_mode mode);
 	void	removeClientFromEpoll(Conversation& conv);
-	void	removeExecutorFdFromEpoll(Conversation	& conv);
+	void	removeExecutorFdFromEpoll(Conversation& conv, int executorFd);
 	void	setTimeoutResponse(Conversation& conv);
 
 	public:
 
 	Dispatcher(int& EpollFd, std::map<int, Conversation>& clientsFds, std::map<int, Conversation*>& executorFds, IModule* reader, IModule* parser, IModule* validator, IModule* executor,
-		IModule* responseBuilder, IModule* sender, IModule* postSender);
+		IModule* responseBuilder, IModule* sender, IModule* postSender, IModule* cgiExecutor);
 	~Dispatcher(void);
 
 	void	dispatch(Conversation& conv);

@@ -36,7 +36,11 @@ void	GetExecutor::handleFile(Conversation& conv)
 {
 	std::cout << "[handleFile] pathOnDisk: " << conv.req.pathOnDisk << std::endl;
 	if (CGIHandler::isCGI(conv))
-		CGIHandler::handleCGI(conv);
+	{
+		conv.isCgi = true;
+		conv.state = CGI_EXECUTOR;
+		return;
+	}
 	else
 		StaticFileHandler::handleStaticFile(conv, OK);
 }

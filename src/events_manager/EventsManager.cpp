@@ -9,11 +9,10 @@ EventsManager::EventsManager(int& epollFd, ConfigStore& configs,
 	_initializer(initializer),
 	_listenSockets(),
 	_clients(),
-	_executorFds(),
 	_dispatcher(epollFd, _clients, _executorFds,
 		modules.reader, modules.parser, modules.validator,
 		modules.executor, modules.responseBuilder,
-		modules.sender, modules.postSender) {}
+		modules.sender, modules.postSender, modules.cgiExecutor) {}
 
 EventsManager::~EventsManager(void) {
 	deleteAllNetwork();
@@ -72,19 +71,19 @@ void	EventsManager::deleteAllNetwork(void) {
 
 void EventsManager::handleClientEvent(int fd) {
 
-	std::map<int, Conversation*>::iterator execIt = _executorFds.find(fd);
+	// std::map<int, Conversation*>::iterator execIt = _executorFds.find(fd);
 
-	if (execIt != _executorFds.end()) {
-		updateClientLastActivity(*execIt->second, REGULAR);
-		_dispatcher.dispatch(*execIt->second);
-	} else {
+	// if (execIt != _executorFds.end()) {
+	// 	updateClientLastActivity(*execIt->second, REGULAR);
+	// 	_dispatcher.dispatch(*execIt->second);
+	// } else {
 		std::map<int, Conversation>::iterator clientIt = _clients.find(fd);
 		if (clientIt != _clients.end()) {
 			std::cout << "Client found !!" << std::endl;
 			updateClientLastActivity(clientIt->second, REGULAR);
 			_dispatcher.dispatch(clientIt->second);
 		}
-	}
+
 }
 
 void	EventsManager::setSocketNonBlocking(int fd) {
